@@ -32,11 +32,18 @@ It solves two critical problems in the Indian rental market:
 
 ---
 
+### 🏠 Property Buying & Resale Transparency (Pilot: Bengaluru)
+- **Crore & Price/Sq.Ft Parsing**: Accurately normalizes sale values (`₹1.25 Cr`, `1.45 Crore`) and displays normalized rate per square foot.
+- **Government Circle Rates / Guidance Values**: Displays official Kaveri 2.0 minimum registration values and flags listings priced suspiciously under circle rates.
+- **Official RERA Verification Link-Outs**: Extracts state RERA numbers and directs users to official government authority verification portals with one click.
+- **Buyer Due Diligence Checklist**: In-drawer actionable checklist covering Title Deed clearance, Encumbrance Certificate, OC/CC, and carpet verification.
+- **Loan EMI Amortization Calculator**: Client-side calculation of monthly EMI, total interest, and amortized repayment schedules.
+
 ### 📈 Buyhatke-Style Property Companion
 - **Inline Price History Sparklines**: Generates zero-dependency mathematical SVG sparklines directly in the listing page.
-- **Price Drop Alerts**: Automatically alerts you when a landlord lowers the rent on a property you've viewed (`↓ ₹2,000 (-5.0%)`).
-- **Side-by-Side Comparison Matrix**: Select 2 to 4 listings to view an automated breakdown of Rent, Deposit Multiple, Area (sq.ft), Rent per sq.ft, and Floor Level.
-- **One-Click CSV Export**: Download your saved shortlist and price histories for offline review or sharing with roommates.
+- **Price Drop Alerts**: Automatically alerts you when a landlord or seller lowers the price on a property you've viewed (`↓ ₹2,000 (-5.0%)` or `↓ ₹5,00,000`).
+- **Side-by-Side Comparison Matrix**: Select 2 to 4 listings to view an automated breakdown of Price/Rent, Area (sq.ft), Price/sq.ft, and Floor Level.
+- **One-Click CSV Export**: Download your saved shortlist and price histories for offline review or sharing with family.
 
 ---
 

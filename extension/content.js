@@ -272,12 +272,21 @@
       const historyStatsRow = document.createElement('div');
       historyStatsRow.className = 'flataudit-history-stats';
 
+      const isSale = data.listing?.listingType === 'sale' || Boolean(data.listing?.price && !data.listing?.rent);
       const rentStat = document.createElement('span');
       rentStat.className = 'flataudit-stat-rent';
-      rentStat.textContent = `₹${(data.listing.rent || 0).toLocaleString('en-IN')}/mo`;
+      if (isSale) {
+        const p = data.listing?.price || 0;
+        const pStr = p >= 10000000 ? `₹${(p / 10000000).toFixed(2)} Cr` : `₹${(p / 100000).toFixed(2)} L`;
+        const psfStr = data.listing?.pricePerSqft ? ` (₹${data.listing.pricePerSqft.toLocaleString('en-IN')}/sqft)` : '';
+        rentStat.textContent = pStr + psfStr;
+      } else {
+        rentStat.textContent = `₹${(data.listing?.rent || 0).toLocaleString('en-IN')}/mo`;
+      }
 
       const deltaBadge = document.createElement('span');
-      const stats = computePriceHistoryStats(trackedItem ? trackedItem.snapshots : [{ rent: data.listing.rent }]);
+      const snapPrices = isSale ? [{ price: data.listing?.price }] : [{ rent: data.listing?.rent }];
+      const stats = computePriceHistoryStats(trackedItem ? trackedItem.snapshots : snapPrices);
 
       if (stats.delta < 0) {
         deltaBadge.className = 'flataudit-delta-badge drop';
@@ -287,7 +296,7 @@
         deltaBadge.textContent = `↑ ₹${stats.delta.toLocaleString('en-IN')} (+${stats.pctChange}%)`;
       } else {
         deltaBadge.className = 'flataudit-delta-badge stable';
-        deltaBadge.textContent = 'Rent unchanged';
+        deltaBadge.textContent = isSale ? 'Price unchanged' : 'Rent unchanged';
       }
 
       historyStatsRow.appendChild(rentStat);
@@ -472,23 +481,23 @@
       }
       drawer.appendChild(pointsList);
 
-      // Section: Renter Protection Checklist
+      // Section: Protection / Due Diligence Checklist
       const safetyBox = document.createElement('div');
       safetyBox.className = 'flataudit-safety-box';
 
       const safetyHeader = document.createElement('div');
       safetyHeader.className = 'flataudit-safety-header';
-      safetyHeader.textContent = '💡 Renter Safety Advice:';
+      safetyHeader.textContent = isSale ? '🛡️ Buyer Due Diligence Checklist:' : '💡 Renter Safety Advice:';
       safetyBox.appendChild(safetyHeader);
 
       const safetyList = document.createElement('ul');
       safetyList.className = 'flataudit-safety-list';
 
-      const adviceItems = data.safetyAdvice || [
+      const adviceItems = (isSale && data.buyerDueDiligenceChecklist) ? data.buyerDueDiligenceChecklist : (data.safetyAdvice || [
         'Never transfer any gate entry pass or token fee via UPI before in-person flat visit.',
         'Request to meet building security or caretaker at the gate to verify vacant flat.',
         'Legitimate landlords in India never charge entry fees to inspect a rental property.'
-      ];
+      ]);
 
       for (const tip of adviceItems) {
         const li = document.createElement('li');
@@ -496,6 +505,24 @@
         safetyList.appendChild(li);
       }
       safetyBox.appendChild(safetyList);
+
+      if (isSale && data.reraPortal) {
+        const reraLink = document.createElement('a');
+        reraLink.href = data.reraPortal;
+        reraLink.target = '_blank';
+        reraLink.rel = 'noopener noreferrer';
+        reraLink.className = 'flataudit-rera-link-btn';
+        reraLink.textContent = '🏛️ Open Official RERA Portal ↗';
+        safetyBox.appendChild(reraLink);
+      }
+
+      if (isSale) {
+        const disclaimer = document.createElement('p');
+        disclaimer.className = 'flataudit-disclaimer-note';
+        disclaimer.textContent = '⚖️ Observable facts only. FlatAudit does not verify property title deeds or provide financial/legal advice. Always engage an independent advocate before transferring funds.';
+        safetyBox.appendChild(disclaimer);
+      }
+
       drawer.appendChild(safetyBox);
 
       // Meta Footer

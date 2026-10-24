@@ -5,6 +5,8 @@ import {
   evaluateDepositSignal,
   evaluatePhraseSignal,
   evaluateDuplicateImageSignal,
+  evaluateSalePriceSignal,
+  evaluateReraSignal,
   analyzeListing
 } from '../extension/lib/signals.js';
 
@@ -112,6 +114,87 @@ describe('Signal Evaluation Rules', () => {
         assert.doesNotMatch(fact, /scammer|criminal|fraud/i);
       }
       assert.match(analysis.scamKillChainStage, /Stage/);
+    });
+
+    it('evaluates resale apartment for sale with guidance value comparison and due diligence checklist', () => {
+      const saleListing = {
+        listingType: 'sale',
+        title: '2 BHK Resale in Electronic City Phase 1',
+        price: 12500000, // ₹1.25 Cr
+        pricePerSqft: 10162,
+        area_sqft: 1230,
+        bhk: 2,
+        locality: 'Electronic City, Bangalore',
+        reraId: 'PRM/KA/RERA/1251/310/PR/171015/000451',
+        possessionStatus: 'ready_to_move',
+        description: 'East-facing resale flat. OC, CC, and A-Khata available. Bank loans approved.'
+      };
+
+      const analysis = analyzeListing(saleListing, { seenCount: 1 });
+      assert.equal(analysis.listingType, 'sale');
+      assert.equal(analysis.badgeLabel, 'Looks normal');
+      assert.equal(analysis.badgeTone, 'ok');
+      assert.equal(analysis.firedCount, 0);
+
+      // Verify human readable points structure for sale
+      assert.equal(analysis.humanReadablePoints.length, 4);
+      assert.equal(analysis.humanReadablePoints[0].category, 'Sale Valuation');
+      assert.equal(analysis.humanReadablePoints[1].category, 'RERA Registration');
+      assert.equal(analysis.humanReadablePoints[2].category, 'Terms & Token Hold');
+      assert.equal(analysis.humanReadablePoints[3].category, 'Photo Authenticity');
+
+      // Verify Buyer Due Diligence Checklist (5 actionable verification steps)
+      assert.equal(analysis.buyerDueDiligenceChecklist.length, 5);
+      assert.match(analysis.buyerDueDiligenceChecklist[0], /Title Search/i);
+      assert.match(analysis.buyerDueDiligenceChecklist[1], /Encumbrance Certificate/i);
+
+      // Verify legal disclaimer presence
+      assert.match(analysis.disclaimer, /Observable facts only/i);
+      assert.match(analysis.disclaimer, /does not verify property title/i);
+    });
+
+    it('fires warning when asking price per sqft is suspiciously below government circle rate', () => {
+      const suspiciousSaleListing = {
+        listingType: 'sale',
+        title: 'Luxury 3 BHK in HSR Layout at throwaway price',
+        price: 3500000, // ₹35 Lakhs for 1500 sqft in HSR Layout (~₹2,333/sqft vs guidance ₹8,800/sqft)
+        pricePerSqft: 2333,
+        area_sqft: 1500,
+        bhk: 3,
+        locality: 'HSR Layout, Bangalore',
+        description: 'Urgent distress sale. Pay token to reserve the flat.'
+      };
+
+      const analysis = analyzeListing(suspiciousSaleListing, { seenCount: 1 });
+      assert.equal(analysis.listingType, 'sale');
+      assert.equal(analysis.signals.price.fired, true);
+      assert.match(analysis.signals.price.reason, /below government guidance rate/i);
+      assert.match(analysis.signals.phrase.reason, /Demands booking token/i);
+      assert.equal(analysis.badgeTone, 'bad');
+    });
+  });
+
+  describe('Buying Checks & Official RERA Links', () => {
+    it('evaluates RERA registration number and generates official portal link', () => {
+      const karnatakaListing = {
+        locality: 'Electronic City, Bangalore',
+        reraId: 'PRM/KA/RERA/1251/310/PR/171015/000451'
+      };
+      const reraSignal = evaluateReraSignal(karnatakaListing);
+      assert.equal(reraSignal.fired, false);
+      assert.match(reraSignal.portalUrl, /rera\.karnataka\.gov\.in/i);
+      assert.match(reraSignal.reason, /PRM\/KA\/RERA/i);
+    });
+
+    it('advises checking physical OC & CC for resale apartments when RERA is absent', () => {
+      const resaleListing = {
+        locality: 'Indiranagar, Bangalore',
+        possessionStatus: 'ready_to_move',
+        title: 'Ready to Move Resale Flat'
+      };
+      const reraSignal = evaluateReraSignal(resaleListing);
+      assert.match(reraSignal.point, /Verify physical OC & CC/i);
+      assert.match(reraSignal.humanReason, /Occupancy Certificate/i);
     });
   });
 });

@@ -6,7 +6,7 @@
  * Never uses defamatory labels ("scammer", "fraud"); only states verifiable observations.
  */
 
-import { getBenchmark, robustZScore } from './benchmarks.js';
+import { getBenchmark, robustZScore, getGuidanceValue, getReraPortalUrl } from './benchmarks.js';
 import marketPacksData from './data/market_packs.json' with { type: 'json' };
 
 // Backwards-compatible export mapping for external tools & tests
@@ -79,6 +79,27 @@ export const PHRASE_PATTERNS = [
       /whatsapp\s*immediately\s*for\s*upi\s*qr/i
     ],
     label: 'High-pressure urgency or unusual refund assurance'
+  },
+  {
+    category: 'sale_token_pressure',
+    severity: 'high',
+    patterns: [
+      /token\s*to\s*(?:hold|block|reserve)\s*(?:the\s*flat|property|deal)/i,
+      /non-?refundable\s*booking\s*(?:token|advance)/i,
+      /advance\s*token\s*before\s*legal\s*verification/i
+    ],
+    label: 'Demands booking token before legal due diligence'
+  },
+  {
+    category: 'sale_title_risk',
+    severity: 'high',
+    patterns: [
+      /\b(?:gpa|power\s*of\s*attorney)\s*sale\b/i,
+      /\bunapproved\s*layout\b/i,
+      /\brevenue\s*(?:site|land)\s*without\s*dc\b/i,
+      /\blitigation\s*pending\b/i
+    ],
+    label: 'Potential title or unapproved layout risk mentioned'
   }
 ];
 
@@ -376,14 +397,197 @@ export function evaluateDuplicateImageSignal(seenCount = 1) {
 }
 
 /**
+ * Evaluates asking price for sale listings relative to government circle rate (guidance value).
+ */
+export function evaluateSalePriceSignal(listing, context = {}) {
+  const price = listing.price || listing.salePrice || 0;
+  const area = listing.area_sqft || listing.areaSqft || 0;
+  const psf = listing.pricePerSqft || (price > 0 && area > 0 ? Math.round(price / area) : null);
+  const locality = listing.locality || '';
+  const guidance = getGuidanceValue(locality, listing.city || 'bengaluru');
+
+  if (!price || price <= 0) {
+    return {
+      fired: false,
+      reason: 'No sale price specified',
+      point: 'Price details not found on page.',
+      humanReason: 'Could not extract numeric sale price.'
+    };
+  }
+
+  // Compare against Guidance Value (Circle Rate) if available
+  if (guidance && psf) {
+    const guidanceRate = guidance.guidancePerSqft;
+    // Suspiciously below circle rate (> 35% below government reference value)
+    if (psf < guidanceRate * 0.65) {
+      const discount = Math.round((1 - psf / guidanceRate) * 100);
+      return {
+        fired: true,
+        severity: 'high',
+        reason: `Asking rate of ₹${psf.toLocaleString('en-IN')}/sq.ft is ${discount}% below government guidance rate (₹${guidanceRate.toLocaleString('en-IN')}/sq.ft) [${guidance.source}]`,
+        point: `Asking rate is ${discount}% below government circle rate.`,
+        humanReason: `Official government guidance value for ${guidance.localityKey} is ₹${guidanceRate.toLocaleString('en-IN')}/sq.ft (${guidance.source}, effective ${guidance.effectiveDate}). Listings significantly below circle rate may indicate undocumented cash demands or unapproved construction.`,
+        details: { price, psf, guidanceRate, discount, source: guidance.source }
+      };
+    }
+
+    return {
+      fired: false,
+      reason: `Asking rate of ₹${psf.toLocaleString('en-IN')}/sq.ft aligns with or exceeds government guidance rate (₹${guidanceRate.toLocaleString('en-IN')}/sq.ft) [${guidance.source}]`,
+      point: `Asking rate (₹${psf.toLocaleString('en-IN')}/sq.ft) exceeds government circle rate.`,
+      humanReason: `Price per square foot is above the official government guidance reference value of ₹${guidanceRate.toLocaleString('en-IN')}/sq.ft for ${guidance.localityKey} (${guidance.source}).`,
+      details: { price, psf, guidanceRate, source: guidance.source }
+    };
+  }
+
+  return {
+    fired: false,
+    reason: `Sale price ₹${price.toLocaleString('en-IN')} (₹${psf ? psf.toLocaleString('en-IN') + '/sq.ft' : 'N/A'}) [Not enough local guidance data]`,
+    point: `Asking price: ₹${(price / 10000000).toFixed(2)} Cr (${psf ? '₹' + psf.toLocaleString('en-IN') + '/sq.ft' : ''}).`,
+    humanReason: `Recorded asking price of ₹${(price / 10000000).toFixed(2)} Cr. Local government circle rate data is not yet indexed for this exact neighborhood.`,
+    details: { price, psf }
+  };
+}
+
+/**
+ * Evaluates presence of RERA registration ID and links out to official state search portal.
+ */
+export function evaluateReraSignal(listing) {
+  const reraId = listing.reraId || null;
+  const portal = getReraPortalUrl(reraId, listing.locality || '');
+
+  if (reraId) {
+    return {
+      fired: false,
+      reraId,
+      portalUrl: portal.url,
+      portalLabel: portal.label,
+      reason: `RERA Registration ID published: ${reraId} (${portal.label})`,
+      point: `RERA Registration ID provided (${reraId}).`,
+      humanReason: `Listing displays an official RERA registration number (${reraId}). You can independently verify builder disclosures and approvals directly on the official ${portal.label} (${portal.url}).`,
+      details: { reraId, state: portal.state, portalUrl: portal.url }
+    };
+  }
+
+  const isResale = /resale|ready\s*to\s*move/i.test(`${listing.title || ''} ${listing.description || ''} ${listing.possessionStatus || ''}`);
+
+  return {
+    fired: false,
+    reraId: null,
+    portalUrl: portal.url,
+    portalLabel: portal.label,
+    reason: isResale 
+      ? `Resale property: RERA not published; physical OC/CC verification required.`
+      : `No RERA registration ID displayed on listing page.`,
+    point: isResale ? 'Resale flat: Verify physical OC & CC.' : 'No RERA registration ID displayed.',
+    humanReason: isResale
+      ? `Completed resale properties built prior to RERA require physical verification of the Occupancy Certificate (OC) and building sanction plan.`
+      : `No RERA registration number is listed. Under RERA guidelines, all promotional listings for new projects must prominently display the official registration number. Verify directly on ${portal.label}.`,
+    details: { isResale, portalUrl: portal.url }
+  };
+}
+
+/**
  * Composite evaluator running all signals and constructing factual points & reasons.
  * Accepts optional options parameter to provide peerListings or customPacks.
  */
 export function analyzeListing(listing, options = {}) {
   const seenCount = options.seenCount || 1;
   const fullText = `${listing.title || ''} ${listing.description || ''}`;
+  const isSale = listing.listingType === 'sale' || Boolean(listing.price && !listing.rent);
 
-  // Evaluate individual signals with benchmark context
+  if (isSale) {
+    const salePriceSignal = evaluateSalePriceSignal(listing, options);
+    const reraSignal = evaluateReraSignal(listing);
+    const phraseSignal = evaluatePhraseSignal(fullText);
+    const imageSignal = evaluateDuplicateImageSignal(seenCount);
+
+    const firedSignals = [];
+    if (salePriceSignal.fired) firedSignals.push({ id: 'salePrice', ...salePriceSignal });
+    if (phraseSignal.fired) firedSignals.push({ id: 'phrase', ...phraseSignal });
+    if (imageSignal.fired) firedSignals.push({ id: 'duplicateImage', ...imageSignal });
+
+    const firedCount = firedSignals.length;
+    const highSeverityCount = firedSignals.filter(s => s.severity === 'high').length;
+
+    let badgeLabel = 'Looks normal';
+    let badgeTone = 'ok';
+    let headlineSummary = 'Property sale listing appears standard based on observable facts and circle rates.';
+
+    if (highSeverityCount >= 2 || firedCount >= 3) {
+      badgeLabel = 'Many signals';
+      badgeTone = 'bad';
+      headlineSummary = 'High Risk: Multiple price, title, or token anomalies flagged for this sale listing.';
+    } else if (highSeverityCount === 1 || firedCount >= 1) {
+      badgeLabel = 'Some signals';
+      badgeTone = 'warn';
+      headlineSummary = 'Notice: One or more unusual sale conditions observed. Conduct thorough legal review.';
+    }
+
+    const humanReadablePoints = [
+      {
+        category: 'Sale Valuation',
+        icon: '🏷️',
+        fired: salePriceSignal.fired,
+        point: salePriceSignal.point,
+        reason: salePriceSignal.humanReason
+      },
+      {
+        category: 'RERA Registration',
+        icon: '🏛️',
+        fired: reraSignal.fired,
+        point: reraSignal.point,
+        reason: reraSignal.humanReason,
+        portalUrl: reraSignal.portalUrl
+      },
+      {
+        category: 'Terms & Token Hold',
+        icon: '📜',
+        fired: phraseSignal.fired,
+        point: phraseSignal.point,
+        reason: phraseSignal.humanReason
+      },
+      {
+        category: 'Photo Authenticity',
+        icon: '🖼️',
+        fired: imageSignal.fired,
+        point: imageSignal.point,
+        reason: imageSignal.humanReason
+      }
+    ];
+
+    const buyerDueDiligenceChecklist = [
+      '1. 30-Year Title Search: Hire an independent property advocate to verify chain of title documents.',
+      '2. Encumbrance Certificate (EC): Obtain Nil Encumbrance Certificate (Form 15) from Sub-Registrar.',
+      '3. Sanction Plan & OC: Verify physical Occupancy Certificate (OC) and approved building plan.',
+      '4. Khata & Tax Receipts: Confirm latest property tax payment receipts and e-Khata extract.',
+      '5. Official RERA Portal Check: Confirm project approvals directly on the official state RERA portal.'
+    ];
+
+    return {
+      listingType: 'sale',
+      badgeLabel,
+      badgeTone,
+      headlineSummary,
+      firedCount,
+      observableFacts: firedSignals.map(s => s.reason),
+      humanReadablePoints,
+      buyerDueDiligenceChecklist,
+      safetyAdvice: buyerDueDiligenceChecklist,
+      reraPortal: reraSignal.portalUrl,
+      disclaimer: 'Observable facts only. FlatAudit does not verify property title deeds or provide financial/legal advice. Always engage an independent advocate before transferring funds.',
+      signals: {
+        price: salePriceSignal,
+        rera: reraSignal,
+        phrase: phraseSignal,
+        duplicateImage: imageSignal
+      }
+    };
+  }
+
+  // ==========================================
+  // Standard Rental Listing Analysis
+  // ==========================================
   const priceSignal = evaluatePriceSignal(listing, options);
   const depositSignal = evaluateDepositSignal(listing, options);
   const phraseSignal = evaluatePhraseSignal(fullText);
@@ -420,10 +624,8 @@ export function analyzeListing(listing, options = {}) {
     killChainStage = 'Stage 1: Fake Listing (Bait price / Stolen photos)';
   }
 
-  // Observable Facts (Defamation-free statements)
   const observableFacts = firedSignals.map(s => s.reason);
 
-  // Human-Readable Points & Reasons (Always 4 structured cards)
   const humanReadablePoints = [
     {
       category: 'Rent Pricing',
@@ -464,6 +666,7 @@ export function analyzeListing(listing, options = {}) {
   const resolvedBenchmark = getBenchmark(listing, options);
 
   return {
+    listingType: 'rent',
     badgeLabel,
     badgeTone,
     headlineSummary,

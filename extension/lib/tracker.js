@@ -172,7 +172,9 @@ export async function trackListing(listing) {
   const tracked = await getTrackedListings();
   const listingKey = listing.listingKey || parseListingKey(listing.portal, listing.url);
   const now = Date.now();
+  const isSale = listing.listingType === 'sale' || Boolean(listing.price && !listing.rent);
   const currentRent = listing.rent || 0;
+  const currentPrice = listing.price || listing.salePrice || (isSale ? currentRent : 0);
   const currentDeposit = listing.deposit || 0;
 
   let isNew = false;
@@ -185,11 +187,18 @@ export async function trackListing(listing) {
     isNew = true;
     item = {
       listingKey,
+      listingType: isSale ? 'sale' : 'rent',
       portal: listing.portal || 'generic',
       url: canonicalizeUrl(listing.url || ''),
-      title: listing.title || 'Untitled Rental',
+      title: listing.title || (isSale ? 'Untitled Sale Property' : 'Untitled Rental'),
       locality: listing.locality || 'Unknown',
       bhk: listing.bhk || 2,
+      price: isSale ? currentPrice : null,
+      pricePerSqft: listing.pricePerSqft || null,
+      areaType: listing.areaType || 'unknown',
+      possessionStatus: listing.possessionStatus || 'unknown',
+      reraId: listing.reraId || null,
+      projectName: listing.projectName || '',
       areaSqft: listing.areaSqft || listing.area_sqft || null,
       floor: listing.floor !== undefined ? listing.floor : null,
       firstSeen: now,
@@ -202,8 +211,10 @@ export async function trackListing(listing) {
       snapshots: [
         {
           t: now,
-          rent: currentRent,
-          deposit: currentDeposit,
+          rent: isSale ? null : currentRent,
+          price: isSale ? currentPrice : null,
+          deposit: isSale ? null : currentDeposit,
+          pricePerSqft: listing.pricePerSqft || null,
           listed: true
         }
       ]
@@ -215,27 +226,38 @@ export async function trackListing(listing) {
     item.locality = listing.locality || item.locality;
     if (listing.bhk) item.bhk = listing.bhk;
     if (listing.areaSqft) item.areaSqft = listing.areaSqft;
+    if (isSale) {
+      item.price = currentPrice || item.price;
+      if (listing.pricePerSqft) item.pricePerSqft = listing.pricePerSqft;
+      if (listing.reraId) item.reraId = listing.reraId;
+      if (listing.possessionStatus) item.possessionStatus = listing.possessionStatus;
+    }
     if (listing.signalsFiredCount !== undefined) item.signalsFiredCount = listing.signalsFiredCount;
     if (listing.badgeLabel) item.badgeLabel = listing.badgeLabel;
     if (listing.badgeTone) item.badgeTone = listing.badgeTone;
 
     const lastSnap = item.snapshots[item.snapshots.length - 1];
-    const prevRent = lastSnap ? lastSnap.rent : currentRent;
-    delta = currentRent - prevRent;
+    const prevVal = lastSnap ? (isSale ? (lastSnap.price || lastSnap.rent || 0) : (lastSnap.rent || 0)) : (isSale ? currentPrice : currentRent);
+    const currVal = isSale ? currentPrice : currentRent;
+    delta = currVal - prevVal;
 
     if (delta < 0) {
       priceDropped = true;
     }
 
     const timeSinceLastSnap = lastSnap ? now - lastSnap.t : Infinity;
-    const rentChanged = lastSnap && (lastSnap.rent !== currentRent || lastSnap.deposit !== currentDeposit);
+    const priceChanged = isSale 
+      ? (lastSnap && lastSnap.price !== currentPrice)
+      : (lastSnap && (lastSnap.rent !== currentRent || lastSnap.deposit !== currentDeposit));
     const dayPassed = timeSinceLastSnap >= 24 * 60 * 60 * 1000;
 
-    if (rentChanged || dayPassed || item.snapshots.length === 0) {
+    if (priceChanged || dayPassed || item.snapshots.length === 0) {
       item.snapshots.push({
         t: now,
-        rent: currentRent,
-        deposit: currentDeposit,
+        rent: isSale ? null : currentRent,
+        price: isSale ? currentPrice : null,
+        deposit: isSale ? null : currentDeposit,
+        pricePerSqft: listing.pricePerSqft || null,
         listed: true
       });
     }
@@ -304,35 +326,72 @@ export async function updateListingNote(listingKey, note) {
 export function computePriceHistoryStats(snapshots = []) {
   if (!snapshots || snapshots.length === 0) {
     return {
+      currentPrice: 0,
       currentRent: 0,
+      firstPrice: 0,
       firstRent: 0,
+      lowestPrice: 0,
       lowestRent: 0,
+      highestPrice: 0,
       highestRent: 0,
       delta: 0,
       pctChange: 0,
       isDrop: false,
-      count: 0
+      count: 0,
+      source: 'Your Local Browser Tracker',
+      trackingSince: 'First seen today'
     };
   }
 
-  const validRents = snapshots.map(s => s.rent).filter(r => typeof r === 'number' && r > 0);
-  const firstRent = validRents[0] || 0;
-  const currentRent = validRents[validRents.length - 1] || 0;
-  const lowestRent = Math.min(...validRents);
-  const highestRent = Math.max(...validRents);
-  const delta = currentRent - firstRent;
-  const pctChange = firstRent > 0 ? Math.round((delta / firstRent) * 100) : 0;
+  const validPrices = snapshots
+    .map(s => (typeof s.price === 'number' && s.price > 0 ? s.price : s.rent))
+    .filter(r => typeof r === 'number' && r > 0);
+
+  const firstPrice = validPrices[0] || 0;
+  const currentPrice = validPrices[validPrices.length - 1] || 0;
+  const lowestPrice = validPrices.length ? Math.min(...validPrices) : 0;
+  const highestPrice = validPrices.length ? Math.max(...validPrices) : 0;
+  const delta = currentPrice - firstPrice;
+  const pctChange = firstPrice > 0 ? Math.round((delta / firstPrice) * 100) : 0;
+
+  const firstTime = snapshots[0] ? snapshots[0].t : Date.now();
+  const trackingSince = formatTimeOnMarket(firstTime);
 
   return {
-    currentRent,
-    firstRent,
-    lowestRent,
-    highestRent,
+    currentPrice,
+    currentRent: currentPrice, // backwards compatibility
+    firstPrice,
+    firstRent: firstPrice,
+    lowestPrice,
+    lowestRent: lowestPrice,
+    highestPrice,
+    highestRent: highestPrice,
     delta,
     pctChange,
     isDrop: delta < 0,
-    count: snapshots.length
+    count: snapshots.length,
+    source: 'Your Local Browser Tracker',
+    trackingSince
   };
+}
+
+/**
+ * Calculates monthly Equated Monthly Installment (EMI) for property purchase.
+ * Uses exact standard banking amortization formula.
+ * @param {number} principal - Loan principal in INR
+ * @param {number} [annualRate=8.5] - Annual interest percentage
+ * @param {number} [tenureYears=20] - Loan duration in years
+ * @returns {{ monthlyEmi: number, totalPayment: number, totalInterest: number }}
+ */
+export function calculateEMI(principal, annualRate = 8.5, tenureYears = 20) {
+  if (!principal || principal <= 0) return { monthlyEmi: 0, totalPayment: 0, totalInterest: 0 };
+  const monthlyRate = (annualRate / 12) / 100;
+  const totalMonths = tenureYears * 12;
+  const factor = Math.pow(1 + monthlyRate, totalMonths);
+  const monthlyEmi = Math.round((principal * monthlyRate * factor) / (factor - 1));
+  const totalPayment = monthlyEmi * totalMonths;
+  const totalInterest = totalPayment - principal;
+  return { monthlyEmi, totalPayment, totalInterest };
 }
 
 /**

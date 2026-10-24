@@ -13,6 +13,7 @@
  */
 
 import marketPacksData from './data/market_packs.json' with { type: 'json' };
+import guidanceValuesData from './data/guidance_values.json' with { type: 'json' };
 
 /**
  * Computes median of numeric array.
@@ -267,3 +268,94 @@ export function getBenchmark(listing = {}, context = {}) {
     confidence: 'none'
   };
 }
+
+/**
+ * Retrieves official government guidance value (circle rate) for a locality.
+ * @param {string} locality 
+ * @param {string} [city='bengaluru'] 
+ * @returns {object|null}
+ */
+export function getGuidanceValue(locality, city = 'bengaluru') {
+  if (!locality || typeof locality !== 'string') return null;
+  const cleanLoc = locality.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  
+  if (city.toLowerCase().includes('bengaluru') || city.toLowerCase().includes('bangalore') || cleanLoc.includes('bangalore') || cleanLoc.includes('bengaluru')) {
+    const localities = guidanceValuesData.localities || {};
+    for (const [key, val] of Object.entries(localities)) {
+      if (cleanLoc.includes(key) || key.includes(cleanLoc)) {
+        return {
+          state: guidanceValuesData.state,
+          city: guidanceValuesData.city,
+          localityKey: key,
+          guidancePerSqft: val.guidancePerSqft,
+          zone: val.zone,
+          effectiveDate: guidanceValuesData.effectiveDate,
+          source: guidanceValuesData.source,
+          disclaimer: guidanceValuesData.disclaimer
+        };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Returns official state RERA verification portal link and instructions.
+ * Links directly to the official government search page rather than scraping it.
+ * @param {string} [reraId=''] 
+ * @param {string} [locality=''] 
+ * @returns {{ state: string, url: string, label: string, reraId: string|null, searchAdvice: string }}
+ */
+export function getReraPortalUrl(reraId = '', locality = '') {
+  const cleanRera = (reraId || '').trim();
+  const cleanLoc = (locality || '').toLowerCase();
+
+  if (/KA\/RERA/i.test(cleanRera) || /bangalore|bengaluru|mysore|karnataka/i.test(cleanLoc)) {
+    return {
+      state: 'Karnataka',
+      url: 'https://rera.karnataka.gov.in/viewAllProjects',
+      label: 'Karnataka RERA Project Verification Portal',
+      reraId: cleanRera || null,
+      searchAdvice: 'Verify project registration, promoter details, approved plans, and completion date directly on K-RERA.'
+    };
+  }
+
+  if (/P51\d/i.test(cleanRera) || /mumbai|pune|thane|navi mumbai|maharashtra/i.test(cleanLoc)) {
+    return {
+      state: 'Maharashtra',
+      url: 'https://maharera.mahaonline.gov.in/',
+      label: 'MahaRERA Project Search',
+      reraId: cleanRera || null,
+      searchAdvice: 'Search by registration number to verify litigation disclosures and building plan approvals on MahaRERA.'
+    };
+  }
+
+  if (/HRERA/i.test(cleanRera) || /gurgaon|gurugram|faridabad|haryana/i.test(cleanLoc)) {
+    return {
+      state: 'Haryana',
+      url: 'https://haryanarera.gov.in/',
+      label: 'Haryana RERA (HRERA) Portal',
+      reraId: cleanRera || null,
+      searchAdvice: 'Verify promoter status and project escrow accounts on HRERA.'
+    };
+  }
+
+  if (/TS\s*RERA/i.test(cleanRera) || /hyderabad|telangana/i.test(cleanLoc)) {
+    return {
+      state: 'Telangana',
+      url: 'https://rera.telangana.gov.in/',
+      label: 'Telangana RERA Portal',
+      reraId: cleanRera || null,
+      searchAdvice: 'Check registration certificate and developer disclosures on TS-RERA.'
+    };
+  }
+
+  return {
+    state: 'National',
+    url: 'https://mohua.gov.in/cms/rera.php',
+    label: 'Ministry of Housing and Urban Affairs (RERA Registry)',
+    reraId: cleanRera || null,
+    searchAdvice: 'Locate your respective state RERA authority portal to verify promoter details.'
+  };
+}
+

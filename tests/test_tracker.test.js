@@ -13,6 +13,7 @@ import {
   generateSparklineSVG,
   buildComparisonMatrix,
   exportShortlistToCSV,
+  calculateEMI,
   StorageAdapter
 } from '../extension/lib/tracker.js';
 import { parseArea, parseFloor } from '../extension/lib/parsers/currency.js';
@@ -215,6 +216,46 @@ describe('Tracker & Buyhatke Features', () => {
       const csv = exportShortlistToCSV(tracked);
       assert.match(csv, /"Portal","Listing Key","Title"/);
       assert.match(csv, /"nobroker","nb:1","Indiranagar 2BHK","Indiranagar",2,40000,120000,1000,2,"Interested","Spoke with guard"/);
+    });
+  });
+
+  describe('Property Buying Tracking & EMI Calculator', () => {
+    it('tracks a property sale listing with price, pricePerSqft, and RERA ID', async () => {
+      const saleListing = {
+        listingKey: 'nobroker:sale-101',
+        listingType: 'sale',
+        portal: 'nobroker',
+        url: 'https://nobroker.in/buy/electronic-city',
+        title: '2 BHK Resale in Electronic City',
+        price: 12500000,
+        pricePerSqft: 10162,
+        areaSqft: 1230,
+        areaType: 'carpet',
+        possessionStatus: 'ready_to_move',
+        reraId: 'PRM/KA/RERA/1251/310/PR/171015/000451'
+      };
+
+      const result = await trackListing(saleListing);
+      assert.equal(result.isNew, true);
+      assert.equal(result.trackedItem.listingType, 'sale');
+      assert.equal(result.trackedItem.price, 12500000);
+      assert.equal(result.trackedItem.pricePerSqft, 10162);
+      assert.equal(result.trackedItem.reraId, 'PRM/KA/RERA/1251/310/PR/171015/000451');
+      assert.equal(result.trackedItem.snapshots[0].price, 12500000);
+    });
+
+    it('calculates monthly EMI and loan amortization accurately', () => {
+      // 50 Lakhs loan, 8.5% p.a., 20 years
+      const emi = calculateEMI(5000000, 8.5, 20);
+      assert.ok(emi.monthlyEmi > 43000 && emi.monthlyEmi < 44000, `Expected ~43,391, got ${emi.monthlyEmi}`);
+      assert.ok(emi.totalPayment > 5000000);
+      assert.ok(emi.totalInterest > 5000000);
+    });
+
+    it('returns zero EMI on zero or negative principal', () => {
+      const emi = calculateEMI(0);
+      assert.equal(emi.monthlyEmi, 0);
+      assert.equal(emi.totalPayment, 0);
     });
   });
 });

@@ -1,0 +1,39 @@
+{
+  "state": "Karnataka",
+  "city": "Bengaluru",
+  "effectiveDate": "2024-01-01",
+  "source": "Department of Stamps and Registration, Government of Karnataka (Kaveri 2.0)",
+  "disclaimer": "Government guidance value represents the minimum reference rate for stamp duty calculation. It is not an open market valuation.",
+  "localities": {
+    "indiranagar": {
+      "guidancePerSqft": 11500,
+      "zone": "Primary Residential / Commercial",
+      "currency": "INR"
+    },
+    "hsr_layout": {
+      "guidancePerSqft": 8800,
+      "zone": "BDA Layout Sectors 1-7",
+      "currency": "INR"
+    },
+    "electronic_city": {
+      "guidancePerSqft": 5200,
+      "zone": "Phase 1 & 2 Residential Clusters",
+      "currency": "INR"
+    },
+    "whitefield": {
+      "guidancePerSqft": 6400,
+      "zone": "ITPL & Outer Corridor",
+      "currency": "INR"
+    },
+    "koramangala": {
+      "guidancePerSqft": 12000,
+      "zone": "Koramangala Blocks 1-8",
+      "currency": "INR"
+    },
+    "bellandur": {
+      "guidancePerSqft": 7100,
+      "zone": "Outer Ring Road Tech Zone",
+      "currency": "INR"
+    }
+  }
+}

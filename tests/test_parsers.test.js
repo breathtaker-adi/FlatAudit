@@ -5,8 +5,15 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 
-import { parseIndianCurrency, parseBHK } from '../extension/lib/parsers/currency.js';
-import { extractListing } from '../extension/lib/parsers/index.js';
+import { 
+  parseIndianCurrency, 
+  parseBHK,
+  parsePricePerSqFt,
+  parseAreaType,
+  parsePossessionStatus,
+  parseReraId
+} from '../extension/lib/parsers/currency.js';
+import { extractListing, isListingValid } from '../extension/lib/parsers/index.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -23,6 +30,39 @@ describe('Currency and BHK Parsers', () => {
     assert.equal(parseIndianCurrency('1.5 Lakh'), 150000);
     assert.equal(parseIndianCurrency('2.25 Lac'), 225000);
     assert.equal(parseIndianCurrency('45k'), 45000);
+  });
+
+  it('parses Crore, Crores and Cr shorthand for property buying', () => {
+    assert.equal(parseIndianCurrency('₹ 1.25 Cr'), 12500000);
+    assert.equal(parseIndianCurrency('1.45 Crore'), 14500000);
+    assert.equal(parseIndianCurrency('2 Crores'), 20000000);
+    assert.equal(parseIndianCurrency('85 Lacs'), 8500000);
+  });
+
+  it('parses Price per Sq.Ft in diverse notation formats', () => {
+    assert.equal(parsePricePerSqFt('₹ 10,162 / sq.ft'), 10162);
+    assert.equal(parsePricePerSqFt('Rs. 7500 per sqft'), 7500);
+    assert.equal(parsePricePerSqFt('9200 / sqft'), 9200);
+  });
+
+  it('identifies Area Types correctly (carpet, builtup, super_builtup)', () => {
+    assert.equal(parseAreaType('1,230 sq.ft Carpet Area'), 'carpet');
+    assert.equal(parseAreaType('Super Built-up Area: 1450 sqft'), 'super_builtup');
+    assert.equal(parseAreaType('Built-up Area: 1300 sqft'), 'builtup');
+    assert.equal(parseAreaType('Unspecified layout'), 'unknown');
+  });
+
+  it('identifies Possession and Construction Status', () => {
+    assert.equal(parsePossessionStatus('Ready to Move (Resale, 4 Yrs Old)'), 'ready_to_move');
+    assert.equal(parsePossessionStatus('Under Construction, Possession by Dec 2026'), 'under_construction');
+    assert.equal(parsePossessionStatus('General property'), 'unknown');
+  });
+
+  it('extracts State RERA Registration Numbers', () => {
+    assert.equal(parseReraId('RERA ID: PRM/KA/RERA/1251/310/PR/171015/000451'), 'PRM/KA/RERA/1251/310/PR/171015/000451');
+    assert.equal(parseReraId('MahaRERA: P51800001234'), 'P51800001234');
+    assert.equal(parseReraId('HRERA Registered: HRERA-PKL-GGM-102'), 'HRERA-PKL-GGM-102');
+    assert.equal(parseReraId('No registration mentioned'), null);
   });
 
   it('parses BHK and Bedroom counts', () => {
@@ -104,6 +144,26 @@ describe('HTML Listing Fixture Parsers', () => {
     assert.equal(listing.bhk, 2);
     assert.match(listing.description, /booking token/i);
   });
+
+  it('parses NoBroker sale 2BHK resale fixture correctly', () => {
+    const html = fs.readFileSync(path.join(fixturesDir, 'nobroker_sale_resale_2bhk.html'), 'utf-8');
+    const dom = new JSDOM(html);
+    const listing = extractListing(dom.window.document, 'https://www.nobroker.in/property/buy/2-bhk-apartment-for-sale-in-electronic-city-bangalore');
+
+    assert.equal(listing.portal, 'nobroker');
+    assert.equal(listing.listingType, 'sale');
+    assert.equal(listing.listingKey, 'nobroker:nb-sale-blr-88102');
+    assert.equal(listing.price, 12500000);
+    assert.equal(listing.pricePerSqft, 10162);
+    assert.equal(listing.bhk, 2);
+    assert.equal(listing.area_sqft, 1230);
+    assert.equal(listing.areaType, 'carpet');
+    assert.equal(listing.possessionStatus, 'ready_to_move');
+    assert.equal(listing.reraId, 'PRM/KA/RERA/1251/310/PR/171015/000451');
+    assert.equal(listing.projectName, 'Prestige Casabella');
+    assert.match(listing.locality, /Electronic City/);
+    assert.equal(listing.isValid, true);
+  });
 });
 
 describe('Parser Health & Field Integrity Checks', () => {
@@ -128,6 +188,34 @@ describe('Parser Health & Field Integrity Checks', () => {
       assert.equal(listing.isValid, true);
     });
   }
+
+  it('health check: nobroker_sale_resale_2bhk.html produces non-empty sale price, area, bhk, and locality', () => {
+    const html = fs.readFileSync(path.join(fixturesDir, 'nobroker_sale_resale_2bhk.html'), 'utf-8');
+    const dom = new JSDOM(html);
+    const listing = extractListing(dom.window.document, 'https://www.nobroker.in/property/buy/bangalore');
+
+    assert.ok(listing);
+    assert.equal(listing.listingType, 'sale');
+    assert.ok(typeof listing.price === 'number' && listing.price > 0, 'Empty or invalid sale price');
+    assert.ok(typeof listing.area_sqft === 'number' && listing.area_sqft > 0, 'Empty or invalid area');
+    assert.ok(typeof listing.bhk === 'number' && listing.bhk >= 1, 'Empty or invalid BHK');
+    assert.ok(typeof listing.locality === 'string' && listing.locality.trim().length > 0, 'Empty locality');
+    assert.equal(listing.isValid, true);
+  });
+
+  it('health check: sale listing fails validity when sale price or area is missing', () => {
+    const invalidSale1 = { listingType: 'sale', price: null, area_sqft: 1200, bhk: 2, locality: 'Whitefield' };
+    assert.equal(isListingValid(invalidSale1), false);
+
+    const invalidSale2 = { listingType: 'sale', price: 15000000, area_sqft: null, bhk: 2, locality: 'Whitefield' };
+    assert.equal(isListingValid(invalidSale2), false);
+
+    const invalidSale3 = { listingType: 'sale', price: 15000000, area_sqft: 1200, bhk: null, locality: 'Whitefield' };
+    assert.equal(isListingValid(invalidSale3), false);
+
+    const invalidSale4 = { listingType: 'sale', price: 15000000, area_sqft: 1200, bhk: 2, locality: '' };
+    assert.equal(isListingValid(invalidSale4), false);
+  });
 
   it('fails safely and gracefully on empty or malformed DOM without throwing', () => {
     const emptyDom = new JSDOM('<html><body><p>Unrelated blog post</p></body></html>');

@@ -1,22 +1,23 @@
 # FlatAudit: Listing Trust Analyzer & Buyhatke-Style Property Companion
 
-[![Tests](https://img.shields.io/badge/Unit%20Tests-54%2F54%20Passing-brightgreen.svg)](tests/)
-[![Pytest](https://img.shields.io/badge/API%20Tests-10%2F10%20Passing-brightgreen.svg)](backend/tests/)
+[![Tests](https://img.shields.io/badge/Unit%20Tests-69%2F69%20Passing-brightgreen.svg)](tests/)
+[![Pytest](https://img.shields.io/badge/API%20Tests-11%2F11%20Passing-brightgreen.svg)](backend/tests/)
 [![Synthetic Eval](https://img.shields.io/badge/Synthetic%20Baseline-97.3%25-blue.svg)](eval/evaluation_results.md)
 [![Real-World Eval](https://img.shields.io/badge/Real--World%20Eval-100%25%20(5%20Cities)-brightgreen.svg)](eval/evaluation_real_results.md)
 [![Manifest](https://img.shields.io/badge/Chrome%20Extension-Manifest%20V3-orange.svg)](extension/manifest.json)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
-> **A privacy-preserving browser extension and explainable API that flags advance-fee scam signals on Indian rental listings and acts as a "Buyhatke for property" — tracking price history sparklines, price-drop alerts, side-by-side comparison tables, and cross-portal duplicate listings.**  
+> **A privacy-preserving browser extension and explainable API that flags advance-fee scam signals on Indian rentals, evaluates resale property buying (Crore parsing, price/sq.ft, government circle rates, official RERA link-outs, EMI calculations), and acts as a "Buyhatke for property" — tracking price history sparklines, price-drop alerts, side-by-side comparison tables, and cross-portal duplicate listings.**  
 > Built as an advanced cybersecurity & consumer utility portfolio project, threat-modeled with STRIDE, and evaluated on benchmark listings with zero rule drift.
 
 ---
 
-## 1. The Problem: Rental Fraud & Price Opacity
+## 1. The Problem: Rental Fraud & Property Buying Opacity
 
-Rental portals (NoBroker, MagicBricks, 99acres, Housing.com) reward high listing volumes, allowing two major issues to persist in major Indian metros:
-1. **Advance-Fee Extortion**: Scammers post stolen photos of luxury apartments at 40%–70% below local market rent, claim to be an Indian Army/CISF/Air Force officer transferred on urgent duty (or an NRI landlord), and extort a "refundable visiting token", "gate pass fee", or "military registration slip" (₹1,500–₹3,500) via UPI QR code before in-person flat inspection.
-2. **Price Opacity & Fragmentation**: Landlords frequently post the exact same flat across 3 different portals with varying rent amounts, or drop rents quietly over weeks without notifying interested tenants. Renters lack a unified price history graph and cross-site comparison tool.
+Indian real estate portals (NoBroker, MagicBricks, 99acres, Housing.com) reward high listing volumes, allowing severe consumer risks to persist across major metros:
+1. **Rental Advance-Fee Extortion**: Scammers post stolen photos of luxury apartments at 40%–70% below local market rent, claim to be an Indian Army/CISF/Air Force officer transferred on urgent duty (or an NRI landlord), and extort a "refundable visiting token", "gate pass fee", or "military registration slip" (₹1,500–₹3,500) via UPI QR code before in-person flat inspection.
+2. **Rental Price Opacity & Fragmentation**: Landlords frequently post the exact same flat across 3 different portals with varying rent amounts, or drop rents quietly over weeks without notifying interested tenants. Renters lack a unified price history graph and cross-site comparison tool.
+3. **Property Buying Risks & Area Ambiguity**: Homebuyers face ambiguous Super Built-up (SBUA) vs. Carpet Area loading (often 25%–35%), artificial price-per-sq.ft inflation, unverified RERA numbers, pressure to transfer heavy "hold tokens" before title diligence, and asking rates that diverge significantly from official Government Circle Rates (Guidance Values).
 
 ---
 
@@ -25,21 +26,24 @@ Rental portals (NoBroker, MagicBricks, 99acres, Housing.com) reward high listing
 ```
 Listing Page (NoBroker / MagicBricks / 99acres / Housing DOM)
    │  Content script reads visible text only (strict DOM selectors, 0 innerHTML)
+   │  Detects listingType: 'rent' | 'sale' (Crores, Lakhs, Sq.ft, Carpet vs SBUA)
    ▼
 FlatAudit Extension (Manifest V3)
    │  OffscreenCanvas ─────────▶ 64-bit dHash (difference hash fingerprint)
    │  Local Rule Engine ───────▶ Price z-score, deposit ratio, advance-fee phrases
+   │  Buying Evaluator ────────▶ Circle rate (Guidance Value) delta, RERA link-out, token checks
    │  Fallback Ladder ─────────▶ Peer Page ➔ Area Cell ➔ District ➔ City ➔ Silence
-   │  Local-First Tracker ─────▶ Price history snapshots, SVG sparkline, notes in chrome.storage.local
+   │  Local-First Tracker ─────▶ Price history snapshots, SVG sparkline, notes, EMI calculator
    ▼
 FastAPI Backend (Port 8000 / Configurable) ──▶ SQLite Registry (flataudit.db)
-   │  Stores ONLY: portal, listing_key, locality, BHK, rent, deposit, area, floor, 16-hex image hash
+   │  Stores ONLY: portal, listing_key, listing_type, locality, BHK, price/rent, deposit, area, floor, 16-hex image hash
    │  Cross-portal matching ───▶ Detects "Also listed on Portal B at ₹X (Save ₹Y)"
    │  Static Market Packs ─────▶ Aggregates trimmed medians with ETag caching (Zero PII)
    │  (Zero photos, zero names, zero phone numbers stored)
    ▼
 In-Page Floating Badge & Toolbar Popup
    ├─ Tab 1: Trust Signals (Observable facts only; positive verification points; safety tips)
+   ├─ Buying View: Guidance value reference, official RERA link-outs, Buyer Due Diligence checklist
    ├─ Tab 2: Watchlist & Compare (Inline SVG sparklines, price drops, side-by-side comparison, CSV export)
    └─ Footer: "🚩 This looks wrong?" (Subtle anonymous diagnostic feedback to local storage)
 ```
@@ -60,12 +64,21 @@ In-Page Floating Badge & Toolbar Popup
 - **Observable-Facts Explanations**: Adheres to strict anti-defamation principles. Badges state verifiable evidence (e.g. *"Rent is 77% below HSR Layout 3BHK median"*, *"Photo fingerprint appeared across 4 distinct listings"*) without defamatory accusations.
 - **Positive Verification on Normal Listings**: Even when zero red flags fire, properties receive 4 verified points confirming price alignment, standard deposit ratio, and clean phrasing.
 
+### 🏠 Property Buying & Resale Transparency (Pilot: Bengaluru)
+- **Crore & Lakh Currency Normalization**: Extracts total asking price across Indian currency variants (`₹1.25 Cr`, `1.45 Crore`, `85 Lacs`, `₹95,00,000`) and parses normalized price per sq.ft (`₹10,162 / sq.ft`).
+- **Strict Area Type Integrity**: Distinguishes between Carpet Area, Built-up Area, and Super Built-up Area (SBUA) to prevent misleading price-per-sq.ft comparisons across incompatible definitions.
+- **Government Circle Rates / Guidance Values**: Bundles official Karnataka Stamps & Registration Department (Kaveri 2.0) minimum guidance values for Bengaluru zones (Indiranagar: ₹11,500/sqft, HSR Layout: ₹8,800/sqft, Electronic City: ₹5,200/sqft, Whitefield: ₹6,400/sqft, Koramangala: ₹12,000/sqft, Bellandur: ₹7,100/sqft). Highlights asking prices that are suspiciously below circle rates (>35% below, flagging potential unapproved layouts or tax evasion).
+- **Official State RERA Link-Outs**: Extracts state RERA registration IDs (`PRM/KA/RERA/...`, `HRERA...`, `MahaRERA...`) and embeds direct verification links to official state authority search portals rather than brittle web scraping.
+- **Buyer Due Diligence Checklist**: In-drawer actionable 5-step checklist covering Title Deed clearance, Encumbrance Certificate (15–30 yrs), Occupancy Certificate (OC/CC), Physical carpet area tape measurement, and Official RERA confirmation.
+- **Strict Legal Disclaimer Guardrails**: Plainly states: *"FlatAudit provides informational signals from visible listing data and official guidance values. It does not constitute legal or financial advice and does not verify property title deeds."*
+- **Loan EMI Amortization Calculator**: In-memory standard banking amortization formula for monthly EMI, total interest, and payment breakdown based on property price, loan tenure, and interest rate.
+
 ### 📈 Buyhatke-Style Property Companion
 - **Price History Inline SVG Sparkline**: Pure mathematical SVG curve with gradient fill rendered directly in the DOM without external charting dependencies.
-- **Local-First Watchlist**: Stores snapshots `{t, rent, deposit, listed}` in `chrome.storage.local`. Re-records snapshots only when rent changes or >24 hours pass.
-- **Price-Drop Alerts**: Prominently highlights rent reductions upon revisit (e.g., *"🎉 Rent dropped ₹2,000 (-5%) since first viewed"*).
-- **Side-by-Side Comparison Matrix**: Select 2 to 4 listings to view an automated comparison of Rent, Deposit Multiple, Area (sq.ft), Rent/sq.ft, Floor, and Risk Flags with best values highlighted.
-- **Cross-Portal Duplicate Matching**: Matches properties across portals using image dHash distance $\le 8$, same locality & BHK, rent within 5%, and area within 3%. Requires at least 2 independent signals and shows honest phrasing (*"Likely the same property listed on MagicBricks at ₹40,000"*).
+- **Local-First Watchlist**: Stores snapshots `{t, rent, deposit, price, pricePerSqft, listed}` in `chrome.storage.local`. Re-records snapshots only when price/rent changes or >24 hours pass.
+- **Price-Drop Alerts**: Prominently highlights rent/price reductions upon revisit (e.g., *"🎉 Price dropped ₹5,00,000 (-4%) since first viewed"*).
+- **Side-by-Side Comparison Matrix**: Select 2 to 4 listings to view an automated comparison of Price/Rent, Area (sq.ft), Price/sq.ft, Possession, RERA status, and Risk Flags with best values highlighted.
+- **Cross-Portal Duplicate Matching**: Matches properties across portals using image dHash distance $\le 8$, same locality & BHK, price within 5%, and area within 3%. Requires at least 2 independent signals and shows honest phrasing (*"Likely the same property listed on MagicBricks at ₹40,000"*).
 - **Shortlist CSV Export**: One-click download of saved shortlist with user notes and market status.
 
 ---
@@ -122,10 +135,10 @@ python -m pip install -r backend/requirements.txt
 
 ### Step 2: Run Unit & Integration Tests
 ```bash
-# Run 54 JavaScript unit & parser health tests
+# Run 69 JavaScript unit & parser health tests
 npm test
 
-# Run 10 Python API, SQLite & Market Pack tests
+# Run 11 Python API, SQLite & Market Pack tests
 python -m pytest backend/tests/ -v
 
 # Run the single-source-of-truth evaluation pipelines
@@ -181,19 +194,20 @@ FlatAudit/
 │   └── lib/
 │       ├── dhash.js           # 64-bit dHash & bitwise Hamming distance
 │       ├── signals.js         # Single-source-of-truth signal engine
-│       ├── benchmarks.js      # Dynamic 5-step fallback ladder & pack validator
+│       ├── benchmarks.js      # Dynamic 5-step fallback ladder, circle rates & RERA links
 │       ├── geohash.js         # Base32 geohash encoder & DOM coordinate extractor
-│       ├── tracker.js         # Buyhatke watchlist, SVG sparklines & compare matrix
+│       ├── tracker.js         # Buyhatke watchlist, SVG sparklines, compare & EMI calculator
 │       ├── data/
-│       │   └── market_packs.json # Aggregated fallback market statistics
+│       │   ├── market_packs.json    # Aggregated fallback market statistics
+│       │   └── guidance_values.json # Karnataka Kaveri 2.0 government circle rates
 │       └── parsers/           # NoBroker, MagicBricks, 99acres, Housing parsers
 ├── backend/                   # FastAPI + SQLite Registry
 │   ├── main.py                # REST endpoints: /observe, /seen, /matches, /packs
 │   ├── db.py                  # SQLite storage & cross-portal duplicate matching
 │   ├── build_packs.py         # Batch pack generator (trimmed stats, zero PII)
-│   ├── models.py              # Pydantic data schemas
-│   └── tests/                 # Pytest test suite (10 tests)
-├── fixtures/                  # Real-world HTML test fixtures (5 portal formats)
+│   ├── models.py              # Pydantic data schemas (rent & sale listings)
+│   └── tests/                 # Pytest test suite (11 tests)
+├── fixtures/                  # Real-world HTML test fixtures (6 portal & resale formats)
 ├── eval/                      # Evaluation datasets & test runners
 │   ├── labels.csv             # Synthetic Unit-Test Dataset (250 listings)
 │   ├── real_listings.csv      # Real-World Multi-City Dataset (30 listings, 5 cities)
@@ -208,7 +222,7 @@ FlatAudit/
 │   ├── engineering-retrospective-v1.md # Lessons learned & retrospective
 │   ├── architecture.md        # Architecture diagrams
 │   └── scam-taxonomy.md       # Rental fraud kill chain breakdown
-├── tests/                     # Node.js test suite (54 tests passing)
+├── tests/                     # Node.js test suite (69 tests passing)
 ├── web-demo/                  # Standalone interactive browser testbed
 └── package.json
 ```

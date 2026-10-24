@@ -7,9 +7,15 @@ class ObservationCreate(BaseModel):
     listing_key: Optional[str] = Field(None, max_length=100)
     locality: Optional[str] = Field(None, max_length=200)
     bhk: Optional[int] = Field(None, ge=1, le=10)
+    listing_type: Optional[str] = Field("rent", max_length=20)
     rent: Optional[int] = Field(None, ge=1000, le=5000000)
+    price: Optional[int] = Field(None, ge=100000, le=1000000000)
+    price_per_sqft: Optional[int] = Field(None, ge=500, le=500000)
     deposit: Optional[int] = Field(None, ge=0, le=50000000)
     area_sqft: Optional[int] = Field(None, ge=50, le=50000)
+    area_type: Optional[str] = Field("unknown", max_length=50)
+    possession_status: Optional[str] = Field("unknown", max_length=50)
+    rera_id: Optional[str] = Field(None, max_length=100)
     floor: Optional[int] = Field(None, ge=-2, le=200)
     image_hash: Optional[str] = Field(None, min_length=16, max_length=16)
     geohash: Optional[str] = Field(None, max_length=20)
@@ -59,9 +65,15 @@ class AnalyzeRequest(BaseModel):
     description: Optional[str] = ""
     locality: Optional[str] = ""
     bhk: Optional[int] = 2
+    listing_type: Optional[str] = "rent"
     rent: Optional[int] = None
+    price: Optional[int] = None
+    price_per_sqft: Optional[int] = None
     deposit: Optional[int] = None
     area_sqft: Optional[int] = None
+    area_type: Optional[str] = "unknown"
+    possession_status: Optional[str] = "unknown"
+    rera_id: Optional[str] = None
     floor: Optional[int] = None
     portal: Optional[str] = None
     listing_key: Optional[str] = None

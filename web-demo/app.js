@@ -24,6 +24,20 @@ const PRESETS = {
     hash: "a4c28f1107be924d",
     seenCount: 1
   },
+  resale_buy: {
+    listingType: "sale",
+    title: "2 BHK Resale in Prestige Casabella, Electronic City Phase 1",
+    locality: "Electronic City, Bangalore",
+    bhk: 2,
+    rent: 12500000,
+    price: 12500000,
+    pricePerSqft: 10162,
+    area_sqft: 1230,
+    deposit: 0,
+    desc: "Well maintained East-facing 2 BHK flat for immediate resale in Electronic City Phase 1. 1,230 sq.ft carpet area. Clear title, freehold, A-Khata, Occupancy Certificate (OC) and Commencement Certificate (CC) available. RERA Reg: PRM/KA/RERA/1251/310/PR/171015/000451. Bank loans approved.",
+    hash: "e3a890f12c4b7710",
+    seenCount: 1
+  },
   army_token: {
     title: "Urgent Luxury 3 BHK Fully Furnished in HSR Layout",
     locality: "HSR Layout, Bangalore",
@@ -77,13 +91,26 @@ function loadPreset(key) {
 }
 
 function evaluateCurrentForm() {
+  const rawRent = parseInt(document.getElementById('input-rent').value, 10);
+  const isSale = rawRent >= 1000000 || /sale|resale|buy/i.test(document.getElementById('input-title').value);
+  const desc = document.getElementById('input-desc').value;
+  const reraMatch = desc.match(/(PRM\/KA\/RERA\/[\w\/\-]+|P\d{9,11}|HRERA[-\w\/\-]+)/i);
+
   const listing = {
+    listingType: isSale ? 'sale' : 'rent',
     title: document.getElementById('input-title').value,
     locality: document.getElementById('input-locality').value,
     bhk: parseInt(document.getElementById('input-bhk').value, 10),
-    rent: parseInt(document.getElementById('input-rent').value, 10),
+    rent: isSale ? null : rawRent,
+    price: isSale ? rawRent : null,
+    salePrice: isSale ? rawRent : null,
+    area_sqft: 1230,
+    areaSqft: 1230,
+    pricePerSqft: isSale ? Math.round(rawRent / 1230) : null,
+    possessionStatus: isSale ? 'ready_to_move' : 'unknown',
+    reraId: reraMatch ? reraMatch[1] : null,
     deposit: parseInt(document.getElementById('input-deposit').value, 10),
-    description: document.getElementById('input-desc').value,
+    description: desc,
     images: []
   };
 
@@ -347,15 +374,22 @@ async function renderDemoWatchlist() {
 
     const rentText = document.createElement('span');
     rentText.className = 'demo-wl-rent';
-    rentText.textContent = `₹ ${(stats.currentRent || item.rent).toLocaleString('en-IN')}/month`;
+    const isItemSale = item.listingType === 'sale' || Boolean(item.price && !item.rent);
+    if (isItemSale) {
+      const p = stats.currentPrice || item.price || 0;
+      const pStr = p >= 10000000 ? `₹ ${(p / 10000000).toFixed(2)} Cr` : `₹ ${(p / 100000).toFixed(2)} L`;
+      rentText.textContent = pStr;
+    } else {
+      rentText.textContent = `₹ ${(stats.currentRent || item.rent).toLocaleString('en-IN')}/month`;
+    }
 
     const deltaPill = document.createElement('span');
     if (stats.delta < 0) {
       deltaPill.className = 'delta-pill drop';
-      deltaPill.textContent = `🎉 Rent dropped ₹${Math.abs(stats.delta).toLocaleString('en-IN')} (${stats.pctChange}%)`;
+      deltaPill.textContent = `🎉 Price dropped ₹${Math.abs(stats.delta).toLocaleString('en-IN')} (${stats.pctChange}%)`;
     } else if (stats.delta > 0) {
       deltaPill.className = 'delta-pill rise';
-      deltaPill.textContent = `↑ Rent increased ₹${stats.delta.toLocaleString('en-IN')} (+${stats.pctChange}%)`;
+      deltaPill.textContent = `↑ Price increased ₹${stats.delta.toLocaleString('en-IN')} (+${stats.pctChange}%)`;
     } else {
       deltaPill.className = 'delta-pill stable';
       deltaPill.textContent = 'Price unchanged';

@@ -1,4 +1,14 @@
-import { parseIndianCurrency, parseBHK, parseArea, parseFloor } from './currency.js';
+import { 
+  parseIndianCurrency, 
+  parseBHK, 
+  parseArea, 
+  parseFloor,
+  parsePricePerSqFt,
+  parseAreaType,
+  parsePossessionStatus,
+  parseReraId,
+  parseListingType
+} from './currency.js';
 import { parseListingKey, canonicalizeUrl } from '../tracker.js';
 
 export function parseNoBroker(document, url = '') {
@@ -10,8 +20,11 @@ export function parseNoBroker(document, url = '') {
   const localityEl = container.querySelector('.locality-subtext, [class*="locality"]');
   const locality = localityEl ? localityEl.textContent.trim() : '';
 
-  const rentEl = container.querySelector('#price-display, .rent-item .value, [id*="rent"]');
-  const rent = rentEl ? parseIndianCurrency(rentEl.textContent) : null;
+  const fullText = container.textContent || '';
+  const listingType = parseListingType(fullText, url);
+
+  const priceEl = container.querySelector('#price-display, .price-item .value, .rent-item .value, [id*="rent"], [id*="price"]');
+  const rawPrice = priceEl ? parseIndianCurrency(priceEl.textContent) : null;
 
   const depositEl = container.querySelector('#deposit-display, .deposit-item .value, [id*="deposit"]');
   const deposit = depositEl ? parseIndianCurrency(depositEl.textContent) : null;
@@ -33,14 +46,31 @@ export function parseNoBroker(document, url = '') {
 
   const listingKey = parseListingKey('nobroker', url, container);
 
+  const isSale = listingType === 'sale';
+  const pricePerSqft = parsePricePerSqFt(fullText) || (isSale && rawPrice && area_sqft ? Math.round(rawPrice / area_sqft) : null);
+  const areaType = parseAreaType(fullText);
+  const possessionStatus = parsePossessionStatus(fullText);
+  const reraId = parseReraId(fullText);
+
+  const projectEl = container.querySelector('.project-name, [data-project-name], .builder-name');
+  const projectName = projectEl ? projectEl.textContent.trim() : '';
+
   return {
     portal: 'nobroker',
     listingKey,
+    listingType,
     url: canonicalizeUrl(url),
     title,
     locality,
-    rent,
-    deposit,
+    rent: isSale ? null : rawPrice,
+    price: isSale ? rawPrice : null,
+    salePrice: isSale ? rawPrice : null,
+    pricePerSqft,
+    areaType,
+    possessionStatus,
+    reraId,
+    projectName,
+    deposit: isSale ? null : deposit,
     bhk,
     area_sqft,
     areaSqft: area_sqft,

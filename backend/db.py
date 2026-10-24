@@ -54,6 +54,12 @@ def init_db(db_file: str = DB_PATH):
         new_columns = [
             ("portal", "TEXT"),
             ("listing_key", "TEXT"),
+            ("listing_type", "TEXT DEFAULT 'rent'"),
+            ("price", "INTEGER"),
+            ("price_per_sqft", "INTEGER"),
+            ("area_type", "TEXT"),
+            ("possession_status", "TEXT"),
+            ("rera_id", "TEXT"),
             ("area_sqft", "INTEGER"),
             ("floor", "INTEGER"),
             ("day", "TEXT"),
@@ -71,6 +77,7 @@ def init_db(db_file: str = DB_PATH):
         conn.execute("CREATE INDEX IF NOT EXISTS idx_portal_listing ON observations(portal, listing_key)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_day ON observations(day)")
         conn.execute("CREATE INDEX IF NOT EXISTS idx_geohash ON observations(geohash)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_listing_type ON observations(listing_type)")
     conn.close()
 
 def record_observation(
@@ -85,6 +92,12 @@ def record_observation(
     area_sqft: Optional[int] = None,
     floor: Optional[int] = None,
     geohash: Optional[str] = None,
+    listing_type: Optional[str] = "rent",
+    price: Optional[int] = None,
+    price_per_sqft: Optional[int] = None,
+    area_type: Optional[str] = "unknown",
+    possession_status: Optional[str] = "unknown",
+    rera_id: Optional[str] = None,
     db_file: str = DB_PATH
 ) -> int:
     """
@@ -117,20 +130,26 @@ def record_observation(
             conn.execute("""
                 UPDATE observations 
                 SET rent = COALESCE(?, rent),
+                    price = COALESCE(?, price),
+                    price_per_sqft = COALESCE(?, price_per_sqft),
                     deposit = COALESCE(?, deposit),
                     area_sqft = COALESCE(?, area_sqft),
                     floor = COALESCE(?, floor),
+                    listing_type = COALESCE(?, listing_type),
+                    area_type = COALESCE(?, area_type),
+                    possession_status = COALESCE(?, possession_status),
+                    rera_id = COALESCE(?, rera_id),
                     image_hash = COALESCE(?, image_hash),
                     geohash = COALESCE(?, geohash),
                     day = ?
                 WHERE id = ?
-            """, (rent, deposit, area_sqft, floor, cleaned_hash, cleaned_geohash, today, new_id))
+            """, (rent, price, price_per_sqft, deposit, area_sqft, floor, listing_type, area_type, possession_status, rera_id, cleaned_hash, cleaned_geohash, today, new_id))
         else:
             cursor = conn.execute("""
                 INSERT INTO observations (
-                    portal, listing_key, url_hash, locality, bhk, rent, deposit, area_sqft, floor, image_hash, geohash, day
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (cleaned_portal, cleaned_key, url_hash, cleaned_locality, bhk, rent, deposit, area_sqft, floor, cleaned_hash, cleaned_geohash, today))
+                    portal, listing_key, url_hash, locality, bhk, rent, price, price_per_sqft, deposit, area_sqft, floor, listing_type, area_type, possession_status, rera_id, image_hash, geohash, day
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (cleaned_portal, cleaned_key, url_hash, cleaned_locality, bhk, rent, price, price_per_sqft, deposit, area_sqft, floor, listing_type, area_type, possession_status, rera_id, cleaned_hash, cleaned_geohash, today))
             new_id = cursor.lastrowid
     conn.close()
     return new_id

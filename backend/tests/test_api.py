@@ -114,3 +114,26 @@ def test_locality_stats_sample_size():
     assert "confidence" in data
     assert data["sample_size"] >= 1
 
+def test_observe_sale_listing():
+    sale_payload = {
+        "portal": "nobroker",
+        "listing_key": "nb-sale-electronic-city-101",
+        "listing_type": "sale",
+        "locality": "Electronic City, Bangalore",
+        "bhk": 2,
+        "price": 12500000,
+        "price_per_sqft": 10162,
+        "area_sqft": 1230,
+        "area_type": "carpet",
+        "possession_status": "ready_to_move",
+        "rera_id": "PRM/KA/RERA/1251/310/PR/171015/000451",
+        "floor": 4,
+        "image_hash": "a1b2c3d4e5f60718"
+    }
+    res = client.post("/api/v1/observe", json=sale_payload)
+    assert res.status_code == 201
+    data = res.json()
+    assert data["status"] == "recorded"
+    assert data["seen_count"] >= 1
+
+

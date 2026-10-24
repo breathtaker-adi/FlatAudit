@@ -118,7 +118,13 @@ def observe_listing(payload: ObservationCreate):
         listing_key=payload.listing_key,
         area_sqft=payload.area_sqft,
         floor=payload.floor,
-        geohash=payload.geohash
+        geohash=payload.geohash,
+        listing_type=payload.listing_type,
+        price=payload.price,
+        price_per_sqft=payload.price_per_sqft,
+        area_type=payload.area_type,
+        possession_status=payload.possession_status,
+        rera_id=payload.rera_id
     )
 
     seen_count = 1

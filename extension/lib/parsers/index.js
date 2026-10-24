@@ -38,27 +38,37 @@ export function extractListing(document, url = '') {
     listing.geohash = geo.geohash;
   }
 
+  listing.listingType = listing.listingType || (listing.price ? 'sale' : 'rent');
   listing.isValid = isListingValid(listing);
   return listing;
 }
 
 /**
- * Validates that a parsed listing contains essential non-empty fields: rent, bhk, locality.
+ * Validates that a parsed listing contains essential non-empty fields:
+ * - For Rent: rent (>0), bhk (>=1), locality.
+ * - For Sale: price (>0), bhk (>=1), locality, area (>0).
  * @param {object} listing 
  * @returns {boolean}
  */
 export function isListingValid(listing) {
   if (!listing || typeof listing !== 'object') return false;
+
+  const hasBhk = typeof listing.bhk === 'number' && listing.bhk >= 1;
+  const hasLocality = typeof listing.locality === 'string' && listing.locality.trim().length > 0;
+  if (!hasBhk || !hasLocality) return false;
+
+  if (listing.listingType === 'sale') {
+    const price = listing.price || listing.salePrice;
+    const area = listing.area_sqft || listing.areaSqft;
+    return Boolean(
+      typeof price === 'number' && price > 0 &&
+      typeof area === 'number' && area > 0
+    );
+  }
+
+  // Default: rent listing
   return Boolean(
-    listing.rent &&
-    typeof listing.rent === 'number' &&
-    listing.rent > 0 &&
-    listing.bhk &&
-    typeof listing.bhk === 'number' &&
-    listing.bhk >= 1 &&
-    listing.locality &&
-    typeof listing.locality === 'string' &&
-    listing.locality.trim().length > 0
+    typeof listing.rent === 'number' && listing.rent > 0
   );
 }
 
