@@ -1,0 +1,25 @@
+{
+  "state": "Karnataka",
+  "city": "Bengaluru",
+  "effectiveDate": "2024-04-01",
+  "source": "Department of Stamps and Registration, Government of Karnataka; Central Board of Indirect Taxes and Customs (CBIC)",
+  "rates": {
+    "stamp_duty_base_pct": 5.0,
+    "urban_surcharge_pct_of_duty": 10.0,
+    "infrastructure_cess_pct_of_duty": 2.0,
+    "effective_stamp_duty_pct": 5.6,
+    "registration_fee_pct": 1.0,
+    "gst_rates": {
+      "ready_to_move_with_oc": 0.0,
+      "under_construction_standard": 5.0,
+      "under_construction_affordable": 1.0
+    },
+    "fixed_estimates": {
+      "legal_vetting_and_khata_transfer": 35000,
+      "bescom_bwssb_connection_charge": 150000,
+      "maintenance_advance_per_sqft_month": 4.0,
+      "maintenance_advance_months": 12
+    }
+  },
+  "disclaimer": "Statutory charges based on Karnataka Stamp Act and GST rules as of 2024. Actual amounts may vary based on municipal jurisdiction and builder maintenance agreements. Verify with your advocate."
+}

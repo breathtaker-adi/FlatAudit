@@ -17,6 +17,7 @@
     const parsersUrl = chrome.runtime.getURL('lib/parsers/index.js');
     const signalsUrl = chrome.runtime.getURL('lib/signals.js');
     const trackerUrl = chrome.runtime.getURL('lib/tracker.js');
+    const buyerUrl = chrome.runtime.getURL('lib/buyer.js');
 
     const { extractListing, parsePeerListingsFromPage } = await import(parsersUrl);
     const { analyzeListing } = await import(signalsUrl);
@@ -30,6 +31,12 @@
       generateSparklineSVG,
       formatTimeOnMarket
     } = await import(trackerUrl);
+    const {
+      generateBuyerReport,
+      renderPrintableHtml,
+      estimateTotalCost,
+      getPaperworkChecklist
+    } = await import(buyerUrl);
 
     let currentAnalysis = null;
     let badgeContainer = null;
@@ -340,6 +347,134 @@
       controlsRow.appendChild(noteInput);
       historyCard.appendChild(controlsRow);
       drawer.appendChild(historyCard);
+
+      // Section: Buyer Mode (Flat, Project, Builder, Paperwork)
+      if (isSale) {
+        const buyerReport = generateBuyerReport(data.listing, {
+          reraId: data.listing.reraId,
+          projectName: data.listing.projectName
+        });
+
+        const buyerCard = document.createElement('div');
+        buyerCard.className = 'flataudit-buyer-card';
+
+        const buyerHead = document.createElement('div');
+        buyerHead.className = 'flataudit-buyer-head';
+        const buyerTitle = document.createElement('span');
+        buyerTitle.className = 'flataudit-buyer-title';
+        buyerTitle.textContent = '🏛️ Buyer Due Diligence Report';
+        const scenarioBadge = document.createElement('span');
+        scenarioBadge.className = 'flataudit-scenario-badge';
+        scenarioBadge.textContent = (buyerReport.meta.scenario || 'resale').toUpperCase().replace('_', ' ');
+        buyerHead.appendChild(buyerTitle);
+        buyerHead.appendChild(scenarioBadge);
+        buyerCard.appendChild(buyerHead);
+
+        // 4-Line Table: Flat, Project, Builder, Paperwork
+        const linesTable = document.createElement('div');
+        linesTable.className = 'flataudit-buyer-rep-lines';
+
+        const repLines = [
+          { key: 'Flat', item: buyerReport.reportLines.flat },
+          { key: 'Project', item: buyerReport.reportLines.project },
+          { key: 'Builder', item: buyerReport.reportLines.builder },
+          { key: 'Paperwork', item: buyerReport.reportLines.paperwork }
+        ];
+
+        for (const line of repLines) {
+          const row = document.createElement('div');
+          row.className = 'flataudit-buyer-rep-row';
+
+          const lbl = document.createElement('span');
+          lbl.className = 'flataudit-buyer-line-lbl';
+          lbl.textContent = line.key;
+
+          const content = document.createElement('div');
+          content.className = 'flataudit-buyer-line-content';
+
+          const ind = document.createElement('span');
+          ind.className = `flataudit-buyer-ind ind-${line.item.indicator === '✓' ? 'ok' : (line.item.indicator === '⚠' ? 'warn' : 'unknown')}`;
+          ind.textContent = line.item.indicator;
+
+          const txt = document.createElement('span');
+          txt.className = 'flataudit-buyer-line-text';
+          txt.textContent = line.item.summary;
+
+          content.appendChild(ind);
+          content.appendChild(txt);
+
+          if (line.item.details) {
+            const sub = document.createElement('div');
+            sub.className = 'flataudit-buyer-line-sub';
+            sub.textContent = line.item.details;
+            content.appendChild(sub);
+          }
+
+          row.appendChild(lbl);
+          row.appendChild(content);
+          linesTable.appendChild(row);
+        }
+        buyerCard.appendChild(linesTable);
+
+        // All-In Acquisition Cost Summary
+        const costBox = document.createElement('div');
+        costBox.className = 'flataudit-buyer-cost-box';
+        const costHead = document.createElement('div');
+        costHead.className = 'flataudit-buyer-cost-head';
+        costHead.textContent = '💰 Estimated All-In Acquisition Cost (Karnataka)';
+        costBox.appendChild(costHead);
+
+        const costRows = document.createElement('div');
+        costRows.className = 'flataudit-buyer-cost-grid';
+        
+        const dutyStr = buyerReport.costEstimate.statutoryCharges.stampDutyAmount.toLocaleString('en-IN');
+        const regStr = buyerReport.costEstimate.statutoryCharges.registrationAmount.toLocaleString('en-IN');
+        const gstStr = buyerReport.costEstimate.statutoryCharges.gstAmount.toLocaleString('en-IN');
+        const otherStr = buyerReport.costEstimate.otherCharges.total.toLocaleString('en-IN');
+        
+        const row1 = document.createElement('div');
+        row1.textContent = `Stamp Duty (5.6%): ₹${dutyStr}`;
+        const row2 = document.createElement('div');
+        row2.textContent = `Registration (1.0%): ₹${regStr}`;
+        const row3 = document.createElement('div');
+        row3.textContent = `GST (${buyerReport.costEstimate.statutoryCharges.gstPct}%): ₹${gstStr}`;
+        const row4 = document.createElement('div');
+        row4.textContent = `Advance & Connection: ₹${otherStr}`;
+        
+        costRows.appendChild(row1);
+        costRows.appendChild(row2);
+        costRows.appendChild(row3);
+        costRows.appendChild(row4);
+        costBox.appendChild(costRows);
+
+        const totalRow = document.createElement('div');
+        totalRow.className = 'flataudit-buyer-total-row';
+        const totalCr = (buyerReport.costEstimate.totalCost / 10000000).toFixed(2);
+        const emiStr = buyerReport.costEstimate.financing.monthlyEmi.toLocaleString('en-IN');
+        totalRow.textContent = `Estimated All-In: ₹${totalCr} Cr (Monthly EMI: ~₹${emiStr}/mo)`;
+        costBox.appendChild(totalRow);
+        buyerCard.appendChild(costBox);
+
+        // Printable Report Action Button
+        const printBtn = document.createElement('button');
+        printBtn.type = 'button';
+        printBtn.className = 'flataudit-print-report-btn';
+        printBtn.textContent = '📄 Open Printable 1-Page Buyer Report (for Lawyer)';
+        printBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const printWindow = window.open('', '_blank');
+          if (printWindow) {
+            const reportHtml = renderPrintableHtml(buyerReport, data.listing);
+            printWindow.document.open();
+            printWindow.document.write(reportHtml);
+            printWindow.document.close();
+          }
+        });
+        buyerCard.appendChild(printBtn);
+
+        drawer.appendChild(buyerCard);
+      }
 
       // Section: Fallback Ladder Market Benchmark
       if (data.benchmark) {

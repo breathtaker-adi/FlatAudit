@@ -51,7 +51,7 @@ The application addresses the "Rental Scam Kill Chain":
 - **Data Validation & Schemas**: Pydantic v2 (`pydantic>=2.0.0`).
 - **Database Layer**: SQLite 3 (Standard Library `sqlite3`) with WAL journal mode, parameterized queries, and daily deduplication.
 - **DOM Parsing & Simulation**: Native browser DOM APIs (`document.querySelector`, `MutationObserver`, `OffscreenCanvas`) in extension; `jsdom` for Node.js test suites.
-- **Testing Frameworks**: `node:test` + `node:assert/strict` (Frontend/Extension: 69 tests passing across 20 suites); `pytest` 8.0+ with `httpx` (Backend API: 11 tests passing).
+- **Testing Frameworks**: `node:test` + `node:assert/strict` (Frontend/Extension: 80 tests passing across 20 suites); `pytest` 8.0+ with `httpx` (Backend API: 11 tests passing).
 - **Styling Architecture**: Curated Dark-Mode Vanilla CSS (HSL tokens, glassmorphism, responsive CSS Grid/Flexbox, zero runtime styling overhead, Google Fonts *Bricolage Grotesque*, *Instrument Sans*, *JetBrains Mono*).
 
 ### Architectural Pattern
@@ -129,6 +129,7 @@ FlatAudit/
 │       └── test_packs.py       # Pytest market pack aggregator & zero-PII validation tests
 ├── docs/
 │   ├── architecture.md
+│   ├── buyer-mode-wording-guide.md   # Anti-defamation policy & allowed vocabulary standard
 │   ├── engineering-retrospective-v1.md # Technical retrospective and lessons learned
 │   ├── privacy-policy.md       # Plain-language user privacy and ToS statement
 │   ├── scam-taxonomy.md
@@ -147,19 +148,22 @@ FlatAudit/
 │   └── run_signals.js          # Node bridge executing production signals.js for Python eval
 ├── extension/
 │   ├── background.js           # MV3 background worker (OffscreenCanvas dHash, API proxy)
-│   ├── content.js              # Injected content script (badge, drawer, peer cache, Buyhatke card)
+│   ├── content.js              # Injected content script (badge, drawer, peer cache, Buyhatke & Buyer cards)
 │   ├── icons/                  # Extension PNG icons (16px, 48px, 128px)
 │   ├── manifest.json           # Chrome MV3 manifest declaration
-│   ├── styles.css              # Dark-mode styling for injected badge, drawer, sparklines
+│   ├── styles.css              # Dark-mode styling for injected badge, drawer, buyer cards, sparklines
 │   ├── lib/
 │   │   ├── benchmarks.js       # Dynamic benchmark ladder engine, circle rates & RERA links
+│   │   ├── buyer.js            # Buyer Mode: 4-line evaluation, cost estimator, checklists & report
 │   │   ├── dhash.js            # 64-bit difference hash & bitwise Hamming distance
 │   │   ├── geohash.js          # Base32 geohash encoder/decoder & coordinate DOM extractor
 │   │   ├── signals.js          # Rule-based evaluation engine (price, deposit, phrase, duplicate, sale valuation, RERA)
 │   │   ├── tracker.js          # Buyhatke tracker (watchlist, snapshots, sparklines, CSV export, EMI calculator)
 │   │   ├── data/
 │   │   │   ├── market_packs.json    # Static rental market packs (medians, MAD, PSF, deposit multiples)
-│   │   │   └── guidance_values.json # Karnataka Kaveri 2.0 government circle rates (Indiranagar, HSR, E-City, etc.)
+│   │   │   ├── guidance_values.json # Karnataka Kaveri 2.0 government circle rates (Indiranagar, HSR, E-City, etc.)
+│   │   │   ├── pilot_projects.json  # 20 curated K-RERA Bengaluru projects dataset
+│   │   │   └── closing_costs.json   # Karnataka Stamp Act, GST, and statutory closing costs
 │   │   └── parsers/
 │   │       ├── currency.js     # Currency normalizer (₹, Lakhs, Crores, Price/sq.ft, Area Type, Possession, RERA)
 │   │       ├── generic.js      # Heuristic fallback extractor
@@ -178,16 +182,19 @@ FlatAudit/
 │   ├── magicbricks_bait_price.html
 │   ├── nobroker_normal_2bhk.html
 │   ├── nobroker_scam_army_token.html
-│   └── nobroker_sale_resale_2bhk.html # Sanitized 2BHK resale flat fixture (₹1.25 Cr, carpet area, RERA registered)
+│   ├── nobroker_sale_resale_2bhk.html # Sanitized 2BHK resale flat fixture (₹1.25 Cr, carpet area, RERA registered)
+│   ├── rera_karnataka_project_clean.html # Sanitized clean K-RERA project fixture (unrevised dates)
+│   └── rera_karnataka_project_delayed.html # Sanitized revised completion date K-RERA fixture
 ├── tests/
 │   ├── test_benchmarks.test.js # Unit tests for geohash, MAD, fallback ladder, silence mode, pack validator
+│   ├── test_buyer.test.js      # Buyer Mode 4-line evaluation, cost estimator, checklists & printable report tests
 │   ├── test_dhash.test.js      # Unit tests for 64-bit dHash and Hamming distance
 │   ├── test_parsers.test.js    # Multi-portal fixture parsing, sale parsing & health integrity tests
 │   ├── test_signals.test.js    # Signal evaluation rules, circle rates, RERA & composite analysis tests
 │   └── test_tracker.test.js    # Buyhatke watchlist, sparklines, comparison, CSV export & EMI calculator tests
 └── web-demo/
-    ├── app.js                  # Standalone testbed logic & Buyhatke companion simulator
-    ├── index.html              # Interactive browser dashboard (presets, ladder modes)
+    ├── app.js                  # Standalone testbed logic, Buyhatke & Buyer Mode simulator
+    ├── index.html              # Interactive browser dashboard (presets, ladder modes, buyer report)
     └── style.css               # Vanilla CSS styling for web demo
 ```
 
@@ -417,7 +424,7 @@ FlatAudit discards hardcoded rupee numbers in code. When evaluating rent and dep
 
 ### Automated Test Suites
 - **JavaScript Test Suite (`node --test tests/*.test.js`)**:
-  - **69 tests across 20 suites**: **100% PASS** (0 failures).
+  - **80 tests across 20 suites**: **100% PASS** (0 failures).
   - Geohash base32 encoding/decoding & DOM coordinate parsing.
   - Robust non-parametric statistics (Median, MAD, Robust z-score).
   - 5-Tier Fallback Ladder (Peer page, Area cell, District cell, City, Silence mode).
@@ -425,10 +432,13 @@ FlatAudit discards hardcoded rupee numbers in code. When evaluating rent and dep
   - 64-bit dHash perceptual fingerprinting & bitwise Hamming distance.
   - Indian currency, Lakh and Crore notation, Price/sq.ft, Area Types (carpet vs builtup), Possession, RERA ID, and BHK parsing.
   - Multi-portal DOM fixture parsing & parser health checks on all 5 portals plus NoBroker resale buying fixture.
-  - Graceful degradation on malformed or empty DOMs without uncaught exceptions.
+  - Buyer Mode evaluation: 4-line evaluation (Flat, Project, Builder, Paperwork) with `✓ / ⚠ / ?`.
+  - Curated K-RERA 20 projects dataset lookup, revision statistics with denominators, and Form B litigation disclosures.
+  - Statutory closing cost estimator (Karnataka 5.6% stamp duty, 1% registration, GST, maintenance advance, and monthly EMI amortization).
+  - Scenario document due diligence checklists (Resale, Under Construction, Ready from Builder).
+  - Printable 1-page Buyer Due Diligence Report generator for legal review.
   - Threat detection rules (Price bait, deposit trap, military pretexts, duplicate photos, sale token pressure, title litigation flags).
-  - Property buying evaluation (Guidance value comparison, circle rate under-valuation alerts, official RERA links).
-  - Buyhatke tracking, snapshots, price drop delta, SVG sparklines, comparison matrix, CSV export, and loan EMI amortization calculations.
+  - Buyhatke tracking, snapshots, price drop delta, SVG sparklines, comparison matrix, CSV export.
 - **Python Backend Suite (`python -m pytest backend/tests/ -v`)**:
   - **11 tests**: **100% PASS** (0 failures).
   - API health, observation recording for rent and sale listings, seen count.
@@ -467,9 +477,10 @@ python -m pip install fastapi "uvicorn[standard]" pydantic httpx pytest pillow
 2. `extension/lib/dhash.js`: Implement `computeDHashFromGrayscale72`, `computeDHashFromImageData`, `hammingDistance`, `isDuplicateImage`.
 3. `extension/lib/parsers/`: Implement `currency.js` (Crores, Lakhs, ₹, Price/sq.ft, Area Types, RERA ID, BHK) and portal parsers (`nobroker.js` with rent & sale extraction, `magicbricks.js`, `ninety_nine_acres.js`, `housing.js`, `generic.js`), plus `parsePeerListingsFromPage` and `isListingValid` health check in `index.js`.
 4. `extension/lib/benchmarks.js`: Implement `computeMedian`, `computeMAD`, `robustZScore`, `computePeerAggregates`, `getBenchmark`, `getGuidanceValue`, and `getReraPortalUrl`.
-5. `extension/lib/data/`: Bundle `market_packs.json` (medians, MAD, PSF medians, deposit multiples) and `guidance_values.json` (Karnataka Kaveri 2.0 circle rates).
+5. `extension/lib/data/`: Bundle `market_packs.json` (medians, MAD, PSF, deposit multiples), `guidance_values.json` (Kaveri 2.0 circle rates), `pilot_projects.json` (20 K-RERA projects), and `closing_costs.json` (Karnataka Stamp Act & GST rates).
 6. `extension/lib/tracker.js`: Implement `StorageAdapter`, `trackListing`, `computePriceHistoryStats`, `generateSparklineSVG`, `buildComparisonMatrix`, `exportShortlistToCSV`, and `calculateEMI`.
-7. `extension/lib/signals.js`: Wire dynamic benchmarks, robust z-scores, advance-fee phrases, buying signals (circle rate valuation, RERA verification, token pressure), buyer due diligence checklist, and silence mode on thin data.
+7. `extension/lib/buyer.js`: Implement `normalizeReraId`, `lookupProjectFacts`, `evaluateFlatFacts`, `evaluateProjectFacts`, `evaluateBuilderFacts`, `estimateTotalCost`, `getPaperworkChecklist`, `generateBuyerReport`, and `renderPrintableHtml`.
+8. `extension/lib/signals.js`: Wire dynamic benchmarks, robust z-scores, advance-fee phrases, buying signals (circle rate valuation, RERA verification, token pressure), buyer due diligence checklist, and silence mode on thin data.
 
 ### Step 4: Build Backend & Aggregation Engine
 1. `backend/models.py`: Define Pydantic models for observations (supporting rent & sale), matches, packs, and analysis.
@@ -480,14 +491,14 @@ python -m pip install fastapi "uvicorn[standard]" pydantic httpx pytest pillow
 ### Step 5: Implement UI & Extension Frontend
 1. `extension/manifest.json`: Configure MV3 service worker and host permissions.
 2. `extension/background.js`: Implement `OffscreenCanvas` dHash worker and backend proxy.
-3. `extension/content.js`: Harvest search peers, cache search medians, render trust badge, fallback ladder badge, Buyhatke card, Buyer Due Diligence checklist, and RERA link-out button.
+3. `extension/content.js`: Harvest search peers, cache search medians, render trust badge, fallback ladder badge, Buyhatke card, Buyer Due Diligence checklist, RERA link-out button, and 4-line Buyer Mode evaluation card.
 4. `extension/styles.css`: Dark-mode styling for badges, drawer, sparklines, comparison strip, and buyer checklist boxes.
 5. `extension/popup/`: Popup controller displaying trust signals, benchmark ladder chip, and Buyhatke watchlist.
-6. `web-demo/`: Standalone browser dashboard with preset listings (including 2BHK resale flat), ladder test selector, sparklines, and Hamming distance calculator.
+6. `web-demo/`: Standalone browser dashboard with preset listings (including 2BHK resale flat and Godrej Reflections RERA project), ladder test selector, sparklines, buyer report card, and Hamming distance calculator.
 
 ### Step 6: Execute Full Test & Evaluation Verification
 ```bash
-# 1. Run all 69 JavaScript tests
+# 1. Run all 80 JavaScript tests
 npm test
 
 # 2. Run all 11 Python backend tests

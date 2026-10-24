@@ -1102,4 +1102,231 @@ input:focus, select:focus, textarea:focus {
   margin: 0;
 }
 
+/* ==========================================================================
+   Buyer Mode Due Diligence Panel
+   ========================================================================== */
+.buyer-mode-panel {
+  background: var(--surf-2);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--acc);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 20px;
+}
+
+.buyer-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.buyer-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Bricolage Grotesque", sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.scenario-tag {
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(124, 196, 255, 0.15);
+  color: var(--acc);
+  border: 1px solid rgba(124, 196, 255, 0.35);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.print-report-btn {
+  background: var(--acc);
+  color: #0f1520;
+  border: 0;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.print-report-btn:hover {
+  background: #9bd3ff;
+}
+
+.buyer-rep-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.buyer-rep-item {
+  display: flex;
+  gap: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(38, 51, 74, 0.6);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.buyer-rep-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.buyer-rep-label {
+  min-width: 80px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.buyer-rep-content {
+  flex: 1;
+}
+
+.buyer-rep-ind {
+  font-weight: 700;
+  margin-right: 6px;
+}
+.buyer-rep-ind.ind-ok { color: var(--ok); }
+.buyer-rep-ind.ind-warn { color: var(--warn); }
+.buyer-rep-ind.ind-unknown { color: var(--text-muted); }
+
+.buyer-rep-summary {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.buyer-rep-details {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+/* Cost Summary */
+.buyer-cost-summary {
+  background: rgba(15, 21, 32, 0.7);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  margin-bottom: 18px;
+}
+
+.cost-summary-header {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--acc);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.cost-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px 14px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.cost-summary-grid strong {
+  color: var(--text);
+}
+
+.cost-emi-note {
+  font-size: 12px;
+  color: var(--text-muted);
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.cost-emi-note strong {
+  color: var(--acc);
+}
+
+/* Paperwork Section */
+.paperwork-section {
+  margin-bottom: 14px;
+}
+
+.paperwork-header {
+  font-size: 12.5px;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+
+.paperwork-checklist-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.paperwork-doc-card {
+  background: var(--surf);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 12px;
+}
+
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.doc-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.doc-tag {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.doc-tag.tag-mandatory { background: rgba(255, 138, 128, 0.18); color: var(--bad); }
+.doc-tag.tag-critical { background: rgba(242, 184, 75, 0.18); color: var(--warn); }
+.doc-tag.tag-recommended { background: rgba(154, 168, 194, 0.18); color: var(--text-muted); }
+
+.doc-desc {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.35;
+  margin-bottom: 4px;
+}
+
+.doc-verify {
+  font-size: 10.5px;
+  color: var(--acc);
+}
+
+.buyer-disclaimer-note {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  border-top: 1px dashed var(--line);
+  padding-top: 10px;
+  margin: 12px 0 0;
+}
+
+@media (max-width: 768px) {
+  .paperwork-checklist-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 

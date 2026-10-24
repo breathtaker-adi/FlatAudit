@@ -12,6 +12,12 @@ import {
   buildComparisonMatrix,
   exportShortlistToCSV
 } from '../extension/lib/tracker.js';
+import {
+  generateBuyerReport,
+  renderPrintableHtml,
+  estimateTotalCost,
+  getPaperworkChecklist
+} from '../extension/lib/buyer.js';
 
 const PRESETS = {
   normal: {
@@ -36,6 +42,20 @@ const PRESETS = {
     deposit: 0,
     desc: "Well maintained East-facing 2 BHK flat for immediate resale in Electronic City Phase 1. 1,230 sq.ft carpet area. Clear title, freehold, A-Khata, Occupancy Certificate (OC) and Commencement Certificate (CC) available. RERA Reg: PRM/KA/RERA/1251/310/PR/171015/000451. Bank loans approved.",
     hash: "e3a890f12c4b7710",
+    seenCount: 1
+  },
+  godrej_reflections: {
+    listingType: "sale",
+    title: "3 BHK Highrise in Godrej Reflections, Sarjapur Main Road",
+    locality: "Indiranagar, Bangalore",
+    bhk: 3,
+    rent: 21500000,
+    price: 21500000,
+    pricePerSqft: 12285,
+    area_sqft: 1750,
+    deposit: 0,
+    desc: "Luxury 3 BHK Lake-facing apartment in Godrej Reflections on Sarjapur Road. 1,750 sq.ft carpet area. Registered K-RERA Project: PRM/KA/RERA/1251/310/PR/170915/000234. All approvals in place with designated ICICI Bank escrow account. Possession completed.",
+    hash: "d4e28f1107be994d",
     seenCount: 1
   },
   army_token: {
@@ -255,6 +275,110 @@ function renderResults(res) {
     document.getElementById('kc-3')?.classList.add('active');
   } else if (res.signals?.price?.fired || res.signals?.duplicateImage?.fired) {
     document.getElementById('kc-1')?.classList.add('active');
+  }
+
+  // Handle Buyer Mode vs Renter Safety Advice
+  const buyerPanel = document.getElementById('buyer-mode-panel');
+  const renterSafetyCard = document.getElementById('renter-safety-card');
+  const isSale = res.listing?.listingType === 'sale' || Boolean(res.listing?.price && !res.listing?.rent) || (res.listing?.price >= 1000000);
+
+  if (isSale && buyerPanel) {
+    buyerPanel.style.display = 'block';
+    if (renterSafetyCard) renterSafetyCard.style.display = 'none';
+
+    const buyerReport = generateBuyerReport(res.listing, {
+      reraId: res.listing.reraId,
+      projectName: res.listing.projectName
+    });
+
+    // 1. Scenario Tag
+    const scenarioTag = document.getElementById('demo-scenario-tag');
+    if (scenarioTag) {
+      scenarioTag.textContent = (buyerReport.meta.scenario || 'resale').toUpperCase().replace('_', ' ');
+    }
+
+    // 2. 4-Line Evaluation List
+    const repList = document.getElementById('demo-buyer-rep-list');
+    if (repList) {
+      repList.innerHTML = '';
+      const repLines = [
+        { key: 'Flat', item: buyerReport.reportLines.flat },
+        { key: 'Project', item: buyerReport.reportLines.project },
+        { key: 'Builder', item: buyerReport.reportLines.builder },
+        { key: 'Paperwork', item: buyerReport.reportLines.paperwork }
+      ];
+
+      for (const line of repLines) {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'buyer-rep-item';
+        const indClass = line.item.indicator === '✓' ? 'ind-ok' : (line.item.indicator === '⚠' ? 'ind-warn' : 'ind-unknown');
+        itemEl.innerHTML = `
+          <b class="buyer-rep-label">${line.key}</b>
+          <div class="buyer-rep-content">
+            <span class="buyer-rep-ind ${indClass}">${line.item.indicator}</span>
+            <span class="buyer-rep-summary">${line.item.summary}</span>
+            ${line.item.details ? `<div class="buyer-rep-details">${line.item.details}</div>` : ''}
+          </div>
+        `;
+        repList.appendChild(itemEl);
+      }
+    }
+
+    // 3. All-In Cost Summary
+    const costSummary = document.getElementById('demo-buyer-cost-summary');
+    if (costSummary) {
+      const c = buyerReport.costEstimate;
+      costSummary.innerHTML = `
+        <div class="cost-summary-header">💰 Estimated All-In Acquisition Cost (Karnataka)</div>
+        <div class="cost-summary-grid">
+          <div><span>Base Price:</span> <strong>₹${(c.basePrice / 10000000).toFixed(2)} Cr</strong></div>
+          <div><span>Stamp Duty (5.6%):</span> <strong>₹${c.statutoryCharges.stampDutyAmount.toLocaleString('en-IN')}</strong></div>
+          <div><span>Registration (1.0%):</span> <strong>₹${c.statutoryCharges.registrationAmount.toLocaleString('en-IN')}</strong></div>
+          <div><span>GST (${c.statutoryCharges.gstPct}%):</span> <strong>₹${c.statutoryCharges.gstAmount.toLocaleString('en-IN')}</strong></div>
+          <div><span>Maintenance & Connection:</span> <strong>₹${c.otherCharges.total.toLocaleString('en-IN')}</strong></div>
+          <div><span>Estimated All-In:</span> <strong style="color:#7cc4ff;">₹${(c.totalCost / 10000000).toFixed(2)} Cr</strong></div>
+        </div>
+        <div class="cost-emi-note">Estimated Monthly EMI (20 years @ 8.5% interest on 80% loan): <strong>₹${c.financing.monthlyEmi.toLocaleString('en-IN')}/mo</strong></div>
+      `;
+    }
+
+    // 4. Paperwork Checklist Grid
+    const checklistGrid = document.getElementById('demo-paperwork-checklist');
+    if (checklistGrid) {
+      checklistGrid.innerHTML = '';
+      for (const doc of buyerReport.paperworkChecklist) {
+        const docCard = document.createElement('div');
+        docCard.className = 'paperwork-doc-card';
+        const tagClass = doc.importance === 'MANDATORY' ? 'tag-mandatory' : (doc.importance === 'CRITICAL' ? 'tag-critical' : 'tag-recommended');
+        docCard.innerHTML = `
+          <div class="doc-header">
+            <span class="doc-name">${doc.name}</span>
+            <span class="doc-tag ${tagClass}">${doc.importance}</span>
+          </div>
+          <div class="doc-desc">${doc.description}</div>
+          <div class="doc-verify">Verify: ${doc.whereToVerify}</div>
+        `;
+        checklistGrid.appendChild(docCard);
+      }
+    }
+
+    // 5. Printable Report Button
+    const printBtn = document.getElementById('demo-print-report-btn');
+    if (printBtn) {
+      printBtn.onclick = (e) => {
+        e.preventDefault();
+        const printWin = window.open('', '_blank');
+        if (printWin) {
+          const html = renderPrintableHtml(buyerReport, res.listing);
+          printWin.document.open();
+          printWin.document.write(html);
+          printWin.document.close();
+        }
+      };
+    }
+  } else {
+    if (buyerPanel) buyerPanel.style.display = 'none';
+    if (renterSafetyCard) renterSafetyCard.style.display = 'block';
   }
 }
 

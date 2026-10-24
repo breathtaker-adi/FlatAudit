@@ -72,6 +72,7 @@
             <div class="preset-buttons">
               <button class="preset-btn active" data-preset="normal">✓ Normal 2BHK (Indiranagar)</button>
               <button class="preset-btn" data-preset="resale_buy">🏠 Resale 2BHK (₹1.25 Cr)</button>
+              <button class="preset-btn" data-preset="godrej_reflections">🏗️ Project: Godrej Reflections</button>
               <button class="preset-btn" data-preset="army_token">⚠️ Army Token Scam (HSR)</button>
               <button class="preset-btn" data-preset="bait_price">⚠️ Bait Price (Cyber City)</button>
               <button class="preset-btn" data-preset="zero_deposit">⚠️ Zero Deposit (Pune)</button>
@@ -214,8 +215,40 @@
             </div>
           </div>
 
+          <!-- Buyer Mode Due Diligence Panel (Flat, Project, Builder, Paperwork) -->
+          <div class="buyer-mode-panel" id="buyer-mode-panel" style="display: none;">
+            <div class="buyer-panel-header">
+              <div class="buyer-header-title">
+                <span>🏛️ Official Records & Buyer Evaluation</span>
+                <span class="scenario-tag" id="demo-scenario-tag">RESALE</span>
+              </div>
+              <button type="button" class="print-report-btn" id="demo-print-report-btn">📄 Open Printable 1-Page Report</button>
+            </div>
+
+            <!-- 4-Line Evaluation (Observable Facts Only) -->
+            <div class="buyer-rep-list" id="demo-buyer-rep-list">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- All-In Cost Summary -->
+            <div class="buyer-cost-summary" id="demo-buyer-cost-summary">
+              <!-- Dynamically populated -->
+            </div>
+
+            <!-- Scenario Paperwork Checklist -->
+            <div class="paperwork-section">
+              <div class="paperwork-header">
+                <b>📋 Required Document Due Diligence (Verify with Independent Advocate):</b>
+              </div>
+              <div class="paperwork-checklist-grid" id="demo-paperwork-checklist">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+            <p class="buyer-disclaimer-note">⚖️ <b>Mandatory Caveat:</b> FlatAudit summarizes visible portal information and official government records. It does not constitute legal or financial advice and does not verify property title. Consult an independent advocate before paying any deposit.</p>
+          </div>
+
           <!-- Renter Safety Advice -->
-          <div class="safety-card">
+          <div class="safety-card" id="renter-safety-card">
             <div class="safety-title">💡 What You Should Do (Renter Safety Checklist):</div>
             <ul class="safety-checklist" id="safety-checklist">
               <li>Never transfer any token, gate fee, or courier charge via UPI before an in-person flat walkthrough.</li>

@@ -1,13 +1,13 @@
 # FlatAudit: Listing Trust Analyzer & Buyhatke-Style Property Companion
 
-[![Tests](https://img.shields.io/badge/Unit%20Tests-69%2F69%20Passing-brightgreen.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Unit%20Tests-80%2F80%20Passing-brightgreen.svg)](tests/)
 [![Pytest](https://img.shields.io/badge/API%20Tests-11%2F11%20Passing-brightgreen.svg)](backend/tests/)
 [![Synthetic Eval](https://img.shields.io/badge/Synthetic%20Baseline-97.3%25-blue.svg)](eval/evaluation_results.md)
 [![Real-World Eval](https://img.shields.io/badge/Real--World%20Eval-100%25%20(5%20Cities)-brightgreen.svg)](eval/evaluation_real_results.md)
 [![Manifest](https://img.shields.io/badge/Chrome%20Extension-Manifest%20V3-orange.svg)](extension/manifest.json)
 [![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
 
-> **A privacy-preserving browser extension and explainable API that flags advance-fee scam signals on Indian rentals, evaluates resale property buying (Crore parsing, price/sq.ft, government circle rates, official RERA link-outs, EMI calculations), and acts as a "Buyhatke for property" — tracking price history sparklines, price-drop alerts, side-by-side comparison tables, and cross-portal duplicate listings.**  
+> **A privacy-preserving browser extension and explainable API that flags advance-fee scam signals on Indian rentals, features comprehensive Buyer Mode to evaluate the flat, project, and builder from official RERA records (Karnataka pilot), and acts as a "Buyhatke for property" — tracking price history sparklines, price-drop alerts, all-in closing costs, side-by-side comparisons, and printable advocate reports.**  
 > Built as an advanced cybersecurity & consumer utility portfolio project, threat-modeled with STRIDE, and evaluated on benchmark listings with zero rule drift.
 
 ---
@@ -64,14 +64,27 @@ In-Page Floating Badge & Toolbar Popup
 - **Observable-Facts Explanations**: Adheres to strict anti-defamation principles. Badges state verifiable evidence (e.g. *"Rent is 77% below HSR Layout 3BHK median"*, *"Photo fingerprint appeared across 4 distinct listings"*) without defamatory accusations.
 - **Positive Verification on Normal Listings**: Even when zero red flags fire, properties receive 4 verified points confirming price alignment, standard deposit ratio, and clean phrasing.
 
-### 🏠 Property Buying & Resale Transparency (Pilot: Bengaluru)
-- **Crore & Lakh Currency Normalization**: Extracts total asking price across Indian currency variants (`₹1.25 Cr`, `1.45 Crore`, `85 Lacs`, `₹95,00,000`) and parses normalized price per sq.ft (`₹10,162 / sq.ft`).
-- **Strict Area Type Integrity**: Distinguishes between Carpet Area, Built-up Area, and Super Built-up Area (SBUA) to prevent misleading price-per-sq.ft comparisons across incompatible definitions.
-- **Government Circle Rates / Guidance Values**: Bundles official Karnataka Stamps & Registration Department (Kaveri 2.0) minimum guidance values for Bengaluru zones (Indiranagar: ₹11,500/sqft, HSR Layout: ₹8,800/sqft, Electronic City: ₹5,200/sqft, Whitefield: ₹6,400/sqft, Koramangala: ₹12,000/sqft, Bellandur: ₹7,100/sqft). Highlights asking prices that are suspiciously below circle rates (>35% below, flagging potential unapproved layouts or tax evasion).
-- **Official State RERA Link-Outs**: Extracts state RERA registration IDs (`PRM/KA/RERA/...`, `HRERA...`, `MahaRERA...`) and embeds direct verification links to official state authority search portals rather than brittle web scraping.
-- **Buyer Due Diligence Checklist**: In-drawer actionable 5-step checklist covering Title Deed clearance, Encumbrance Certificate (15–30 yrs), Occupancy Certificate (OC/CC), Physical carpet area tape measurement, and Official RERA confirmation.
-- **Strict Legal Disclaimer Guardrails**: Plainly states: *"FlatAudit provides informational signals from visible listing data and official guidance values. It does not constitute legal or financial advice and does not verify property title deeds."*
-- **Loan EMI Amortization Calculator**: In-memory standard banking amortization formula for monthly EMI, total interest, and payment breakdown based on property price, loan tenure, and interest rate.
+### 🏠 Buyer Mode: Evaluate the Flat, Project & Builder (Pilot: Bengaluru)
+- **Objective 4-Line Evaluation**: Replaces arbitrary score badges with factual observations with sources and dates:
+  1. **Flat**: Rate per sq.ft vs peers and government circle rate on strict like-for-like area basis (Carpet vs SBUA).
+  2. **Project**: Official Form B completion dates vs revised dates (`Dates revised in X of Y projects`), escrow bank, and K-RERA status.
+  3. **Builder**: Promoter disclosed past projects, revision denominator, and litigation field transcriptions.
+  4. **Paperwork**: Explicit acknowledgment of what cannot be verified by browser code (title, encumbrances) and lawyer hand-off checklist.
+- **Curated 20-Project Pilot Dataset (`pilot_projects.json`)**: Real K-RERA projects across Bengaluru (Godrej Reflections, Prestige Falcon City, Sobha Dream Acres, Brigade Woods, Purva Atmosphere, etc.) with exact registration IDs, completion timelines, and escrow accounts.
+- **Strict Anti-Defamation Editorial Policy (`docs/buyer-mode-wording-guide.md`)**: Banned subjective labels (*"reliable builder"*, *"bad builder"*, *"safe investment"*); enforces mandatory denominators and timestamps.
+- **All-In Acquisition Cost Estimator (`closing_costs.json`)**: Karnataka statutory calculations:
+  - Base Property Price
+  - Effective Stamp Duty: 5.6% (5% base + 10% urban surcharge + 2% infrastructure cess)
+  - Registration Fee: 1.0%
+  - GST: 0.0% for ready-to-move with OC; 5.0% for under-construction
+  - Advance Maintenance, BESCOM/BWSSB connection, and Khata transfer estimates
+- **Scenario Document Due Diligence Checklists**:
+  - *Resale*: 30-year mother deed chain, Form 15 Encumbrance Certificate, OC/CC, A-Khata, 3-yr tax challans, society NOC.
+  - *Under Construction*: RERA Form B, sanctioned plan, commencement certificate, milestone-linked demands, escrow bank.
+  - *Ready from Builder*: Full Occupancy Certificate, fire safety NOC, A-Khata extract, BESCOM/BWSSB connections.
+- **Printable 1-Page Buyer Due Diligence Report**: One-click generation of clean, printer-friendly dossier for buyers to hand directly to their advocate.
+- **Government Circle Rates / Guidance Values (`guidance_values.json`)**: Kaveri 2.0 reference rates for Bengaluru zones; alerts if asking rate is $>35\%$ below circle rate floor.
+- **Official State RERA Link-Outs**: Instant links to official state verification portals (K-RERA, MahaRERA, HRERA, TS-RERA).
 
 ### 📈 Buyhatke-Style Property Companion
 - **Price History Inline SVG Sparkline**: Pure mathematical SVG curve with gradient fill rendered directly in the DOM without external charting dependencies.
@@ -135,7 +148,7 @@ python -m pip install -r backend/requirements.txt
 
 ### Step 2: Run Unit & Integration Tests
 ```bash
-# Run 69 JavaScript unit & parser health tests
+# Run 80 JavaScript unit, buyer mode & parser health tests
 npm test
 
 # Run 11 Python API, SQLite & Market Pack tests
@@ -188,18 +201,21 @@ FlatAudit/
 │   ├── manifest.json          # Minimal permissions & strict CSP
 │   ├── background.js          # Service worker: OffscreenCanvas dHash & API proxy
 │   ├── content.js             # Content script: safe DOM injection (0 innerHTML)
-│   ├── styles.css             # Injected badge, facts drawer & sparkline styles
+│   ├── styles.css             # Injected badge, facts drawer, buyer card & sparkline styles
 │   ├── icons/                 # Official extension icons (16px, 48px, 128px)
 │   ├── popup/                 # Toolbar popup (Trust + Watchlist tabs)
 │   └── lib/
 │       ├── dhash.js           # 64-bit dHash & bitwise Hamming distance
 │       ├── signals.js         # Single-source-of-truth signal engine
 │       ├── benchmarks.js      # Dynamic 5-step fallback ladder, circle rates & RERA links
+│       ├── buyer.js           # Buyer Mode: 4-line evaluation, cost estimator, checklists & report
 │       ├── geohash.js         # Base32 geohash encoder & DOM coordinate extractor
 │       ├── tracker.js         # Buyhatke watchlist, SVG sparklines, compare & EMI calculator
 │       ├── data/
 │       │   ├── market_packs.json    # Aggregated fallback market statistics
-│       │   └── guidance_values.json # Karnataka Kaveri 2.0 government circle rates
+│       │   ├── guidance_values.json # Karnataka Kaveri 2.0 government circle rates
+│       │   ├── pilot_projects.json  # 20 curated K-RERA Bengaluru projects dataset
+│       │   └── closing_costs.json   # Karnataka Stamp Act, GST, and statutory rates
 │       └── parsers/           # NoBroker, MagicBricks, 99acres, Housing parsers
 ├── backend/                   # FastAPI + SQLite Registry
 │   ├── main.py                # REST endpoints: /observe, /seen, /matches, /packs
@@ -207,7 +223,7 @@ FlatAudit/
 │   ├── build_packs.py         # Batch pack generator (trimmed stats, zero PII)
 │   ├── models.py              # Pydantic data schemas (rent & sale listings)
 │   └── tests/                 # Pytest test suite (11 tests)
-├── fixtures/                  # Real-world HTML test fixtures (6 portal & resale formats)
+├── fixtures/                  # Real-world HTML test fixtures (8 portal, sale & RERA formats)
 ├── eval/                      # Evaluation datasets & test runners
 │   ├── labels.csv             # Synthetic Unit-Test Dataset (250 listings)
 │   ├── real_listings.csv      # Real-World Multi-City Dataset (30 listings, 5 cities)
@@ -216,13 +232,14 @@ FlatAudit/
 │   └── run_signals.js         # Node subprocess bridge to signals.js
 ├── docs/                      # Security & Engineering Documentation
 │   ├── zero_context_blueprint.md     # Architectural reconstruction blueprint
+│   ├── buyer-mode-wording-guide.md   # Anti-defamation & editorial vocabulary standard
 │   ├── threat-model.md        # Full STRIDE threat model
 │   ├── privacy-policy.md      # Plain-language privacy commitments
 │   ├── store-listing.md       # Chrome Web Store listing & asset specification
 │   ├── engineering-retrospective-v1.md # Lessons learned & retrospective
 │   ├── architecture.md        # Architecture diagrams
 │   └── scam-taxonomy.md       # Rental fraud kill chain breakdown
-├── tests/                     # Node.js test suite (69 tests passing)
+├── tests/                     # Node.js test suite (80 tests passing)
 ├── web-demo/                  # Standalone interactive browser testbed
 └── package.json
 ```
