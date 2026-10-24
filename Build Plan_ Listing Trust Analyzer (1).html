@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Build Plan: Listing Trust Analyzer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#0f1520;--surf:#172030;--line:#26334a;--text:#e6ebf5;--muted:#9aa8c2;--acc:#7cc4ff;--warn:#f2b84b;--bad:#ff8a80;--ok:#6fd6a0;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.6 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:820px;margin:0 auto;padding:32px 20px 72px}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.5rem;font-weight:700;margin:50px 0 14px}
+h3{font-size:1.1rem;font-weight:700}
+p{margin:0 0 12px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:62ch;margin-top:14px}
+ul{margin:6px 0;padding-left:20px}
+li{margin:4px 0}
+.box{background:var(--surf);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:8px;padding:14px 16px;margin:16px 0}
+.box.warn{border-left-color:var(--warn)}
+.box.ok{border-left-color:var(--ok)}
+.box.bad{border-left-color:var(--bad)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tw{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:.92rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted)}
+pre{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font:.85rem/1.5 ui-monospace,Menlo,Consolas,monospace;margin:12px 0}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--surf);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.wk{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:16px 0}
+.wk header{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.wk .t{font-size:.82rem;color:var(--muted)}
+.lbl{font-weight:600;color:var(--acc);margin:10px 0 2px}
+.done{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);color:var(--ok)}
+.ck{list-style:none;padding:0}
+.ck li{display:flex;gap:9px;align-items:flex-start}
+.ck input{margin-top:6px;accent-color:var(--acc);width:16px;height:16px;flex:none}
+.ck input:checked+span{color:var(--muted);text-decoration:line-through}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:18px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .25s}
+.note{font-size:.88rem;color:var(--muted)}
+@media (max-width:640px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<h1>Build plan: Listing Trust Analyzer</h1>
+<p class="lead">A beginner-friendly, step-by-step path from an empty folder to a finished portfolio project. Tick items off as you go; your progress is saved in this browser.</p>
+<div class="bar" aria-hidden="true"><i id="fill"></i></div>
+<p class="note" id="pct">0% complete</p>
+
+<h2>How to start (first 3 days)</h2>
+<div class="box ok"><ul>
+<li><b>Day 1:</b> create the GitHub repo, install VS Code and Node.js, and load a “hello world” extension in Chrome.</li>
+<li><b>Day 2:</b> save 5 listing pages as local HTML files and open them in the browser to practice reading fields with the console.</li>
+<li><b>Day 3:</b> start the 30-listing spreadsheet (15 suspicious, 15 normal) with price, deposit and your reason for each.</li>
+</ul></div>
+
+<h2>Ground rules for a beginner</h2>
+<div class="cols">
+<div class="box"><h3>Working habits</h3><ul>
+<li>Budget 8–10 hours a week; steady beats heroic</li>
+<li>Commit to Git at the end of every session</li>
+<li>Build the smallest working thing, then improve it</li>
+<li>Write a “done when” line before each task</li></ul></div>
+<div class="box warn"><h3>Safety and fairness</h3><ul>
+<li>Only read pages you open yourself; no bulk crawling</li>
+<li>Check each portal’s Terms of Service first</li>
+<li>Never store photos or phone numbers</li>
+<li>Describe signals, never accuse people</li></ul></div>
+</div>
+
+<h2>Tools and stack</h2>
+<div class="tw"><table>
+<tr><th>Part</th><th>Choice</th><th>Why for a beginner</th></tr>
+<tr><td>Extension</td><td>Plain JavaScript, Manifest V3</td><td>No build step; add TypeScript later if you want</td></tr>
+<tr><td>Backend</td><td>Python, FastAPI, SQLite</td><td>Close to the Python you already use; SQLite needs no server</td></tr>
+<tr><td>Tests</td><td><code>node --test</code> and <code>pytest</code></td><td>Built in or minimal setup</td></tr>
+<tr><td>Analysis</td><td>Python, pandas, matplotlib</td><td>For the evaluation chapter</td></tr>
+<tr><td>Learning</td><td>MDN JavaScript Guide, Chrome Extensions docs, FastAPI tutorial</td><td>Official, free, and current</td></tr>
+</table></div>
+<pre>listing-trust-analyzer/
+├─ extension/        manifest.json, content.js, background.js, popup/
+│  └─ lib/           dhash.js, signals.js, parsers/
+├─ backend/          main.py, db.py, tests/
+├─ fixtures/         saved listing HTML for tests (no personal data)
+├─ eval/             labels.csv (private), evaluate.py
+├─ docs/             threat-model.md, architecture.png
+└─ README.md</pre>
+
+<h2>Week-by-week plan</h2>
+
+<section class="wk"><header><h3>Week 0: Setup and warm-up</h3><span class="t">3–4 days</span></header>
+<div class="lbl">Learn</div><ul><li>JavaScript basics: variables, functions, arrays, <code>fetch</code>, async/await, DOM selectors</li><li>What a content script and a service worker are</li></ul>
+<div class="lbl">Build</div><ul class="ck">
+<li><input type="checkbox"><span>Create the repo with a README and <code>.gitignore</code> (ignore <code>eval/labels.csv</code>)</span></li>
+<li><input type="checkbox"><span>Make a Manifest V3 extension that shows an alert on any page</span></li>
+<li><input type="checkbox"><span>Save 5 listing pages as HTML into <code>fixtures/</code></span></li></ul>
+<div class="done">Done when: the extension loads via “Load unpacked” and fixtures open locally.</div></section>
+
+<section class="wk"><header><h3>Week 1: Read a listing</h3><span class="t">one portal only</span></header>
+<div class="lbl">Learn</div><ul><li><code>document.querySelectorAll</code>, <code>MutationObserver</code> for pages that load content later</li><li>Why to prefer stable attributes over auto-generated class names</li></ul>
+<div class="lbl">Build</div><ul class="ck">
+<li><input type="checkbox"><span>Write a parser that returns title, rent, deposit, BHK, locality and image URLs</span></li>
+<li><input type="checkbox"><span>Test the parser against every fixture file with <code>node --test</code></span></li>
+<li><input type="checkbox"><span>Inject a small badge element using <code>textContent</code> (never <code>innerHTML</code> with page data)</span></li></ul>
+<div class="done">Done when: the badge shows the parsed rent and locality on a live listing you opened.</div></section>
+
+<section class="wk"><header><h3>Week 2: Image fingerprint (dHash)</h3><span class="t">the trickiest week</span></header>
+<div class="lbl">Learn</div><ul><li>dHash: shrink to 9×8 grayscale, compare each pixel with its right neighbor, giving 64 bits</li><li>Hamming distance: count differing bits; small means similar</li><li>Gotcha: images from other domains can block canvas pixel reads in a content script, so fetch the image from the background service worker (with host permission) and use <code>createImageBitmap</code> plus <code>OffscreenCanvas</code></li></ul>
+<div class="lbl">Build</div><ul class="ck">
+<li><input type="checkbox"><span>Implement <code>dhash()</code> and <code>hamming()</code> in <code>lib/dhash.js</code></span></li>
+<li><input type="checkbox"><span>Unit-test: same image resized gives distance near 0; different images give a large distance</span></li>
+<li><input type="checkbox"><span>Hash each listing’s first 3 images via the service worker</span></li></ul>
+<div class="done">Done when: two copies of one photo (one resized) match within your threshold and unrelated photos do not.</div></section>
+
+<section class="wk"><header><h3>Week 3: Rule-based signals</h3><span class="t">pure functions, easy to test</span></header>
+<div class="lbl">Learn</div><ul><li>Mean, standard deviation and z-score; why medians resist outliers</li></ul>
+<div class="lbl">Build</div><ul class="ck">
+<li><input type="checkbox"><span><code>priceSignal</code>: compare rent to similar listings (same locality and BHK)</span></li>
+<li><input type="checkbox"><span><code>depositSignal</code>: deposit divided by rent against a local norm</span></li>
+<li><input type="checkbox"><span><code>phraseSignal</code>: a short list of advance-fee phrases taken from your own labeled examples</span></li>
+<li><input type="checkbox"><span>Each signal returns <code>{fired, reason}</code> so the badge can explain itself</span></li></ul>
+<div class="done">Done when: each signal has tests with at least one fired and one not-fired fixture.</div></section>
+
+<section class="wk"><header><h3>Week 4: Small backend</h3><span class="t">FastAPI + SQLite</span></header>
+<div class="lbl">Learn</div><ul><li>REST endpoints, request validation with Pydantic, CORS basics</li></ul>
+<div class="lbl">Build</div><ul class="ck">
+<li><input type="checkbox"><span><code>POST /observe</code> stores hash, rent, locality and BHK (no photos, no contacts)</span></li>
+<li><input type="checkbox"><span><code>GET /seen?hash=…</code> returns how many listings share a similar hash (linear scan is fine)</span></li>
+<li><input type="checkbox"><span>Add <code>pytest</code> tests and a CORS allowlist for the extension</span></li>
+<li><input type="checkbox"><span>Connect the extension to <code>localhost</code> and show “seen in N listings”</span></li></ul>
+<div class="done">Done when: opening the same photo’s listing twice shows the duplicate count increase.</div></section>
+
+<section class="wk"><header><h3>Week 5: Collect and label data</h3><span class="t">your most valuable asset</span></header>
+<div class="lbl">Build</div><ul class="ck">
+<li><input type="checkbox"><span>Define <code>labels.csv</code> columns: id, locality, BHK, rent, deposit, label, reason</span></li>
+<li><input type="checkbox"><span>Write a one-page labeling guide so labels stay consistent</span></li>
+<li><input type="checkbox"><span>Label about 250 listings; mark any you were unsure about</span></li>
+<li><input type="checkbox"><span>Relabel 20 random rows a few days later to check your own consistency</span></li></ul>
+<div class="done">Done when: you have at least 100 labeled listings (250 is the target) with a mix of both classes.</div></section>
+
+<section class="wk"><header><h3>Week 6: Evaluate honestly</h3><span class="t">where the project becomes impressive</span></header>
+<div class="lbl">Learn</div><ul><li>Precision, recall, confusion matrix, train/test split</li></ul>
+<div class="lbl">Build</div><ul class="ck">
+<li><input type="checkbox"><span>Run signals over the dataset in <code>evaluate.py</code></span></li>
+<li><input type="checkbox"><span>Tune thresholds on a training split; report results on the held-out split</span></li>
+<li><input type="checkbox"><span>Do error analysis: list false positives (such as legitimate broker photo reuse) and why they happened</span></li>
+<li><input type="checkbox"><span>Optional: fit a simple logistic regression and keep it only if it beats the rules</span></li></ul>
+<div class="done">Done when: a results table and a short “what failed” section exist.</div></section>
+
+<section class="wk"><header><h3>Week 7: Security hardening</h3><span class="t">your cybersecurity chapter</span></header>
+<div class="lbl">Build</div><ul class="ck">
+<li><input type="checkbox"><span>Write <code>docs/threat-model.md</code> using STRIDE for the extension and API</span></li>
+<li><input type="checkbox"><span>Trim extension permissions to the minimum; set a strict CSP; no remote code</span></li>
+<li><input type="checkbox"><span>Treat all page data as untrusted: validate on the backend, escape on display</span></li>
+<li><input type="checkbox"><span>Add rate limiting; run <code>npm audit</code> and <code>pip-audit</code></span></li></ul>
+<div class="done">Done when: each threat has a mitigation or a documented accepted risk.</div></section>
+
+<section class="wk"><header><h3>Week 8: Polish and publish</h3><span class="t">make it easy to review</span></header>
+<div class="lbl">Build</div><ul class="ck">
+<li><input type="checkbox"><span>README: what it is, screenshots, setup in under 5 steps, limits and ethics</span></li>
+<li><input type="checkbox"><span>Architecture diagram and a 2-minute demo video</span></li>
+<li><input type="checkbox"><span>Pick a license; confirm no secrets, personal data or private labels are committed</span></li>
+<li><input type="checkbox"><span>Blog post: what worked, what didn’t, and the metrics</span></li></ul>
+<div class="done">Done when: a stranger can clone the repo and run the demo from the README.</div></section>
+
+<section class="wk"><header><h3>Weeks 9–10: Optional stretch</h3><span class="t">only if weeks 1–8 are solid</span></header>
+<ul><li>One state’s RERA delay lookup for a project name</li><li>A “paste a listing URL” page</li><li>A second portal parser</li></ul></section>
+
+<h2>If you get stuck</h2>
+<div class="box warn"><ul>
+<li>Shrink the problem: test one function with one fixture before touching the browser.</li>
+<li>Use the console and <code>chrome://extensions</code> error view; most extension bugs show up there.</li>
+<li>Time-box a bug to 45 minutes, then write down what you tried and ask for help.</li>
+<li>Behind schedule? Cut Week 9–10 first, then the optional model; never cut evaluation or the threat model.</li>
+</ul></div>
+
+<h2>Milestones</h2>
+<div class="tw"><table>
+<tr><th>When</th><th>You can show</th></tr>
+<tr><td>End of week 2</td><td>Extension that fingerprints listing photos</td></tr>
+<tr><td>End of week 4</td><td>Working end-to-end badge with “seen in N listings”</td></tr>
+<tr><td>End of week 6</td><td>Evaluation table with precision, recall and error analysis</td></tr>
+<tr><td>End of week 8</td><td>Public repo, threat model, demo video and blog post</td></tr>
+</table></div>
+</main>
+<script>
+(function(){
+var K="lta-plan-v1",boxes=[].slice.call(document.querySelectorAll('.ck input')),saved=[];
+try{saved=JSON.parse(localStorage.getItem(K)||"[]")}catch(e){}
+boxes.forEach(function(b,i){b.checked=!!saved[i];b.addEventListener('change',upd)});
+function upd(){
+var s=boxes.map(function(b){return b.checked?1:0}),n=s.reduce(function(a,c){return a+c},0),p=boxes.length?Math.round(n*100/boxes.length):0;
+document.getElementById('fill').style.width=p+'%';
+document.getElementById('pct').textContent=p+'% complete ('+n+' of '+boxes.length+' tasks)';
+try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}
+}
+upd();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+/* FlatAudit - Injected Trust Badge & Drawer Styles */
+
+#flataudit-root {
+  all: initial;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #e6ebf5;
+  z-index: 2147483640;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+}
+
+.flataudit-badge-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(15, 21, 32, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(124, 196, 255, 0.25);
+  border-radius: 9999px;
+  padding: 8px 16px;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #e6ebf5;
+  user-select: none;
+}
+
+.flataudit-badge-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(124, 196, 255, 0.4);
+}
+
+.flataudit-badge-icon {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.flataudit-badge-title {
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  color: #f0f4fc;
+}
+
+.flataudit-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.02em;
+}
+
+.flataudit-pill.tone-ok {
+  background: rgba(111, 214, 160, 0.15);
+  color: #6fd6a0;
+  border: 1px solid rgba(111, 214, 160, 0.3);
+}
+
+.flataudit-pill.tone-warn {
+  background: rgba(242, 184, 75, 0.15);
+  color: #f2b84b;
+  border: 1px solid rgba(242, 184, 75, 0.3);
+}
+
+.flataudit-pill.tone-bad {
+  background: rgba(255, 138, 128, 0.15);
+  color: #ff8a80;
+  border: 1px solid rgba(255, 138, 128, 0.3);
+}
+
+/* Modal / Drawer */
+.flataudit-drawer {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 12px);
+  right: 0;
+  width: 360px;
+  max-width: calc(100vw - 32px);
+  background: #121824;
+  border: 1px solid #26334a;
+  border-radius: 14px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  padding: 16px;
+  box-sizing: border-box;
+  animation: flatauditFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flataudit-drawer.open {
+  display: block;
+}
+
+@keyframes flatauditFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.flataudit-drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #202c40;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+}
+
+.flataudit-drawer-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f0f4fc;
+}
+
+.flataudit-close-btn {
+  background: none;
+  border: none;
+  color: #9aa8c2;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+.flataudit-close-btn:hover {
+  color: #ffffff;
+}
+
+.flataudit-stage-box {
+  background: #172030;
+  border: 1px solid #26334a;
+  border-left: 3px solid #7cc4ff;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  margin-bottom: 14px;
+  color: #9aa8c2;
+}
+
+.flataudit-stage-box b {
+  color: #7cc4ff;
+  display: block;
+  font-size: 12.5px;
+  margin-bottom: 2px;
+}
+
+.flataudit-facts-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 14px;
+}
+
+.flataudit-fact-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  background: #161f2e;
+  border: 1px solid #222f44;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 12.5px;
+  color: #e2e8f0;
+}
+
+.flataudit-fact-item:last-child {
+  margin-bottom: 0;
+}
+
+.flataudit-fact-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.flataudit-clean-note {
+  font-size: 13px;
+  color: #6fd6a0;
+  background: rgba(111, 214, 160, 0.08);
+  border: 1px solid rgba(111, 214, 160, 0.2);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+
+.flataudit-meta-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #7586a4;
+  padding-top: 8px;
+  border-top: 1px solid #202c40;
+}

@@ -1,0 +1,117 @@
+import { describe, it } from 'node:test';
+import assert from 'node:assert/strict';
+import {
+  evaluatePriceSignal,
+  evaluateDepositSignal,
+  evaluatePhraseSignal,
+  evaluateDuplicateImageSignal,
+  analyzeListing
+} from '../extension/lib/signals.js';
+
+describe('Signal Evaluation Rules', () => {
+  describe('Price Signal', () => {
+    it('fires on extreme below-market bait rent (e.g. 12k for 3BHK in HSR Layout)', () => {
+      const result = evaluatePriceSignal(12000, 'HSR Layout, Bangalore', 3);
+      assert.equal(result.fired, true);
+      assert.match(result.reason, /below the HSR LAYOUT 3BHK median/i);
+    });
+
+    it('does not fire on normal market rent (e.g. 42k for 2BHK in Indiranagar)', () => {
+      const result = evaluatePriceSignal(42000, 'Indiranagar, Bangalore', 2);
+      assert.equal(result.fired, false);
+      assert.match(result.reason, /within normal range/i);
+    });
+  });
+
+  describe('Deposit Signal', () => {
+    it('fires when zero security deposit is advertised', () => {
+      const result = evaluateDepositSignal(20000, 0, 'Hinjawadi, Pune');
+      assert.equal(result.fired, true);
+      assert.match(result.reason, /zero security deposit/i);
+    });
+
+    it('fires on abnormal low deposit ratio in high-deposit city', () => {
+      // 25k deposit on 12k rent is 2x, but for Bangalore 3BHK normal is 3-6 months
+      const result = evaluateDepositSignal(60000, 30000, 'Indiranagar, Bangalore');
+      assert.equal(result.fired, true);
+      assert.match(result.reason, /only 0\.5x monthly rent/i);
+    });
+
+    it('does not fire on standard 3-5 month deposit', () => {
+      const result = evaluateDepositSignal(40000, 160000, 'Indiranagar, Bangalore');
+      assert.equal(result.fired, false);
+      assert.match(result.reason, /within normal bounds/i);
+    });
+  });
+
+  describe('Phrase Signal', () => {
+    it('fires and extracts advance-fee / military patterns', () => {
+      const scamText = 'I am army officer transferred on urgent duty posting. Gate pass fee of 2500 refundable upon gate entry.';
+      const result = evaluatePhraseSignal(scamText);
+      assert.equal(result.fired, true);
+      assert.equal(result.matchedCount >= 2, true);
+      assert.match(result.reason, /Found \d+ suspicious/);
+    });
+
+    it('does not fire on clean professional listing descriptions', () => {
+      const cleanText = 'Semi-furnished 2BHK near metro with 24hr backup, modular kitchen, and covered car park.';
+      const result = evaluatePhraseSignal(cleanText);
+      assert.equal(result.fired, false);
+      assert.equal(result.matchedCount, 0);
+    });
+  });
+
+  describe('Duplicate Image Signal', () => {
+    it('fires when photo fingerprint has been observed across multiple listings', () => {
+      const result = evaluateDuplicateImageSignal(4);
+      assert.equal(result.fired, true);
+      assert.match(result.reason, /appeared across 4 distinct listings/);
+    });
+
+    it('does not fire when photo has only been observed once', () => {
+      const result = evaluateDuplicateImageSignal(1);
+      assert.equal(result.fired, false);
+    });
+  });
+
+  describe('Composite analyzeListing output', () => {
+    it('labels a clean normal listing as "Looks normal" with zero defamatory words', () => {
+      const cleanListing = {
+        title: '2 BHK Flat for rent in Indiranagar',
+        rent: 42000,
+        deposit: 150000,
+        bhk: 2,
+        locality: 'Indiranagar, Bangalore',
+        description: 'Standard flat near metro. Available from next month.'
+      };
+
+      const analysis = analyzeListing(cleanListing, { seenCount: 1 });
+      assert.equal(analysis.badgeLabel, 'Looks normal');
+      assert.equal(analysis.badgeTone, 'ok');
+      assert.equal(analysis.firedCount, 0);
+      assert.equal(analysis.observableFacts.length, 0);
+    });
+
+    it('labels an advance-token scam as "Many signals" with factual observable reasons', () => {
+      const scamListing = {
+        title: 'Urgent 3 BHK in HSR Layout',
+        rent: 12000,
+        deposit: 25000,
+        bhk: 3,
+        locality: 'HSR Layout, Bangalore',
+        description: 'Army officer transferred urgently. Keys with courier. Society gate pass token required before viewing.'
+      };
+
+      const analysis = analyzeListing(scamListing, { seenCount: 4 });
+      assert.equal(analysis.badgeLabel, 'Many signals');
+      assert.equal(analysis.badgeTone, 'bad');
+      assert.equal(analysis.firedCount >= 3, true);
+
+      // Verify no defamatory language in reasons
+      for (const fact of analysis.observableFacts) {
+        assert.doesNotMatch(fact, /scammer|criminal|fraud/i);
+      }
+      assert.match(analysis.scamKillChainStage, /Stage/);
+    });
+  });
+});

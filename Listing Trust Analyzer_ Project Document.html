@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Listing Trust Analyzer: Project Document</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#0f1520;--surf:#172030;--line:#26334a;--text:#e6ebf5;--muted:#9aa8c2;--acc:#7cc4ff;--warn:#f2b84b;--bad:#ff8a80;--ok:#6fd6a0;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.6 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:820px;margin:0 auto;padding:32px 20px 72px}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,6vw,3.1rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.5rem;font-weight:700;margin:52px 0 14px}
+h3{font-size:1.05rem;font-weight:500;margin:0 0 6px}
+p{margin:0 0 12px}
+.lead{color:var(--muted);font-size:1.1rem;max-width:62ch;margin-top:14px}
+ul{margin:0;padding-left:20px}
+li{margin:5px 0}
+.chain{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:30px 0 8px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stage{padding:14px;background:var(--surf);border-right:1px solid var(--line)}
+.stage:last-child{border-right:0}
+.stage b{display:block;font-family:"Bricolage Grotesque",sans-serif;font-size:1rem}
+.stage span{display:block;font-size:.85rem;color:var(--muted);margin:4px 0 10px}
+.chip{display:inline-block;font-size:.78rem;padding:2px 8px;margin:2px 3px 2px 0;border-radius:99px;border:1px solid var(--acc);color:var(--acc)}
+.chip.w{border-color:var(--warn);color:var(--warn)}
+.note{font-size:.88rem;color:var(--muted)}
+.box{background:var(--surf);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:8px;padding:14px 16px;margin:16px 0}
+.box.warn{border-left-color:var(--warn)}
+.box.bad{border-left-color:var(--bad)}
+.box.ok{border-left-color:var(--ok)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tw{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted)}
+pre{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font:.85rem/1.5 ui-monospace,Menlo,Consolas,monospace;margin:12px 0}
+ol.road{list-style:none;padding:0;margin:0;border-left:2px solid var(--line)}
+ol.road li{padding:2px 0 14px 18px;margin:0;position:relative}
+ol.road li::before{content:"";position:absolute;left:-7px;top:8px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--acc)}
+ol.road b{display:block}
+@media (max-width:640px){.chain{grid-template-columns:1fr 1fr}.stage:nth-child(2){border-right:0}.stage:nth-child(-n+2){border-bottom:1px solid var(--line)}.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<h1>Listing Trust Analyzer</h1>
+<p class="lead">A privacy-preserving browser extension and small API that flags scam-pattern signals on Indian rental listings and explains each flag. Built as a cybersecurity portfolio project, not a business.</p>
+
+<div class="chain" aria-label="Scam kill chain mapped to detection signals">
+<div class="stage"><b>Fake listing</b><span>Stolen photos, bait price</span><i class="chip">Image hash</i><i class="chip">Price z-score</i></div>
+<div class="stage"><b>Lead capture</b><span>Boilerplate text, spam calls</span><i class="chip">Phrase rules</i><i class="chip w">Posting velocity</i></div>
+<div class="stage"><b>The excuse</b><span>“Just rented”, NRI owner</span><i class="chip">Deposit ratio</i><i class="chip">Advance-fee wording</i></div>
+<div class="stage"><b>Bait and switch</b><span>Pushed to worse flats</span><i class="chip w">Out of scope (v1)</i></div>
+</div>
+<p class="note">The scam pipeline from the validation report, with the signal this project uses against each stage.</p>
+
+<h2>Problem</h2>
+<ul>
+<li>Rental portals reward listing volume, so bait listings, duplicated photos and broker “fishing” ads are common.</li>
+<li>Renters lose time, share their phone numbers, and sometimes lose money to UPI advance-fee scams.</li>
+<li>Users get no cross-checking help while browsing; reporting buttons are slow and passive.</li>
+</ul>
+<div class="box warn"><b>Honest note:</b> the original report’s claims (for example, “up to half of listings are phantom”) were unsourced. This project’s first job is to measure the problem on real listings, not assume it.</div>
+
+<h2>Goal and scope</h2>
+<div class="cols">
+<div class="box ok"><h3>Goal</h3><ul>
+<li>Build a working, well-engineered detection tool</li>
+<li>Evaluate it honestly on labeled data</li>
+<li>Threat-model it like a security product</li>
+<li>Publish code and a write-up</li></ul></div>
+<div class="box bad"><h3>Not a goal</h3><ul>
+<li>Revenue, paid dossiers, B2B APIs</li>
+<li>Covering every portal or city</li>
+<li>Naming or accusing individuals</li>
+<li>Bulk crawling of portals</li></ul></div>
+</div>
+
+<h2>What it does</h2>
+<p>On a listing page the user is already viewing, the extension computes signals locally and shows a badge with plain-language reasons (“why flagged”) instead of an opaque score.</p>
+<div class="tw"><table>
+<tr><th>Signal</th><th>How it works</th><th>Watch out for</th></tr>
+<tr><td>Duplicate image</td><td>64-bit dHash computed in the browser; compared against hashes already seen</td><td>Legitimate brokers reuse photos of the same flat, so “seen in several places” is a hint, not proof</td></tr>
+<tr><td>Price outlier</td><td>z-score against similar listings in the same locality and BHK</td><td>Needs enough data per area; start with a few localities</td></tr>
+<tr><td>Deposit ratio</td><td>Deposit divided by rent, compared with local norms</td><td>Norms differ by city; check them per market</td></tr>
+<tr><td>Scam phrases</td><td>Rules for advance-fee wording (army transfer, key courier, token before visit)</td><td>Keep the list small and reviewed against real examples</td></tr>
+<tr><td>Posting velocity</td><td>Listings per hashed contact token per week, if visible on pages the user opens</td><td>Likely sparse; optional</td></tr>
+</table></div>
+<div class="box"><b>Output rule:</b> every badge states an observable fact (“this photo appeared in 4 other listings”). The UI never says “scammer”, “fraud” or “criminal”. Labels: <i class="chip">Looks normal</i> <i class="chip w">Some signals</i> <i class="chip">Many signals</i></div>
+
+<h2>Architecture</h2>
+<pre>Listing page (portal DOM)
+   │  content script reads visible fields only
+   ▼
+Extension (Manifest V3)
+   │  offscreen canvas → dHash   │  rule checks (phrases, deposit ratio)
+   ▼
+FastAPI backend ── SQLite/Postgres
+   │  stores: image hash, price, area, BHK   (no photos, no phone numbers)
+   ▼
+Signals + “why flagged” → badge in the page</pre>
+<ul>
+<li><b>Extension:</b> TypeScript, Manifest V3, MutationObserver for dynamic pages.</li>
+<li><b>Backend:</b> FastAPI with a simple hash lookup (linear or BK-tree later); a small database.</li>
+<li><b>Selectors:</b> prefer semantic attributes and structure over generated CSS class names.</li>
+</ul>
+
+<h2>Evaluation plan</h2>
+<ul>
+<li>Hand-label about 250 listings as suspicious or normal, with a one-line reason each.</li>
+<li>Report precision, recall and the false positives you found, such as legitimate duplicate photos.</li>
+<li>Compare simple rules against any model you add; keep a model only if it beats the rules on held-out labels.</li>
+<li>Keep the dataset private or anonymized.</li>
+</ul>
+
+<h2>Security and privacy</h2>
+<div class="cols">
+<div class="box"><h3>Threat model the tool itself</h3><ul>
+<li>Minimal permissions, strict CSP, no remote code</li>
+<li>Untrusted page data: sanitize everything read from the DOM</li>
+<li>API abuse: rate limits and input validation</li>
+<li>Walk through STRIDE and document it</li></ul></div>
+<div class="box"><h3>Privacy by design</h3><ul>
+<li>Analyze only the page the user is viewing</li>
+<li>Store hashes, not images</li>
+<li>No phone numbers or personal data stored</li>
+<li>Respect portal Terms of Service: no bulk or evasive crawling</li></ul></div>
+</div>
+
+<h2>Roadmap (about 10 weeks, solo)</h2>
+<ol class="road">
+<li><b>Weeks 1–2: skeleton</b>Parse listing cards on one portal, compute dHash locally, show a basic badge.</li>
+<li><b>Weeks 3–4: signals</b>Add price z-score, deposit ratio and phrase rules; stand up the small backend.</li>
+<li><b>Weeks 5–6: evaluation</b>Label the dataset, tune thresholds, write down the metrics.</li>
+<li><b>Weeks 7–8: security and polish</b>Threat model, hardening, README with architecture diagram, demo video.</li>
+<li><b>Weeks 9–10: optional stretch</b>One state’s RERA delay lookup, or a paste-a-URL page.</li>
+</ol>
+
+<h2>Parked ideas</h2>
+<ul>
+<li>Neo4j broker graph, PostGIS clustering, MCA and credit-rating scrapers</li>
+<li>Hardware-attested mobile app and UPI-rewarded crowdsourcing</li>
+<li>Paid dossiers, B2B lender API, multi-city rollout</li>
+</ul>
+
+<h2>Deliverables</h2>
+<ul>
+<li>Open-source GitHub repo with setup steps and an architecture diagram</li>
+<li>Blog post: “Detecting rental scam patterns in Indian listings: what worked and what didn’t”</li>
+<li>Short demo video</li>
+<li>Resume line: “Built a privacy-preserving browser extension for rental-listing fraud signals; evaluated on a 250-listing labeled set (X% precision).”</li>
+</ul>
+
+<h2>Risks</h2>
+<div class="box warn"><b>Portal changes:</b> page layouts change often. Keep parsers small and isolated, and support one portal well.</div>
+<div class="box warn"><b>Too few labels:</b> if fewer than about 100 listings can be labeled, narrow the scope or report results as exploratory.</div>
+<div class="box warn"><b>Over-claiming:</b> flags are signals, not verdicts. State limits and false positives in the README.</div>
+
+<h2>First step</h2>
+<div class="box ok">Collect and screenshot about 30 listings (15 suspicious, 15 normal) into a spreadsheet with price, deposit and the reason you flagged each. This defines the signals before any code.</div>
+</main>
+</body>
+</html>
