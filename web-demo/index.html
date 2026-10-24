@@ -111,7 +111,7 @@
           <div class="form-row">
             <div class="form-group flex-2">
               <label for="input-image-hash">Photo dHash Fingerprint (64-bit Hex)</label>
-              <input type="text" id="input-image-hash" value="a4c28f1107be924d" maxlength="16">
+              <input type="text" id="input-image-hash" value="a4c28f1107be924d" maxlength="16" class="code-input">
             </div>
             <div class="form-group flex-1">
               <label for="input-seen-count">Registry Seen Count</label>
@@ -129,75 +129,61 @@
       <!-- Right Column: Live Analysis & Badge Simulation -->
       <section class="panel results-panel">
         <div class="panel-header">
-          <h2>Observable Signal Analysis</h2>
-          <span class="subtitle">Objective, verifiable facts — no defamatory claims</span>
+          <h2>Human-Readable Trust Analysis</h2>
+          <span class="subtitle">Plain-language points, reasons, and safety advice for renters</span>
         </div>
 
-        <!-- Simulated In-Page Badge Banner -->
+        <!-- Simulated In-Page Badge Banner with Live Clickable Drawer -->
         <div class="badge-preview-card">
-          <div class="card-label">SIMULATED IN-PAGE BROWSER BADGE:</div>
+          <div class="card-label">SIMULATED IN-PAGE BROWSER BADGE (CLICK TO TOGGLE DRAWER):</div>
           <div class="preview-badge-row">
-            <div class="mock-badge" id="mock-badge-btn">
+            <div class="mock-badge" id="mock-badge-btn" role="button" tabindex="0">
               <span class="badge-icon" id="badge-icon-el">🛡️</span>
               <span class="badge-name">FlatAudit</span>
               <span class="badge-pill tone-ok" id="badge-pill-el">Looks normal</span>
             </div>
-            <span class="badge-hint">Click badge to toggle explanation drawer</span>
+            <span class="badge-hint" id="badge-hint-text">👈 Click to inspect drawer (stays open)</span>
+          </div>
+
+          <!-- Embedded Floating Drawer Preview -->
+          <div class="mock-drawer-container" id="mock-drawer-container">
+            <div class="mock-drawer-header">
+              <div class="mock-drawer-title">
+                <span>🛡️</span>
+                <b>FlatAudit Trust Check</b>
+              </div>
+              <button type="button" class="mock-drawer-close" id="mock-drawer-close-btn">×</button>
+            </div>
+            <div class="mock-drawer-body" id="mock-drawer-body">
+              <!-- Populated dynamically with points & reasons -->
+            </div>
           </div>
         </div>
 
-        <!-- Detailed Signal Breakdown Cards -->
-        <div class="signals-grid">
-          <div class="signal-card" id="card-price">
-            <div class="s-head">
-              <span class="s-icon">💰</span>
-              <div>
-                <b>Price Outlier Signal</b>
-                <span class="s-status" id="status-price">Normal</span>
-              </div>
-            </div>
-            <p class="s-reason" id="reason-price">Rent is within normal range for Indiranagar 2BHK.</p>
-          </div>
-
-          <div class="signal-card" id="card-deposit">
-            <div class="s-head">
-              <span class="s-icon">📑</span>
-              <div>
-                <b>Deposit Ratio Signal</b>
-                <span class="s-status" id="status-deposit">Normal</span>
-              </div>
-            </div>
-            <p class="s-reason" id="reason-deposit">Deposit ratio is within expected city norms.</p>
-          </div>
-
-          <div class="signal-card" id="card-phrase">
-            <div class="s-head">
-              <span class="s-icon">💬</span>
-              <div>
-                <b>Advance-Fee Phrases</b>
-                <span class="s-status" id="status-phrase">Clean</span>
-              </div>
-            </div>
-            <p class="s-reason" id="reason-phrase">No identity-pretext or advance token wording found.</p>
-          </div>
-
-          <div class="signal-card" id="card-image">
-            <div class="s-head">
-              <span class="s-icon">🖼️</span>
-              <div>
-                <b>Image Fingerprint (dHash)</b>
-                <span class="s-status" id="status-image">Single Listing</span>
-              </div>
-            </div>
-            <p class="s-reason" id="reason-image">Photo has not appeared in conflicting listings.</p>
+        <!-- Overall Summary Banner -->
+        <div class="verdict-banner tone-ok" id="verdict-banner">
+          <span class="verdict-icon" id="verdict-icon">✓</span>
+          <div>
+            <h3 id="verdict-title">Listing Verified Normal</h3>
+            <p id="verdict-subtitle">No red flags detected. Rent and deposit conform to local market norms.</p>
           </div>
         </div>
 
-        <!-- Observable Facts Drawer Preview -->
-        <div class="facts-container" id="facts-container">
-          <h3>Observable Facts Presented to Renter:</h3>
-          <ul class="facts-list" id="facts-list">
-            <li class="clean-item">✓ All signals match local Bengaluru market norms. Physical flat inspection allowed without upfront token fee.</li>
+        <!-- Structured Points & Reasons List -->
+        <div class="points-section">
+          <div class="section-label">OBSERVATIONS (POINTS & REASONS)</div>
+          <div class="points-grid" id="points-grid">
+            <!-- Populated dynamically with point cards -->
+          </div>
+        </div>
+
+        <!-- Renter Safety Advice -->
+        <div class="safety-card">
+          <div class="safety-title">💡 What You Should Do (Renter Safety Checklist):</div>
+          <ul class="safety-checklist" id="safety-checklist">
+            <li>Never transfer any token, gate fee, or courier charge via UPI before an in-person flat walkthrough.</li>
+            <li>Meet the building caretaker, security guard, or current tenant at the society entrance first.</li>
+            <li>If the poster claims to be an Army/CISF officer who cannot meet due to transfer, treat it with extreme caution.</li>
           </ul>
         </div>
       </section>

@@ -1,4 +1,4 @@
-import { hammingDistance, isDuplicateImage } from '../extension/lib/dhash.js';
+import { hammingDistance } from '../extension/lib/dhash.js';
 import { analyzeListing } from '../extension/lib/signals.js';
 
 const PRESETS = {
@@ -8,7 +8,7 @@ const PRESETS = {
     bhk: 2,
     rent: 42000,
     deposit: 150000,
-    desc: "Spacious and well ventilated 2 BHK flat near Indiranagar Metro Station. Modular kitchen, covered car parking, 24x7 security guard, and power backup. Physical visits can be scheduled during weekends between 10 AM to 6 PM.",
+    desc: "Spacious and well ventilated 2 BHK flat near Indiranagar Metro Station. Modular kitchen, covered car parking, 24x7 security guard, and power backup. Physical visits can be scheduled during weekends between 10 AM to 6 PM with prior appointment.",
     hash: "a4c28f1107be924d",
     seenCount: 1
   },
@@ -43,6 +43,9 @@ const PRESETS = {
     seenCount: 2
   }
 };
+
+let currentAnalysisResult = null;
+let isDrawerOpen = false;
 
 function loadPreset(key) {
   const p = PRESETS[key];
@@ -88,13 +91,15 @@ function evaluateCurrentForm() {
   const seenCount = parseInt(document.getElementById('input-seen-count').value, 10) || 1;
 
   // Run pure signals engine
-  const result = analyzeListing(listing, { seenCount });
+  currentAnalysisResult = analyzeListing(listing, { seenCount });
 
-  // Update UI Elements
-  updateBadgeUI(result);
-  updateSignalCards(result);
-  updateFactsList(result);
-  updateKillChainUI(result);
+  // Update UI Elements with human-readable points & reasons
+  updateBadgeUI(currentAnalysisResult);
+  updateVerdictBanner(currentAnalysisResult);
+  updatePointsGrid(currentAnalysisResult);
+  updateSafetyChecklist(currentAnalysisResult);
+  updateKillChainUI(currentAnalysisResult);
+  updateMockDrawer(currentAnalysisResult);
 }
 
 function updateBadgeUI(res) {
@@ -106,81 +111,145 @@ function updateBadgeUI(res) {
   pillEl.className = `badge-pill tone-${res.badgeTone}`;
 }
 
-function updateSignalCards(res) {
-  // Price
-  const cardPrice = document.getElementById('card-price');
-  const stPrice = document.getElementById('status-price');
-  const rPrice = document.getElementById('reason-price');
-  if (res.signals.price.fired) {
-    cardPrice.className = 'signal-card fired';
-    stPrice.textContent = 'Anomaly Detected';
-    rPrice.textContent = res.signals.price.reason;
+function updateVerdictBanner(res) {
+  const banner = document.getElementById('verdict-banner');
+  const icon = document.getElementById('verdict-icon');
+  const title = document.getElementById('verdict-title');
+  const sub = document.getElementById('verdict-subtitle');
+
+  banner.className = `verdict-banner tone-${res.badgeTone}`;
+  icon.textContent = res.badgeTone === 'bad' ? '⚠️' : res.badgeTone === 'warn' ? '🔍' : '✓';
+
+  if (res.badgeTone === 'bad') {
+    title.textContent = `High Risk: ${res.firedCount} Scam Signals Flagged`;
+  } else if (res.badgeTone === 'warn') {
+    title.textContent = `Caution: Unusual Listing Pattern`;
   } else {
-    cardPrice.className = 'signal-card';
-    stPrice.textContent = 'Normal';
-    rPrice.textContent = res.signals.price.reason;
+    title.textContent = `Listing Verified Normal`;
   }
 
-  // Deposit
-  const cardDep = document.getElementById('card-deposit');
-  const stDep = document.getElementById('status-deposit');
-  const rDep = document.getElementById('reason-deposit');
-  if (res.signals.deposit.fired) {
-    cardDep.className = 'signal-card fired';
-    stDep.textContent = 'Anomaly Detected';
-    rDep.textContent = res.signals.deposit.reason;
-  } else {
-    cardDep.className = 'signal-card';
-    stDep.textContent = 'Normal';
-    rDep.textContent = res.signals.deposit.reason;
-  }
+  sub.textContent = res.headlineSummary || 'Detailed safety evaluation based on local market norms.';
+}
 
-  // Phrase
-  const cardPhr = document.getElementById('card-phrase');
-  const stPhr = document.getElementById('status-phrase');
-  const rPhr = document.getElementById('reason-phrase');
-  if (res.signals.phrase.fired) {
-    cardPhr.className = 'signal-card fired';
-    stPhr.textContent = `Flagged (${res.signals.phrase.matchedCount} patterns)`;
-    rPhr.textContent = res.signals.phrase.reason;
-  } else {
-    cardPhr.className = 'signal-card';
-    stPhr.textContent = 'Clean';
-    rPhr.textContent = res.signals.phrase.reason;
-  }
+function updatePointsGrid(res) {
+  const grid = document.getElementById('points-grid');
+  grid.innerHTML = '';
 
-  // Image
-  const cardImg = document.getElementById('card-image');
-  const stImg = document.getElementById('status-image');
-  const rImg = document.getElementById('reason-image');
-  if (res.signals.duplicateImage.fired) {
-    cardImg.className = 'signal-card fired';
-    stImg.textContent = `Seen across ${res.signals.duplicateImage.count} listings`;
-    rImg.textContent = res.signals.duplicateImage.reason;
-  } else {
-    cardImg.className = 'signal-card';
-    stImg.textContent = 'Single Listing';
-    rImg.textContent = res.signals.duplicateImage.reason;
+  if (res.humanReadablePoints && res.humanReadablePoints.length > 0) {
+    for (const item of res.humanReadablePoints) {
+      const card = document.createElement('div');
+      card.className = `demo-point-card ${item.fired ? 'flagged' : 'normal'}`;
+
+      const top = document.createElement('div');
+      top.className = 'card-top';
+
+      const cat = document.createElement('div');
+      cat.className = 'card-cat';
+      cat.textContent = `${item.icon} ${item.category}`;
+
+      const tag = document.createElement('span');
+      tag.className = `card-tag ${item.fired ? 'flagged' : 'normal'}`;
+      tag.textContent = item.fired ? 'Flagged' : 'Verified';
+
+      top.appendChild(cat);
+      top.appendChild(tag);
+
+      const point = document.createElement('div');
+      point.className = 'point-text';
+      point.textContent = item.point;
+
+      const reason = document.createElement('div');
+      reason.className = 'reason-text';
+      reason.textContent = item.reason;
+
+      card.appendChild(top);
+      card.appendChild(point);
+      card.appendChild(reason);
+
+      grid.appendChild(card);
+    }
   }
 }
 
-function updateFactsList(res) {
-  const container = document.getElementById('facts-list');
-  container.innerHTML = '';
+function updateSafetyChecklist(res) {
+  const list = document.getElementById('safety-checklist');
+  list.innerHTML = '';
 
-  if (res.observableFacts && res.observableFacts.length > 0) {
-    for (const fact of res.observableFacts) {
-      const li = document.createElement('li');
-      li.className = 'fact-item';
-      li.textContent = `• ${fact}`;
-      container.appendChild(li);
-    }
-  } else {
+  const tips = res.safetyAdvice || [
+    'Never transfer any gate entry pass or token fee via UPI before an in-person flat walkthrough.',
+    'Always meet the building security guard or caretaker at the society gate first.',
+    'Legitimate landlords in India never ask for visiting charges to view a flat.'
+  ];
+
+  for (const tip of tips) {
     const li = document.createElement('li');
-    li.className = 'clean-item';
-    li.textContent = '✓ No anomaly signals detected. Listing conforms to regional price and deposit distributions.';
-    container.appendChild(li);
+    li.textContent = tip;
+    list.appendChild(li);
   }
+}
+
+function updateMockDrawer(res) {
+  const body = document.getElementById('mock-drawer-body');
+  body.innerHTML = '';
+
+  // Banner inside drawer
+  const drawerBanner = document.createElement('div');
+  drawerBanner.className = `verdict-banner tone-${res.badgeTone}`;
+  drawerBanner.style.padding = '8px 12px';
+  drawerBanner.style.marginBottom = '12px';
+
+  const icon = document.createElement('span');
+  icon.className = 'verdict-icon';
+  icon.style.fontSize = '18px';
+  icon.textContent = res.badgeTone === 'bad' ? '⚠️' : res.badgeTone === 'warn' ? '🔍' : '✓';
+
+  const textGroup = document.createElement('div');
+  const bTitle = document.createElement('b');
+  bTitle.style.fontSize = '12.5px';
+  bTitle.style.display = 'block';
+  bTitle.textContent = res.badgeTone === 'bad'
+    ? `Caution: ${res.firedCount} Scam Signals Flagged`
+    : res.badgeTone === 'warn' ? 'Unusual Listing Pattern' : 'Verified Normal';
+
+  const pSub = document.createElement('span');
+  pSub.style.fontSize = '11.5px';
+  pSub.style.color = '#95a5c0';
+  pSub.textContent = res.headlineSummary;
+
+  textGroup.appendChild(bTitle);
+  textGroup.appendChild(pSub);
+  drawerBanner.appendChild(icon);
+  drawerBanner.appendChild(textGroup);
+  body.appendChild(drawerBanner);
+
+  // Points list
+  const pointsWrap = document.createElement('div');
+  pointsWrap.style.display = 'flex';
+  pointsWrap.style.flexDirection = 'column';
+  pointsWrap.style.gap = '8px';
+
+  for (const item of res.humanReadablePoints) {
+    const card = document.createElement('div');
+    card.className = `demo-point-card ${item.fired ? 'flagged' : 'normal'}`;
+    card.style.padding = '8px 10px';
+
+    const pTitle = document.createElement('div');
+    pTitle.style.fontSize = '12px';
+    pTitle.style.fontWeight = '700';
+    pTitle.style.color = item.fired ? '#f2b84b' : '#6fd6a0';
+    pTitle.textContent = `${item.icon} ${item.category}: ${item.point}`;
+
+    const pReason = document.createElement('div');
+    pReason.style.fontSize = '11px';
+    pReason.style.color = '#95a5c0';
+    pReason.style.marginTop = '2px';
+    pReason.textContent = item.reason;
+
+    card.appendChild(pTitle);
+    card.appendChild(pReason);
+    pointsWrap.appendChild(card);
+  }
+  body.appendChild(pointsWrap);
 }
 
 function updateKillChainUI(res) {
@@ -231,6 +300,27 @@ function updateHammingCalc() {
 // Wire up events
 document.addEventListener('DOMContentLoaded', () => {
   checkApiHealth();
+
+  // Mock badge click handler: toggles drawer and keeps it open!
+  const mockBadgeBtn = document.getElementById('mock-badge-btn');
+  const mockDrawerContainer = document.getElementById('mock-drawer-container');
+  const mockDrawerCloseBtn = document.getElementById('mock-drawer-close-btn');
+
+  mockBadgeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    isDrawerOpen = !isDrawerOpen;
+    if (isDrawerOpen) {
+      mockDrawerContainer.classList.add('open');
+    } else {
+      mockDrawerContainer.classList.remove('open');
+    }
+  });
+
+  mockDrawerCloseBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    isDrawerOpen = false;
+    mockDrawerContainer.classList.remove('open');
+  });
 
   // Preset buttons
   document.querySelectorAll('.preset-btn').forEach(btn => {

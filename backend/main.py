@@ -255,12 +255,15 @@ def analyze_listing_endpoint(req: AnalyzeRequest):
     if high_count >= 2 or total_fired >= 3:
         badge_label = "Many signals"
         badge_tone = "bad"
+        headline_summary = "High Risk: Multiple scam signals flagged. Exercise extreme caution."
     elif high_count == 1 or total_fired >= 1:
         badge_label = "Some signals"
         badge_tone = "warn"
+        headline_summary = "Notice: One or more unusual signals found. Review carefully."
     else:
         badge_label = "Looks normal"
         badge_tone = "ok"
+        headline_summary = "This listing looks normal. No major red flags detected."
 
     # Determine Kill Chain Stage
     if any(s["id"] == "phrase" for s in fired_signals):
@@ -270,12 +273,52 @@ def analyze_listing_endpoint(req: AnalyzeRequest):
     else:
         kill_chain = "Stage 0: Unflagged"
 
+    human_points = [
+        {
+            "category": "Rent Pricing",
+            "icon": "💰",
+            "fired": price_fired,
+            "point": f"Monthly rent (₹{req.rent:,}) is below normal market rate" if price_fired else "Rent aligns with local market rates",
+            "reason": price_reason
+        },
+        {
+            "category": "Security Deposit",
+            "icon": "📑",
+            "fired": deposit_fired,
+            "point": "Deposit ratio deviates from regional norms" if deposit_fired else "Deposit matches customary city standards",
+            "reason": deposit_reason
+        },
+        {
+            "category": "Terms & Phrasing",
+            "icon": "💬",
+            "fired": phrase_fired,
+            "point": "Suspicious advance-fee wording or identity pretexts detected" if phrase_fired else "No advance payment or transfer pretexts detected",
+            "reason": phrase_reason
+        },
+        {
+            "category": "Photo Authenticity",
+            "icon": "🖼️",
+            "fired": image_fired,
+            "point": f"Photo fingerprint reused across {max_seen} listings" if image_fired else "Photo appears unique to this listing",
+            "reason": image_reason
+        }
+    ]
+
+    safety_advice = [
+        "Never transfer any token fee, gate entry pass fee, or courier charge via UPI before you physically enter and tour the apartment.",
+        "Always request to meet the owner, building security guard, or society manager in person at the property gate first.",
+        "If the poster claims to be an Army/CISF officer who cannot meet due to transfer, treat it with extreme caution."
+    ]
+
     return {
         "badge_label": badge_label,
         "badge_tone": badge_tone,
+        "headline_summary": headline_summary,
         "scam_kill_chain_stage": kill_chain,
         "fired_count": total_fired,
         "observable_facts": [s["reason"] for s in fired_signals],
+        "human_readable_points": human_points,
+        "safety_advice": safety_advice,
         "signals": {
             "price": SignalDetail(fired=price_fired, reason=price_reason),
             "deposit": SignalDetail(fired=deposit_fired, reason=deposit_reason),

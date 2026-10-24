@@ -44,10 +44,20 @@ class SignalDetail(BaseModel):
     reason: str
     details: Optional[Dict[str, Any]] = None
 
+class HumanReadablePoint(BaseModel):
+    category: str
+    icon: str
+    fired: bool
+    point: str
+    reason: str
+
 class AnalyzeResponse(BaseModel):
     badge_label: str  # 'Looks normal' | 'Some signals' | 'Many signals'
     badge_tone: str   # 'ok' | 'warn' | 'bad'
+    headline_summary: Optional[str] = ""
     scam_kill_chain_stage: str
     fired_count: int
     observable_facts: List[str]
+    human_readable_points: Optional[List[HumanReadablePoint]] = Field(default_factory=list)
+    safety_advice: Optional[List[str]] = Field(default_factory=list)
     signals: Dict[str, SignalDetail]

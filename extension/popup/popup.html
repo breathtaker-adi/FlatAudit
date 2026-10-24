@@ -13,7 +13,7 @@
         <span class="logo-shield">🛡️</span>
         <div>
           <h1>FlatAudit</h1>
-          <span class="subtitle">Listing Trust & Fraud Signal Inspector</span>
+          <span class="subtitle">Rental Trust & Safety Inspector</span>
         </div>
       </div>
       <div class="status-indicator" id="backend-status" title="Local Backend Status">
@@ -23,68 +23,60 @@
     </header>
 
     <main class="content">
-      <div class="card status-card">
-        <div class="status-header">
-          <span class="label">CURRENT LISTING TRUST</span>
-          <span class="pill tone-ok" id="trust-pill">Checking...</span>
-        </div>
-        <div class="property-summary" id="prop-summary">
-          <h2 id="prop-title">Scan listing page to begin</h2>
-          <div class="meta-tags" id="prop-tags">
-            <span class="tag" id="tag-rent">₹ --</span>
-            <span class="tag" id="tag-deposit">Deposit: --</span>
-            <span class="tag" id="tag-bhk">-- BHK</span>
-          </div>
+      <!-- Verdict Banner -->
+      <div class="verdict-banner tone-ok" id="verdict-banner">
+        <span class="verdict-icon" id="verdict-icon">🛡️</span>
+        <div>
+          <b id="verdict-title">Active Listing Check</b>
+          <p id="verdict-sub">Scan a listing page or fixture to view trust signals.</p>
         </div>
       </div>
 
-      <div class="card">
-        <h3>Observable Signal Analysis</h3>
-        <ul class="signals-list" id="signals-list">
-          <li class="signal-item">
-            <span class="s-icon">💰</span>
-            <div class="s-body">
-              <b>Price Deviation</b>
-              <span id="sig-price">Awaiting active listing...</span>
-            </div>
-          </li>
-          <li class="signal-item">
-            <span class="s-icon">📑</span>
-            <div class="s-body">
-              <b>Deposit Ratio</b>
-              <span id="sig-deposit">Awaiting active listing...</span>
-            </div>
-          </li>
-          <li class="signal-item">
-            <span class="s-icon">💬</span>
-            <div class="s-body">
-              <b>Advance-Fee Phrases</b>
-              <span id="sig-phrase">Awaiting active listing...</span>
-            </div>
-          </li>
-          <li class="signal-item">
-            <span class="s-icon">🖼️</span>
-            <div class="s-body">
-              <b>Photo Fingerprint (dHash)</b>
-              <span id="sig-dhash">Awaiting active listing...</span>
-            </div>
-          </li>
+      <!-- Property Summary -->
+      <div class="prop-strip">
+        <h2 id="prop-title">No listing detected yet</h2>
+        <div class="meta-tags">
+          <span class="tag" id="tag-rent">₹ --</span>
+          <span class="tag" id="tag-deposit">Dep: --</span>
+          <span class="tag" id="tag-bhk">-- BHK</span>
+        </div>
+      </div>
+
+      <!-- Human-Readable Observations (Points & Reasons) -->
+      <div class="section-heading">KEY OBSERVATIONS (POINTS & REASONS)</div>
+      <div class="points-list" id="points-list">
+        <div class="point-card">
+          <div class="point-head">💰 Rent Price</div>
+          <div class="point-body">Open a rental listing to evaluate price deviation.</div>
+        </div>
+        <div class="point-card">
+          <div class="point-head">📑 Security Deposit</div>
+          <div class="point-body">Compares deposit ratio against local city customs.</div>
+        </div>
+        <div class="point-card">
+          <div class="point-head">💬 Advance-Fee Terms</div>
+          <div class="point-body">Detects gate pass, visiting token, and military pretexts.</div>
+        </div>
+        <div class="point-card">
+          <div class="point-head">🖼️ Photo Authenticity</div>
+          <div class="point-body">64-bit dHash perceptual fingerprinting.</div>
+        </div>
+      </div>
+
+      <!-- Renter Safety Advice -->
+      <div class="safety-card">
+        <div class="safety-title">💡 Renter Protection Advice:</div>
+        <ul class="safety-checklist" id="safety-checklist">
+          <li>Never pay any token or gate fee via UPI prior to an in-person physical flat inspection.</li>
+          <li>Meet building security or caretaker at the society entrance to verify flat availability.</li>
         </ul>
-      </div>
-
-      <div class="card kill-chain-card">
-        <h3>Scam Kill Chain Phase</h3>
-        <div class="chain-badge" id="kill-chain-stage">Stage 0: Monitoring</div>
-        <p class="explanation" id="kill-chain-desc">
-          Signals are derived solely from visible listing data. The system presents objective observations without defamatory labels.
-        </p>
       </div>
     </main>
 
     <footer class="footer">
-      <a href="http://127.0.0.1:8000/docs" target="_blank" class="footer-link">FastAPI Swagger</a>
+      <a href="http://localhost:8080" target="_blank" class="footer-link">Interactive Web Demo</a>
       <span>•</span>
-      <a href="http://localhost:8080" target="_blank" class="footer-link">Live Web Demo</a>
+      <span class="footer-note">Privacy-Preserving</span>
     </footer>
   </div>
 

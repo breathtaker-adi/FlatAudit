@@ -3,8 +3,8 @@
 #flataudit-root {
   all: initial;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 13.5px;
+  line-height: 1.45;
   color: #e6ebf5;
   z-index: 2147483640;
   position: fixed;
@@ -12,18 +12,22 @@
   right: 24px;
 }
 
+.flataudit-wrapper {
+  position: relative;
+}
+
 .flataudit-badge-btn {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(15, 21, 32, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(124, 196, 255, 0.25);
+  background: rgba(15, 21, 32, 0.94);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(124, 196, 255, 0.3);
   border-radius: 9999px;
   padding: 8px 16px;
   cursor: pointer;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.06);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   color: #e6ebf5;
   user-select: none;
@@ -31,7 +35,7 @@
 
 .flataudit-badge-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(124, 196, 255, 0.4);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(124, 196, 255, 0.45);
 }
 
 .flataudit-badge-icon {
@@ -49,7 +53,7 @@
 
 .flataudit-pill {
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 700;
   padding: 3px 10px;
   border-radius: 9999px;
   display: inline-flex;
@@ -59,38 +63,40 @@
 }
 
 .flataudit-pill.tone-ok {
-  background: rgba(111, 214, 160, 0.15);
+  background: rgba(111, 214, 160, 0.16);
   color: #6fd6a0;
-  border: 1px solid rgba(111, 214, 160, 0.3);
+  border: 1px solid rgba(111, 214, 160, 0.35);
 }
 
 .flataudit-pill.tone-warn {
-  background: rgba(242, 184, 75, 0.15);
+  background: rgba(242, 184, 75, 0.16);
   color: #f2b84b;
-  border: 1px solid rgba(242, 184, 75, 0.3);
+  border: 1px solid rgba(242, 184, 75, 0.35);
 }
 
 .flataudit-pill.tone-bad {
-  background: rgba(255, 138, 128, 0.15);
+  background: rgba(255, 138, 128, 0.16);
   color: #ff8a80;
-  border: 1px solid rgba(255, 138, 128, 0.3);
+  border: 1px solid rgba(255, 138, 128, 0.35);
 }
 
 /* Modal / Drawer */
 .flataudit-drawer {
   display: none;
   position: absolute;
-  bottom: calc(100% + 12px);
+  bottom: calc(100% + 14px);
   right: 0;
-  width: 360px;
+  width: 410px;
   max-width: calc(100vw - 32px);
+  max-height: min(600px, calc(100vh - 120px));
+  overflow-y: auto;
   background: #121824;
-  border: 1px solid #26334a;
+  border: 1px solid #2a384f;
   border-radius: 14px;
-  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.06);
   padding: 16px;
   box-sizing: border-box;
-  animation: flatauditFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: flatauditFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .flataudit-drawer.open {
@@ -100,7 +106,7 @@
 @keyframes flatauditFadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px) scale(0.98);
+    transform: translateY(8px) scale(0.98);
   }
   to {
     opacity: 1;
@@ -108,13 +114,24 @@
   }
 }
 
+/* Header */
 .flataudit-drawer-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #202c40;
-  padding-bottom: 12px;
-  margin-bottom: 14px;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+.flataudit-drawer-title-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.flataudit-drawer-shield {
+  font-size: 18px;
 }
 
 .flataudit-drawer-title {
@@ -124,79 +141,193 @@
 }
 
 .flataudit-close-btn {
-  background: none;
-  border: none;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #26334a;
+  border-radius: 6px;
   color: #9aa8c2;
   cursor: pointer;
   font-size: 18px;
-  padding: 0 4px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   line-height: 1;
+  transition: all 0.15s ease;
 }
 
 .flataudit-close-btn:hover {
   color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #7cc4ff;
 }
 
-.flataudit-stage-box {
-  background: #172030;
-  border: 1px solid #26334a;
-  border-left: 3px solid #7cc4ff;
-  border-radius: 8px;
-  padding: 8px 12px;
-  font-size: 12px;
-  margin-bottom: 14px;
-  color: #9aa8c2;
-}
-
-.flataudit-stage-box b {
-  color: #7cc4ff;
-  display: block;
-  font-size: 12.5px;
-  margin-bottom: 2px;
-}
-
-.flataudit-facts-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 14px;
-}
-
-.flataudit-fact-item {
+/* Summary Banner */
+.flataudit-summary-banner {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 8px 10px;
-  background: #161f2e;
-  border: 1px solid #222f44;
+  padding: 10px 12px;
   border-radius: 8px;
-  margin-bottom: 8px;
-  font-size: 12.5px;
+  margin-bottom: 12px;
+  border: 1px solid transparent;
+}
+
+.flataudit-summary-banner.tone-ok {
+  background: rgba(111, 214, 160, 0.1);
+  border-color: rgba(111, 214, 160, 0.25);
+}
+
+.flataudit-summary-banner.tone-warn {
+  background: rgba(242, 184, 75, 0.1);
+  border-color: rgba(242, 184, 75, 0.25);
+}
+
+.flataudit-summary-banner.tone-bad {
+  background: rgba(255, 138, 128, 0.1);
+  border-color: rgba(255, 138, 128, 0.25);
+}
+
+.flataudit-banner-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.flataudit-banner-text b {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 2px;
+}
+
+.flataudit-summary-banner.tone-ok b { color: #6fd6a0; }
+.flataudit-summary-banner.tone-warn b { color: #f2b84b; }
+.flataudit-summary-banner.tone-bad b { color: #ff8a80; }
+
+.flataudit-banner-text p {
+  margin: 0;
+  font-size: 12px;
+  color: #9aa8c2;
+  line-height: 1.35;
+}
+
+/* Section Title */
+.flataudit-section-title {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #7cc4ff;
+  text-transform: uppercase;
+  margin: 12px 0 8px;
+}
+
+/* Points & Reasons List */
+.flataudit-points-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.flataudit-point-card {
+  background: #162030;
+  border: 1px solid #243248;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.flataudit-point-card.flagged {
+  border-left: 3px solid #f2b84b;
+  background: rgba(242, 184, 75, 0.05);
+}
+
+.flataudit-point-card.normal {
+  border-left: 3px solid #6fd6a0;
+}
+
+.flataudit-point-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flataudit-point-cat {
+  font-size: 11.5px;
+  font-weight: 700;
   color: #e2e8f0;
 }
 
-.flataudit-fact-item:last-child {
+.flataudit-point-status {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.status-flagged {
+  background: rgba(242, 184, 75, 0.2);
+  color: #f2b84b;
+}
+
+.status-normal {
+  background: rgba(111, 214, 160, 0.15);
+  color: #6fd6a0;
+}
+
+.flataudit-point-headline {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.3;
+}
+
+.flataudit-point-reason {
+  font-size: 11.5px;
+  color: #9aa8c2;
+  line-height: 1.4;
+}
+
+/* Renter Safety Advice Box */
+.flataudit-safety-box {
+  background: #172235;
+  border: 1px solid #2a3c5a;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.flataudit-safety-header {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #7cc4ff;
+  margin-bottom: 6px;
+}
+
+.flataudit-safety-list {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 11.5px;
+  color: #c5d2e7;
+  line-height: 1.4;
+}
+
+.flataudit-safety-list li {
+  margin-bottom: 4px;
+}
+
+.flataudit-safety-list li:last-child {
   margin-bottom: 0;
 }
 
-.flataudit-fact-icon {
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-.flataudit-clean-note {
-  font-size: 13px;
-  color: #6fd6a0;
-  background: rgba(111, 214, 160, 0.08);
-  border: 1px solid rgba(111, 214, 160, 0.2);
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin-bottom: 14px;
-}
-
+/* Meta Footer */
 .flataudit-meta-row {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 10.5px;
   color: #7586a4;
   padding-top: 8px;
   border-top: 1px solid #202c40;

@@ -1,5 +1,6 @@
 /**
  * FlatAudit - Popup Controller
+ * Renders human-readable points, reasons, and renter safety guidance.
  */
 
 async function checkBackendHealth() {
@@ -19,10 +20,25 @@ async function checkBackendHealth() {
 function updateUI(analysis) {
   if (!analysis) return;
 
-  const pill = document.getElementById('trust-pill');
-  pill.textContent = analysis.badgeLabel;
-  pill.className = `pill tone-${analysis.badgeTone}`;
+  // 1. Verdict Banner
+  const banner = document.getElementById('verdict-banner');
+  const icon = document.getElementById('verdict-icon');
+  const title = document.getElementById('verdict-title');
+  const sub = document.getElementById('verdict-sub');
 
+  banner.className = `verdict-banner tone-${analysis.badgeTone || 'ok'}`;
+  icon.textContent = analysis.badgeTone === 'bad' ? '⚠️' : analysis.badgeTone === 'warn' ? '🔍' : '✓';
+
+  if (analysis.badgeTone === 'bad') {
+    title.textContent = `High Risk: ${analysis.firedCount || 'Multiple'} Scam Signals Flagged`;
+  } else if (analysis.badgeTone === 'warn') {
+    title.textContent = `Caution: Unusual Listing Pattern`;
+  } else {
+    title.textContent = `Listing Verified Normal`;
+  }
+  sub.textContent = analysis.headlineSummary || 'All signals conform to local rental norms.';
+
+  // 2. Property Overview Strip
   const titleEl = document.getElementById('prop-title');
   titleEl.textContent = analysis.listing?.title || 'Active Listing';
 
@@ -40,31 +56,82 @@ function updateUI(analysis) {
     tagBhk.textContent = `${analysis.listing.bhk} BHK`;
   }
 
-  // Populate individual signal reasons
-  const sigPrice = document.getElementById('sig-price');
-  const sigDeposit = document.getElementById('sig-deposit');
-  const sigPhrase = document.getElementById('sig-phrase');
-  const sigDhash = document.getElementById('sig-dhash');
+  // 3. Observations (Points & Reasons)
+  const pointsList = document.getElementById('points-list');
+  pointsList.innerHTML = '';
 
-  if (analysis.signals?.price) {
-    sigPrice.textContent = analysis.signals.price.reason;
-  }
-  if (analysis.signals?.deposit) {
-    sigDeposit.textContent = analysis.signals.deposit.reason;
-  }
-  if (analysis.signals?.phrase) {
-    sigPhrase.textContent = analysis.signals.phrase.reason;
-  }
-  if (analysis.signals?.duplicateImage) {
-    sigDhash.textContent = analysis.signals.duplicateImage.reason;
-  } else if (analysis.topHash) {
-    sigDhash.textContent = `Photo hash: ${analysis.topHash.slice(0, 10)}... (Single occurrence)`;
+  const points = analysis.humanReadablePoints || [
+    {
+      category: 'Rent Pricing',
+      icon: '💰',
+      fired: analysis.signals?.price?.fired,
+      point: analysis.signals?.price?.reason || 'Rent within normal range',
+      reason: 'Pricing matches local market standards.'
+    },
+    {
+      category: 'Security Deposit',
+      icon: '📑',
+      fired: analysis.signals?.deposit?.fired,
+      point: analysis.signals?.deposit?.reason || 'Standard deposit ratio',
+      reason: 'Deposit adheres to city customs.'
+    },
+    {
+      category: 'Advance Fee Terms',
+      icon: '💬',
+      fired: analysis.signals?.phrase?.fired,
+      point: analysis.signals?.phrase?.reason || 'No suspicious terms',
+      reason: 'Standard lease terms described.'
+    },
+    {
+      category: 'Photo Authenticity',
+      icon: '🖼️',
+      fired: analysis.signals?.duplicateImage?.fired,
+      point: analysis.signals?.duplicateImage?.reason || 'Photo appears unique',
+      reason: 'Photo fingerprint has not been seen across conflicting listings.'
+    }
+  ];
+
+  for (const item of points) {
+    const card = document.createElement('div');
+    card.className = `point-card ${item.fired ? 'flagged' : 'normal'}`;
+
+    const head = document.createElement('div');
+    head.className = 'point-head';
+
+    const catTitle = document.createElement('span');
+    catTitle.textContent = `${item.icon} ${item.category}`;
+
+    const badge = document.createElement('span');
+    badge.className = `status-badge ${item.fired ? 'flagged' : 'normal'}`;
+    badge.textContent = item.fired ? 'Flagged' : 'Normal';
+
+    head.appendChild(catTitle);
+    head.appendChild(badge);
+
+    const body = document.createElement('div');
+    body.className = 'point-body';
+    body.textContent = item.point;
+
+    const reason = document.createElement('div');
+    reason.className = 'point-reason';
+    reason.textContent = item.reason;
+
+    card.appendChild(head);
+    card.appendChild(body);
+    card.appendChild(reason);
+
+    pointsList.appendChild(card);
   }
 
-  // Kill Chain
-  const killChainEl = document.getElementById('kill-chain-stage');
-  if (analysis.scamKillChainStage) {
-    killChainEl.textContent = analysis.scamKillChainStage;
+  // 4. Renter Safety Advice Checklist
+  const checklist = document.getElementById('safety-checklist');
+  if (checklist && analysis.safetyAdvice) {
+    checklist.innerHTML = '';
+    for (const tip of analysis.safetyAdvice) {
+      const li = document.createElement('li');
+      li.textContent = tip;
+      checklist.appendChild(li);
+    }
   }
 }
 

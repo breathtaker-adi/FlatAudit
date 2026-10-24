@@ -19,6 +19,8 @@
 
     let currentAnalysis = null;
     let badgeContainer = null;
+    let isDrawerOpen = false;
+    let lastEvaluatedFingerprint = '';
 
     async function evaluatePage() {
       const listing = extractListing(document, window.location.href);
@@ -27,6 +29,8 @@
       if (!listing.title && !listing.rent) {
         return;
       }
+
+      const listingFingerprint = `${window.location.pathname}_${listing.rent}_${listing.deposit}_${listing.title}`;
 
       // Hash first 3 images via background service worker
       let topHash = null;
@@ -87,6 +91,7 @@
         } catch (e) {}
       }
 
+      lastEvaluatedFingerprint = listingFingerprint;
       renderTrustBadge(currentAnalysis);
     }
 
@@ -101,13 +106,13 @@
         document.body.appendChild(badgeContainer);
       }
 
-      // Clear existing safely
+      // Clear existing elements safely
       while (badgeContainer.firstChild) {
         badgeContainer.removeChild(badgeContainer.firstChild);
       }
 
       const wrapper = document.createElement('div');
-      wrapper.style.position = 'relative';
+      wrapper.className = 'flataudit-wrapper';
 
       // 1. Floating Pill Button
       const btn = document.createElement('button');
@@ -134,17 +139,31 @@
       // 2. Expandable Facts Drawer
       const drawer = document.createElement('div');
       drawer.className = 'flataudit-drawer';
+      if (isDrawerOpen) {
+        drawer.classList.add('open');
+      }
 
       // Header
       const header = document.createElement('div');
       header.className = 'flataudit-drawer-header';
 
-      const headerTitle = document.createElement('span');
-      headerTitle.className = 'flataudit-drawer-title';
-      headerTitle.textContent = 'Listing Trust Signals';
+      const headerTitle = document.createElement('div');
+      headerTitle.className = 'flataudit-drawer-title-group';
+
+      const shieldIcon = document.createElement('span');
+      shieldIcon.className = 'flataudit-drawer-shield';
+      shieldIcon.textContent = '🛡️';
+
+      const titleText = document.createElement('span');
+      titleText.className = 'flataudit-drawer-title';
+      titleText.textContent = 'FlatAudit Trust Check';
+
+      headerTitle.appendChild(shieldIcon);
+      headerTitle.appendChild(titleText);
 
       const closeBtn = document.createElement('button');
       closeBtn.className = 'flataudit-close-btn';
+      closeBtn.type = 'button';
       closeBtn.textContent = '×';
       closeBtn.setAttribute('aria-label', 'Close drawer');
 
@@ -152,76 +171,142 @@
       header.appendChild(closeBtn);
       drawer.appendChild(header);
 
-      // Kill Chain Stage Box
-      const stageBox = document.createElement('div');
-      stageBox.className = 'flataudit-stage-box';
+      // Summary Status Banner
+      const banner = document.createElement('div');
+      banner.className = `flataudit-summary-banner tone-${data.badgeTone}`;
 
-      const stageBold = document.createElement('b');
-      stageBold.textContent = 'Kill Chain Phase:';
-      const stageText = document.createElement('span');
-      stageText.textContent = data.scamKillChainStage;
+      const bannerIcon = document.createElement('span');
+      bannerIcon.className = 'flataudit-banner-icon';
+      bannerIcon.textContent = data.badgeTone === 'bad' ? '⚠️' : data.badgeTone === 'warn' ? '🔍' : '✓';
 
-      stageBox.appendChild(stageBold);
-      stageBox.appendChild(stageText);
-      drawer.appendChild(stageBox);
+      const bannerText = document.createElement('div');
+      bannerText.className = 'flataudit-banner-text';
 
-      // Observable Facts List
-      if (data.observableFacts && data.observableFacts.length > 0) {
-        const list = document.createElement('ul');
-        list.className = 'flataudit-facts-list';
+      const bannerTitle = document.createElement('b');
+      bannerTitle.textContent = data.badgeTone === 'bad'
+        ? `High Risk Signals (${data.firedCount} Flagged)`
+        : data.badgeTone === 'warn'
+        ? 'Unusual Listing Pattern'
+        : 'Listing Verified Normal';
 
-        for (const fact of data.observableFacts) {
-          const item = document.createElement('li');
-          item.className = 'flataudit-fact-item';
+      const bannerSub = document.createElement('p');
+      bannerSub.textContent = data.headlineSummary || 'Detailed safety evaluation based on local market norms.';
 
-          const factIcon = document.createElement('span');
-          factIcon.className = 'flataudit-fact-icon';
-          factIcon.textContent = '•';
+      bannerText.appendChild(bannerTitle);
+      bannerText.appendChild(bannerSub);
+      banner.appendChild(bannerIcon);
+      banner.appendChild(bannerText);
+      drawer.appendChild(banner);
 
-          const factText = document.createElement('span');
-          factText.textContent = fact;
+      // Section: Key Points & Reasons
+      const pointsHeading = document.createElement('div');
+      pointsHeading.className = 'flataudit-section-title';
+      pointsHeading.textContent = 'KEY OBSERVATIONS (POINTS & REASONS)';
+      drawer.appendChild(pointsHeading);
 
-          item.appendChild(factIcon);
-          item.appendChild(factText);
-          list.appendChild(item);
+      const pointsList = document.createElement('div');
+      pointsList.className = 'flataudit-points-container';
+
+      if (data.humanReadablePoints && data.humanReadablePoints.length > 0) {
+        for (const item of data.humanReadablePoints) {
+          const pointCard = document.createElement('div');
+          pointCard.className = `flataudit-point-card ${item.fired ? 'flagged' : 'normal'}`;
+
+          // Header line with Icon + Category + Status
+          const cardHeader = document.createElement('div');
+          cardHeader.className = 'flataudit-point-header';
+
+          const cardTitle = document.createElement('span');
+          cardTitle.className = 'flataudit-point-cat';
+          cardTitle.textContent = `${item.icon} ${item.category}`;
+
+          const statusPill = document.createElement('span');
+          statusPill.className = `flataudit-point-status ${item.fired ? 'status-flagged' : 'status-normal'}`;
+          statusPill.textContent = item.fired ? 'Flagged' : 'Verified';
+
+          cardHeader.appendChild(cardTitle);
+          cardHeader.appendChild(statusPill);
+          pointCard.appendChild(cardHeader);
+
+          // Point: Clear bullet / takeaway
+          const pointText = document.createElement('div');
+          pointText.className = 'flataudit-point-headline';
+          pointText.textContent = item.point;
+          pointCard.appendChild(pointText);
+
+          // Reason: Human explanation
+          const reasonText = document.createElement('div');
+          reasonText.className = 'flataudit-point-reason';
+          reasonText.textContent = item.reason;
+          pointCard.appendChild(reasonText);
+
+          pointsList.appendChild(pointCard);
         }
-        drawer.appendChild(list);
-      } else {
-        const cleanNote = document.createElement('div');
-        cleanNote.className = 'flataudit-clean-note';
-        cleanNote.textContent = '✓ No anomaly signals detected. Price, deposit ratio, and description match local market norms.';
-        drawer.appendChild(cleanNote);
       }
+      drawer.appendChild(pointsList);
+
+      // Section: Actionable Safety Advice for Renters
+      const safetyBox = document.createElement('div');
+      safetyBox.className = 'flataudit-safety-box';
+
+      const safetyHeader = document.createElement('div');
+      safetyHeader.className = 'flataudit-safety-header';
+      safetyHeader.textContent = '💡 Renter Safety Advice:';
+      safetyBox.appendChild(safetyHeader);
+
+      const safetyList = document.createElement('ul');
+      safetyList.className = 'flataudit-safety-list';
+
+      const adviceItems = data.safetyAdvice || [
+        'Never transfer any gate entry pass or token fee via UPI before in-person flat visit.',
+        'Request to meet building security or caretaker at the gate to verify vacant flat.',
+        'Legitimate landlords in India never charge entry fees to inspect a rental property.'
+      ];
+
+      for (const tip of adviceItems) {
+        const li = document.createElement('li');
+        li.textContent = tip;
+        safetyList.appendChild(li);
+      }
+      safetyBox.appendChild(safetyList);
+      drawer.appendChild(safetyBox);
 
       // Meta Footer
       const metaRow = document.createElement('div');
       metaRow.className = 'flataudit-meta-row';
 
       const hashInfo = document.createElement('span');
-      hashInfo.textContent = data.topHash ? `dHash: ${data.topHash.slice(0, 8)}...` : 'Image: unhashed';
+      hashInfo.textContent = data.topHash ? `Photo fingerprint: ${data.topHash.slice(0, 8)}...` : 'Images: standard';
 
       const privacyNote = document.createElement('span');
-      privacyNote.textContent = 'Privacy-preserving • Local signals';
+      privacyNote.textContent = 'Privacy-preserving • Zero PII stored';
 
       metaRow.appendChild(hashInfo);
       metaRow.appendChild(privacyNote);
       drawer.appendChild(metaRow);
 
-      // Toggle drawer behavior
+      // Event Listeners (Rock-solid, no auto-closing)
       btn.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
-        drawer.classList.toggle('open');
+        isDrawerOpen = !isDrawerOpen;
+        if (isDrawerOpen) {
+          drawer.classList.add('open');
+        } else {
+          drawer.classList.remove('open');
+        }
       });
 
       closeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
+        isDrawerOpen = false;
         drawer.classList.remove('open');
       });
 
-      document.addEventListener('click', (e) => {
-        if (!wrapper.contains(e.target)) {
-          drawer.classList.remove('open');
-        }
+      // Stop clicks inside the drawer from bubbling to document
+      drawer.addEventListener('click', (e) => {
+        e.stopPropagation();
       });
 
       wrapper.appendChild(btn);
@@ -229,16 +314,35 @@
       badgeContainer.appendChild(wrapper);
     }
 
+    // Close only when clicking outside the entire FlatAudit root
+    document.addEventListener('click', (e) => {
+      if (badgeContainer && !badgeContainer.contains(e.target)) {
+        if (isDrawerOpen) {
+          isDrawerOpen = false;
+          const drawer = badgeContainer.querySelector('.flataudit-drawer');
+          if (drawer) {
+            drawer.classList.remove('open');
+          }
+        }
+      }
+    });
+
     // Initial evaluation
     evaluatePage();
 
-    // Re-check if SPA dynamically alters DOM
+    // Re-check if SPA dynamically alters DOM outside our own container
     let timeoutId;
-    const observer = new MutationObserver(() => {
+    const observer = new MutationObserver((mutations) => {
+      // Ignore mutations originating inside our own FlatAudit container
+      const isSelfMutation = Array.from(mutations).every(m => {
+        return m.target && (m.target.id === 'flataudit-root' || (m.target.closest && m.target.closest('#flataudit-root')));
+      });
+      if (isSelfMutation) return;
+
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
         evaluatePage();
-      }, 750);
+      }, 1000);
     });
 
     observer.observe(document.body, { childList: true, subtree: true });
