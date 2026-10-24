@@ -1,7 +1,7 @@
 # FlatAudit: Project Progress Report & Zero-Context Reconstruction Blueprint
 
 **Author**: Principal Software Architect & Lead Security Engineer  
-**Project**: FlatAudit (Listing Trust Analyzer)  
+**Project**: FlatAudit (Listing Trust Analyzer & Buyhatke Property Companion)  
 **Target Audience**: Autonomous AI Coding Agents / Senior Software Engineers  
 **Context Requirement**: Zero prior context required for full system reconstruction.
 
@@ -10,7 +10,7 @@
 ## 1. Project Overview & Architecture
 
 ### Core Purpose
-**FlatAudit (Listing Trust Analyzer)** is a privacy-preserving cybersecurity browser extension and lightweight analytics backend engineered to protect Indian urban home seekers from structured advance-fee rental fraud on major listing portals (*NoBroker*, *MagicBricks*, *99acres*, *Housing.com*). 
+**FlatAudit (Listing Trust Analyzer & Buyhatke Property Companion)** is a privacy-preserving cybersecurity browser extension and lightweight analytics backend engineered to protect Indian urban home seekers from structured advance-fee rental fraud on major listing portals (*NoBroker*, *MagicBricks*, *99acres*, *Housing.com*), while serving as a **Buyhatke-style companion for property**: tracking rent price history, alerting to price drops, rendering inline SVG sparklines, comparing shortlisted properties side-by-side, and calculating every-city benchmarks without hardcoding.
 
 The application addresses the "Rental Scam Kill Chain":
 1. **Fake Listing**: Malicious actors post stolen photos of luxury apartments at 40%–70% below local market rent (bait pricing).
@@ -19,26 +19,39 @@ The application addresses the "Rental Scam Kill Chain":
 4. **Advance-Fee Extortion**: The poster demands an upfront "gate entry pass", "visiting card registration slip", or "refundable viewing token" (₹1,500–₹3,500) via UPI QR code before permitting an in-person physical viewing.
 
 **Primary Workflows**:
-- **In-Page Passive Audit**: Content script detects rental pages, reads visible fields (title, rent, deposit, BHK, locality, description, photos), evaluates 4 threat signal dimensions, queries the local perceptual hash registry, and injects a non-defamatory, objective trust badge and expandable drawer.
-- **Toolbar Quick Inspect**: Extension popup queries current active tab analysis from local storage and displays human-readable points, reasons, and renter safety advice.
-- **Registry Duplicate Tracking**: The background service worker calculates a 64-bit difference hash (`dHash`) of listing photos inside an offscreen canvas and registers anonymous listing attributes in a local SQLite backend to detect cross-portal image reuse.
-- **Interactive Web Demo & Testbed**: Standalone browser dashboard for testing arbitrary listings, inspecting dHash Hamming distances live, and benchmarking performance on labeled empirical datasets.
+- **In-Page Passive Trust Audit**: Content script detects rental pages, reads visible fields (title, rent, deposit, BHK, locality, coordinates, description, photos), evaluates 4 threat signal dimensions, queries the local perceptual hash registry, and injects a non-defamatory, objective trust badge and expandable drawer.
+- **Dynamic 5-Step Benchmark Fallback Ladder**: Discards fixed rupee thresholds; judges listings strictly relative to peers using robust non-parametric statistics (Median & MAD) across 5 hierarchical levels:
+  - **Level 1: Peer Page** (same-BHK listings seen on current search results or similar carousel, $n \ge 6$) — works immediately in any Indian city on day one without server dependency.
+  - **Level 2: Area Cell** (fine geohash ~1–5 km or fine locality pack, $n \ge 10$).
+  - **Level 3: District Cell** (parent geohash prefix ~20–40 km, $n \ge 8$).
+  - **Level 4: City Baseline** (metro aggregate, $n \ge 5$).
+  - **Level 5: None / Silence Mode** (when local data is thin/absent: stays silent, suppresses price outlier alarms, and runs only non-price signals).
+- **Buyhatke Property Companion**:
+  - Tracks rental listings in `chrome.storage.local`.
+  - Captures timestamped price snapshots on revisits and flags rent drops (`↓ ₹2,000 (-5.0%)`).
+  - Generates zero-dependency inline SVG sparklines depicting price trajectory over time.
+  - Formats human-readable time-on-market ("Listed 14 days ago").
+  - Builds side-by-side comparison matrix with automated best-value tagging (lowest rent, lowest deposit ratio, lowest price per sq.ft.).
+  - Exports shortlists directly to valid CSV text.
+- **Cross-Portal Duplicate Price Matching**: Detects identical or sister listings across portals (e.g., NoBroker vs. MagicBricks) to reveal pricing discrepancies ("Also listed on Portal B for ₹3,000 less").
+- **Offline & Low-Bandwidth Resilience**: Offline-first client architecture using local `chrome.storage.local` cache and static market packs with ETag and 24-hour TTL caching.
+- **Interactive Web Demo & Testbed**: Standalone browser dashboard for testing arbitrary listings, inspecting dHash Hamming distances live, switching fallback ladder tiers, and tracking watchlists.
 
 ### Tech Stack
 - **JavaScript Runtime**: Node.js v20+ / v26.8.1 (Native test runner via `node --test`, native ES modules `"type": "module"`).
 - **Browser Extension Platform**: Google Chrome Manifest V3 (MV3) with Service Worker background execution and Content Scripts.
 - **Backend Framework**: Python 3.10+ / Python 3.14.0, FastAPI 0.110+ (`fastapi`), Starlette 1.6+, Uvicorn 0.28+ (`uvicorn[standard]`).
 - **Data Validation & Schemas**: Pydantic v2 (`pydantic>=2.0.0`).
-- **Database Layer**: SQLite 3 (Standard Library `sqlite3`) with WAL journal mode and parameterized queries.
+- **Database Layer**: SQLite 3 (Standard Library `sqlite3`) with WAL journal mode, parameterized queries, and daily deduplication.
 - **DOM Parsing & Simulation**: Native browser DOM APIs (`document.querySelector`, `MutationObserver`, `OffscreenCanvas`) in extension; `jsdom` for Node.js test suites.
-- **Testing Frameworks**: `node:test` + `node:assert/strict` (Frontend/Extension); `pytest` 8.0+ with `httpx` (Backend API).
+- **Testing Frameworks**: `node:test` + `node:assert/strict` (Frontend/Extension: 54 tests passing across 18 suites); `pytest` 8.0+ with `httpx` (Backend API: 10 tests passing).
 - **Styling Architecture**: Curated Dark-Mode Vanilla CSS (HSL tokens, glassmorphism, responsive CSS Grid/Flexbox, zero runtime styling overhead, Google Fonts *Bricolage Grotesque*, *Instrument Sans*, *JetBrains Mono*).
 
 ### Architectural Pattern
 FlatAudit adopts an **Edge-Filtered Asymmetric Client-Server Architecture** designed around **Privacy by Design**:
 - **Client-Side Edge Filtering (Extension Content Script & Worker)**: Pure rule evaluation, currency normalization, and 64-bit dHash generation happen locally in the user's browser. Untrusted DOM inputs are sanitized using strict `.textContent` assignment (zero `innerHTML`).
 - **CORS-Isolated Perceptual Worker**: Image binaries are fetched exclusively within the background service worker using host permissions and drawn directly to an `OffscreenCanvas(9, 8)`. Raw images are **never** written to disk or transmitted across the network.
-- **Asymmetric API / Registry (FastAPI + SQLite)**: The backend operates strictly as an anonymized hash index and locality benchmark provider. It stores only 5 primitive fields: `locality`, `bhk`, `rent`, `deposit`, and `image_hash`. No user identifiers, contact numbers, names, or image binaries are ever stored.
+- **Asymmetric API & Static Pack Publisher (FastAPI + SQLite)**: The backend operates strictly as an anonymized hash index, cross-portal matching engine, and static market pack generator. It stores only anonymous primitive fields: `portal`, `listing_key`, `locality`, `bhk`, `rent`, `deposit`, `area_sqft`, `floor`, `geohash`, `image_hash`, and `day`. No user identifiers, contact numbers, names, or image binaries are ever stored.
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -52,7 +65,7 @@ FlatAudit adopts an **Edge-Filtered Asymmetric Client-Server Architecture** desi
 │                                                        │
 │  ┌────────────────────────┐  ┌──────────────────────┐  │
 │  │   extractListing()     │  │  analyzeListing()    │  │
-│  │ (Currency/BHK/DOM)     │─▶│ - Price Outlier      │  │
+│  │ (Currency/BHK/Coords)  │─▶│ - Price (Ladder 1-5) │  │
 │  └────────────────────────┘  │ - Deposit Ratio      │  │
 │                              │ - Advance-Fee Terms  │  │
 │  ┌────────────────────────┐  │ - Image Duplicate    │  │
@@ -60,6 +73,12 @@ FlatAudit adopts an **Edge-Filtered Asymmetric Client-Server Architecture** desi
 │  │ OffscreenCanvas (9x8)  │─────────────┘              │
 │  │ 64-bit dHash Engine    │                            │
 │  └────────────────────────┘                            │
+│                                                        │
+│  ┌──────────────────────────────────────────────────┐  │
+│  │ Buyhatke Tracker & Local Watchlist Cache         │  │
+│  │ - Price Snapshots & Sparkline SVG Generator      │  │
+│  │ - Comparison Matrix & CSV Exporter               │  │
+│  └──────────────────────────────────────────────────┘  │
 └──────────────┬───────────────────────────┬─────────────┘
                │ Query duplicate count     │ Safe In-Page Injection
                │ & record observation      │ (Zero innerHTML)
@@ -67,10 +86,11 @@ FlatAudit adopts an **Edge-Filtered Asymmetric Client-Server Architecture** desi
 ┌───────────────────────────────┐ ┌──────────────────────┐
 │  FastAPI Backend (Port 8000)  │ │ FlatAudit UI Drawer  │
 │  - POST /api/v1/observe       │ │ - Status Badge       │
-│  - GET  /api/v1/seen          │ │ - Points & Reasons   │
-│  - POST /api/v1/analyze       │ │ - Safety Advice      │
-│  - SQLite (flataudit.db)      │ └──────────────────────┘
-└───────────────────────────────┘
+│  - GET  /api/v1/seen          │ │ - Sparkline / Price  │
+│  - GET  /api/v1/matches       │ │ - Benchmark Ladder   │
+│  - GET  /api/v1/packs/{cell}  │ │ - Points & Reasons   │
+│  - SQLite (flataudit.db)      │ │ - Safety Advice      │
+└───────────────────────────────┘ └──────────────────────┘
 ```
 
 ---
@@ -88,45 +108,62 @@ FlatAudit/
 ├── Build Plan_ Listing Trust Analyzer (1).html
 ├── Listing Trust Analyzer_ Project Document.html
 ├── backend/
-│   ├── config.py
-│   ├── db.py
-│   ├── main.py
-│   ├── models.py
-│   ├── requirements.txt
+│   ├── build_packs.py          # Market pack aggregation batch job (trimmed stats, zero-PII)
+│   ├── config.py               # Database paths, CORS origins
+│   ├── db.py                   # SQLite schema, migration, deduplication, Hamming distance
+│   ├── flataudit.db            # SQLite database file (deduped observations)
+│   ├── main.py                 # FastAPI application, REST endpoints, static packs with ETag
+│   ├── models.py               # Pydantic schemas (ObservationCreate, AnalyzeRequest, etc.)
+│   ├── requirements.txt        # Python backend dependencies
+│   ├── packs/                  # Static JSON market packs directory (index.json, {cell}.json)
 │   └── tests/
-│       ├── test_api.py
-│       └── test_db.py
+│       ├── test_api.py         # Pytest API integration tests
+│       ├── test_db.py          # Pytest SQLite unit tests
+│       └── test_packs.py       # Pytest market pack aggregator & zero-PII validation tests
 ├── docs/
 │   ├── architecture.md
+│   ├── engineering-retrospective-v1.md # Technical retrospective and lessons learned
+│   ├── privacy-policy.md       # Plain-language user privacy and ToS statement
 │   ├── scam-taxonomy.md
-│   ├── threat-model.md
+│   ├── store-listing.md        # Chrome Web Store listing, permissions & asset spec
+│   ├── threat-model.md         # Full STRIDE threat model
 │   └── zero_context_blueprint.md
 ├── eval/
-│   ├── evaluate.py
-│   ├── evaluation_results.md
-│   ├── generate_dataset.py
-│   ├── labeling-guide.md
-│   └── labels.csv
+│   ├── evaluate.py             # Single-source-of-truth evaluator (0.0% rule drift)
+│   ├── evaluation_results.md   # Synthetic benchmark report (97.3% accuracy, 95.1% precision)
+│   ├── evaluation_real_results.md # Real-world multi-city report (100% accuracy, 5 cities)
+│   ├── generate_dataset.py     # Deterministic 250-listing synthetic dataset generator
+│   ├── labeling-guide.md       # Empirical annotation taxonomy manual
+│   ├── labeling_template.csv   # Contributor labeling template
+│   ├── labels.csv              # Synthetic Unit-Test Dataset (250 listings)
+│   ├── real_listings.csv       # Real-World Multi-City Dataset (30 listings, 5 cities)
+│   └── run_signals.js          # Node bridge executing production signals.js for Python eval
 ├── extension/
-│   ├── background.js
-│   ├── content.js
-│   ├── manifest.json
-│   ├── styles.css
+│   ├── background.js           # MV3 background worker (OffscreenCanvas dHash, API proxy)
+│   ├── content.js              # Injected content script (badge, drawer, peer cache, Buyhatke card)
+│   ├── icons/                  # Extension PNG icons (16px, 48px, 128px)
+│   ├── manifest.json           # Chrome MV3 manifest declaration
+│   ├── styles.css              # Dark-mode styling for injected badge, drawer, sparklines
 │   ├── lib/
-│   │   ├── dhash.js
-│   │   ├── signals.js
+│   │   ├── benchmarks.js       # Dynamic benchmark ladder engine & isValidMarketPack validator
+│   │   ├── dhash.js            # 64-bit difference hash & bitwise Hamming distance
+│   │   ├── geohash.js          # Base32 geohash encoder/decoder & coordinate DOM extractor
+│   │   ├── signals.js          # Rule-based evaluation engine (price, deposit, phrase, duplicate)
+│   │   ├── tracker.js          # Buyhatke tracker (watchlist, snapshots, sparklines, CSV export)
+│   │   ├── data/
+│   │   │   └── market_packs.json # Static market packs (medians, MAD, PSF, deposit multiples)
 │   │   └── parsers/
-│   │       ├── currency.js
-│   │       ├── generic.js
-│   │       ├── housing.js
-│   │       ├── index.js
-│   │       ├── magicbricks.js
-│   │       ├── ninety_nine_acres.js
-│   │       └── nobroker.js
+│   │       ├── currency.js     # Currency normalizer (₹, Lakhs, thousands, BHK)
+│   │       ├── generic.js      # Heuristic fallback extractor
+│   │       ├── housing.js      # Housing.com extractor
+│   │       ├── index.js        # Parser router, isListingValid & parsePeerListingsFromPage
+│   │       ├── magicbricks.js  # MagicBricks extractor
+│   │       ├── ninety_nine_acres.js # 99acres extractor
+│   │       └── nobroker.js     # NoBroker extractor
 │   └── popup/
-│       ├── popup.css
-│       ├── popup.html
-│       └── popup.js
+│       ├── popup.css           # Toolbar popup dark styling
+│       ├── popup.html          # Toolbar popup HTML interface
+│       └── popup.js            # Toolbar controller (Trust signals, Buyhatke watchlist, compare)
 ├── fixtures/
 │   ├── 99acres_normal_1bhk.html
 │   ├── housing_duplicate_photos.html
@@ -134,210 +171,25 @@ FlatAudit/
 │   ├── nobroker_normal_2bhk.html
 │   └── nobroker_scam_army_token.html
 ├── tests/
-│   ├── test_dhash.test.js
-│   ├── test_parsers.test.js
-│   └── test_signals.test.js
+│   ├── test_benchmarks.test.js # Unit tests for geohash, MAD, fallback ladder, silence mode, pack validator
+│   ├── test_dhash.test.js      # Unit tests for 64-bit dHash and Hamming distance
+│   ├── test_parsers.test.js    # Multi-portal fixture parsing & health integrity tests
+│   ├── test_signals.test.js    # Signal evaluation rules & composite analysis tests
+│   └── test_tracker.test.js    # Buyhatke watchlist, sparklines, comparison, CSV export tests
 └── web-demo/
-    ├── app.js
-    ├── index.html
-    └── style.css
-```
-
-### File-by-File Breakdown
-
-#### Root Configuration & Meta
-- **`package.json`**
-  - **Level:** Config
-  - **Responsibility:** Defines Node package metadata, scripts (`test`, `demo`), and dev dependencies (`jsdom`).
-  - **Key Scripts:** `"test": "node --test tests/*.test.js"`, `"demo": "node -e ..."` (built-in zero-dependency static web server on port 8080).
-  - **Dependencies:** `jsdom` (dev).
-- **`.gitignore`**
-  - **Level:** Config
-  - **Responsibility:** Prevents caching, build artifacts, Python venv, database files (`*.db`), and Node modules from entering Git. Explicitly allows `!extension/lib/`.
-- **`README.md`**
-  - **Level:** Supporting
-  - **Responsibility:** Comprehensive user and reviewer guide: architecture diagrams, setup instructions, test commands, 250-listing evaluation metrics, and ethics disclaimer.
-
-#### Backend Core (`backend/`)
-- **`backend/config.py`**
-  - **Level:** Config
-  - **Responsibility:** Centralizes environment variables, default database file path (`flataudit.db`), and CORS origins list.
-  - **Key Exports:** `DB_PATH`, `CORS_ORIGINS`.
-- **`backend/models.py`**
-  - **Level:** Core
-  - **Responsibility:** Pydantic models for incoming payload validation and outgoing response serialization.
-  - **Key Classes:**
-    - `ObservationCreate`: Validates `url`, `locality`, `bhk` (1..10), `rent` (1k..5M), `deposit`, `image_hash` (exact 16 hex characters).
-    - `ObservationResponse`: Serializes `status`, `id`, `seen_count`.
-    - `SeenResponse`: Serializes `hash`, `seen_count`, `matched_listings`, `threshold`.
-    - `LocalityStatsResponse`: Locality rent/deposit summary statistics.
-    - `AnalyzeRequest`: Full listing request schema (`title`, `description`, `locality`, `bhk`, `rent`, `deposit`, `image_hashes`).
-    - `HumanReadablePoint`: Structured point and reason item (`category`, `icon`, `fired`, `point`, `reason`).
-    - `AnalyzeResponse`: Serializes badge classification, tone, points & reasons, safety advice, and raw signals.
-- **`backend/db.py`**
-  - **Level:** Core
-  - **Responsibility:** SQLite database abstraction layer, connection manager, schema initialization, and bitwise 64-bit Hamming distance calculation.
-  - **Key Functions:**
-    - `hamming_distance(h1: str, h2: str) -> int`: Fast nibble XOR bit-count lookup table.
-    - `init_db(db_file)`: Creates `observations` table and indexes.
-    - `record_observation(...) -> int`: Inserts anonymous observation record.
-    - `count_seen_hashes(target_hash: str, threshold: int = 10) -> dict`: Linear scan over stored hashes comparing Hamming distance $\le threshold$; counts distinct URLs.
-    - `get_locality_stats(locality: str, bhk: int) -> dict`: Computes empirical rent/deposit medians.
-- **`backend/main.py`**
-  - **Level:** Core
-  - **Responsibility:** FastAPI application factory, CORS middleware registration, startup lifespan initialization, and REST route handlers.
-  - **Key Endpoints:**
-    - `GET /api/v1/health`: Service health and privacy guarantee check.
-    - `POST /api/v1/observe`: Records observation and returns seen count.
-    - `GET /api/v1/seen`: Queries duplicate listings for a 16-hex dHash.
-    - `GET /api/v1/locality-stats`: Returns locality empirical rent/deposit distributions.
-    - `POST /api/v1/analyze`: Server-side listing trust evaluator replicating client rules.
-- **`backend/tests/test_db.py`**
-  - **Level:** Supporting
-  - **Responsibility:** Pytest unit tests for database initialization, observation insertion, and Hamming distance duplicate counting.
-- **`backend/tests/test_api.py`**
-  - **Level:** Supporting
-  - **Responsibility:** Pytest integration tests using `starlette.testclient.TestClient` validating all FastAPI endpoints with normal and scam payloads.
-
-#### Extension Engine (`extension/`)
-- **`extension/manifest.json`**
-  - **Level:** Config
-  - **Responsibility:** Manifest V3 declaration. Specifies permissions (`storage`), host permissions (`http://127.0.0.1:8000/*`, rental domains, `file:///*`), background service worker, content scripts, and CSP (`script-src 'self'`).
-- **`extension/background.js`**
-  - **Level:** Core
-  - **Responsibility:** MV3 background service worker. Bypasses CORS canvas tainting by fetching images using host permissions, decoding them via `createImageBitmap`, drawing to `OffscreenCanvas(9, 8)`, and computing 64-bit dHashes. Proxies communication with the FastAPI backend.
-  - **Key Listeners:** `chrome.runtime.onMessage` handling `COMPUTE_DHASH`, `CHECK_SEEN`, `OBSERVE_LISTING`.
-- **`extension/content.js`**
-  - **Level:** Core
-  - **Responsibility:** Injected content script. Safely parses listing DOM fields on page load/change, coordinates with background worker for photo hashing, evaluates signals, and injects the trust badge and explanation drawer.
-  - **Key Features:** Zero `innerHTML` usage (constructs DOM nodes exclusively with `.createElement` and `.textContent`), mutation observer loop prevention (ignores mutations from `#flataudit-root`), rock-solid drawer open state persistence.
-- **`extension/styles.css`**
-  - **Level:** UI
-  - **Responsibility:** Styling for injected in-page badge, expandable facts drawer, points & reasons cards, and renter safety advice box.
-- **`extension/popup/popup.html` / `popup.js` / `popup.css`**
-  - **Level:** UI
-  - **Responsibility:** Browser toolbar popup. Queries `chrome.storage.local` for the active tab's latest listing analysis, verifies backend API health, and renders human-readable points, reasons, and safety advice.
-
-#### Shared Signal & Parser Libraries (`extension/lib/`)
-- **`extension/lib/dhash.js`**
-  - **Level:** Core
-  - **Responsibility:** Pure mathematical implementation of 64-bit difference hash (dHash) and bitwise Hamming distance calculation.
-  - **Key Exports:**
-    - `computeDHashFromGrayscale72(grayPixels: Uint8Array) -> string`: Compares adjacent pixels per row ($pixel[x] > pixel[x+1]$) across 8 rows of 9 pixels (64 comparisons), returns 16-hex char string.
-    - `computeDHashFromImageData(imageData) -> string`: Extracts perceptual luminance ($0.299R + 0.587G + 0.114B$) from 9x8 image data.
-    - `hammingDistance(hashA: string, hashB: string) -> number`: Calculates bit differences using nibble lookup table.
-    - `isDuplicateImage(hashA, hashB, threshold=10) -> boolean`: Returns true if distance $\le 10$.
-- **`extension/lib/signals.js`**
-  - **Level:** Core
-  - **Responsibility:** Rule-based signal evaluation engine, empirical locality benchmarks, regex patterns, and human-readable points/reasons generation.
-  - **Key Exports:**
-    - `LOCALITY_BENCHMARKS`: Benchmark median rents and deposit ranges across Bengaluru, Mumbai, Gurgaon, Pune, and regional city fallbacks.
-    - `PHRASE_PATTERNS`: Regex patterns for advance-fee requests, military transfer pretexts, absentee NRI owners, and urgency bait.
-    - `evaluatePriceSignal(rent, locality, bhk)`: Evaluates rent against market medians; flags discounts $\ge 38\%$.
-    - `evaluateDepositSignal(rent, deposit, locality)`: Flags zero-deposit traps or abnormal deposit ratios ($<0.8x$ or $>10x$).
-    - `evaluatePhraseSignal(text)`: Scans title and description for scam pretexts.
-    - `evaluateDuplicateImageSignal(seenCount)`: Flags photos observed across $\ge 2$ listings.
-    - `analyzeListing(listingData, duplicateStats)`: Aggregates all signals into `badgeLabel` (`Looks normal`, `Some signals`, `Many signals`), `humanReadablePoints`, and `safetyAdvice`.
-- **`extension/lib/parsers/currency.js`**
-  - **Level:** Core
-  - **Responsibility:** String normalization for Indian financial notations.
-  - **Key Exports:** `parseIndianCurrency(raw)` (handles `₹ 42,000`, `Rs. 12,000`, `1.5 Lakh`, `45k`), `parseBHK(raw)`.
-- **`extension/lib/parsers/index.js`**
-  - **Level:** Core
-  - **Responsibility:** Dispatcher that inspects URL/DOM and delegates to the appropriate portal parser.
-- **`extension/lib/parsers/nobroker.js` / `magicbricks.js` / `ninety_nine_acres.js` / `housing.js` / `generic.js`**
-  - **Level:** Supporting
-  - **Responsibility:** Individual portal extractors targeting resilient semantic attributes to extract `title`, `locality`, `rent`, `deposit`, `bhk`, `description`, and `images`.
-
-#### Dataset & Evaluation Suite (`eval/`)
-- **`eval/generate_dataset.py`**
-  - **Level:** Supporting
-  - **Responsibility:** Generates 250 realistic, balanced Indian rental listings (125 normal, 125 suspicious) with a deterministic random seed across 4 metro regions. Assigns 70% train (175) / 30% test (75) splits.
-- **`eval/labeling-guide.md`**
-  - **Level:** Supporting
-  - **Responsibility:** Formal annotation manual documenting classification rules, scam pretexts, and false-positive handling.
-- **`eval/labels.csv`**
-  - **Level:** Supporting
-  - **Responsibility:** The 250-listing labeled benchmark dataset.
-- **`eval/evaluate.py`**
-  - **Level:** Core
-  - **Responsibility:** Evaluation pipeline. Runs signals against `labels.csv`, evaluates train vs. held-out test splits, computes precision, recall, F1, accuracy, and confusion matrix, performs error analysis on false positives/negatives, and exports `eval/evaluation_results.md`.
-
-#### Web Demo Application (`web-demo/`)
-- **`web-demo/index.html` / `app.js` / `style.css`**
-  - **Level:** UI
-  - **Responsibility:** Standalone browser testbed. Allows testing arbitrary listings or loading pre-set test cases (*Indiranagar Normal 2BHK*, *HSR Army Token Scam*, *Cyber City Bait Penthouse*, *Pune Zero Deposit*), provides an interactive mock badge with a persistent drawer, displays human-readable points & reasons, visualizes the Scam Kill Chain, and includes an interactive 64-bit dHash Hamming distance calculator.
-
-#### Test Suites (`tests/`) & Fixtures (`fixtures/`)
-- **`tests/test_dhash.test.js`**: Unit tests for 64-bit dHash and Hamming distance.
-- **`tests/test_parsers.test.js`**: Currency, BHK, and DOM fixture parsing tests using `jsdom`.
-- **`tests/test_signals.test.js`**: Unit tests verifying price, deposit, phrase, duplicate image, and composite evaluation rules.
-- **`fixtures/*.html`**: 5 representative HTML listing snapshots (*NoBroker normal 2BHK*, *NoBroker scam Army token*, *MagicBricks bait price*, *99acres normal 1BHK*, *Housing.com duplicate photos*).
-
----
-
-## 3. Dependencies & Environment Configuration
-
-### Production Dependencies
-
-#### Python (`backend/requirements.txt`)
-| Package | Version Range | Purpose & Architectural Justification |
-| :--- | :--- | :--- |
-| `fastapi` | `>=0.110.0` | Asynchronous high-performance REST API framework providing automatic Swagger OpenAPI docs, dependency injection, and Pydantic validation. |
-| `uvicorn[standard]` | `>=0.28.0` | Lightning-fast ASGI server implementation for running FastAPI in production and development. |
-| `pydantic` | `>=2.0.0` | Strict data validation, schema enforcement, and type serialization for incoming/outgoing API contracts. |
-| `httpx` | `>=0.27.0` | Asynchronous HTTP client library used for external requests and FastAPI TestClient simulation. |
-| `pillow` | `>=10.0.0` | Image manipulation and pixel extraction library for server-side perceptual hashing. |
-
-#### Node.js (`package.json`)
-FlatAudit's core runtime has **zero external production dependencies**. It runs natively on standard browser Web APIs and modern Node.js (`"type": "module"`).
-
-### Dev / Build Dependencies
-| Package | Manifest | Version Range | Purpose |
-| :--- | :--- | :--- | :--- |
-| `jsdom` | `package.json` | `^26.0.0` | Headless DOM implementation for Node.js, allowing `tests/test_parsers.test.js` to parse HTML fixtures using standard `document.querySelector` APIs. |
-| `pytest` | `backend/requirements.txt` | `>=8.0.0` | Python test runner executing API integration tests and SQLite unit tests. |
-
-### Configuration Files
-- **`package.json`**: Configured with `"type": "module"` to enable ES module syntax (`import`/`export`) across all test and library files. Includes custom `"test"` script running Node's native test runner (`node --test tests/*.test.js`) and `"demo"` script starting a zero-dependency HTTP server on port 8080.
-- **`extension/manifest.json`**: Manifest V3 compliant.
-  - `permissions`: Trimmed strictly to `["storage"]`.
-  - `host_permissions`: Configured for `http://127.0.0.1:8000/*`, `http://localhost:8000/*`, Indian rental portal wildcards, and `file:///*`.
-  - `web_accessible_resources`: Exposes `lib/*` and `styles.css` so content scripts can import local ES modules dynamically.
-  - `content_security_policy`: Strict `"script-src 'self'; object-src 'self';"`.
-
-### Environment Variables (`.env.example`)
-Create a `.env` file in the root directory if customizing backend deployment:
-
-```bash
-# ==============================================================================
-# FlatAudit Backend Environment Configuration
-# ==============================================================================
-
-# Path to the SQLite database file
-# Default: ./backend/flataudit.db
-FLATAUDIT_DB_PATH="backend/flataudit.db"
-
-# Server Host and Port Binding
-FLATAUDIT_HOST="127.0.0.1"
-FLATAUDIT_PORT=8000
-
-# Environment Mode: 'development' | 'production'
-FLATAUDIT_ENV="development"
-
-# CORS Allowed Origins (Comma-separated)
-# Default includes localhost and chrome-extension://*
-FLATAUDIT_CORS_ORIGINS="http://localhost:8080,http://127.0.0.1:8080,http://localhost:3000"
+    ├── app.js                  # Standalone testbed logic & Buyhatke companion simulator
+    ├── index.html              # Interactive browser dashboard (presets, ladder modes)
+    └── style.css               # Vanilla CSS styling for web demo
 ```
 
 ---
 
-## 4. Database Information & Complete Schema
+## 3. Database Information & Complete Schema
 
 ### Database Engine & Query Architecture
-- **Engine**: SQLite 3 (`flataudit.db`).
-- **Connection Method**: Python standard library `sqlite3` with `conn.row_factory = sqlite3.Row`.
-- **Query Layer**: Raw parameterized SQL with positional placeholder bindings (`?`) to ensure 100% immunity against SQL Injection.
+- **Engine**: SQLite 3 (`backend/flataudit.db`).
+- **Connection Method**: Standard library `sqlite3` with `conn.row_factory = sqlite3.Row`.
+- **Concurrency & Integrity**: Thread-safe parameterized queries with daily deduplication constraint (`UNIQUE(portal, listing_key, day)`).
 
 ### Complete DDL Schema Definition
 
@@ -345,313 +197,248 @@ FLATAUDIT_CORS_ORIGINS="http://localhost:8080,http://127.0.0.1:8080,http://local
 -- Listing Observations Registry Table
 CREATE TABLE IF NOT EXISTS observations (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    portal TEXT,
+    listing_key TEXT,
     url_hash TEXT,
     locality TEXT,
     bhk INTEGER,
     rent INTEGER,
     deposit INTEGER,
+    area_sqft INTEGER,
+    floor INTEGER,
     image_hash TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    geohash TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    day TEXT DEFAULT (date('now'))
 );
 
--- Performance Indexes
+-- Performance & Deduplication Indexes
 CREATE INDEX IF NOT EXISTS idx_image_hash ON observations(image_hash);
 CREATE INDEX IF NOT EXISTS idx_locality_bhk ON observations(locality, bhk);
+CREATE INDEX IF NOT EXISTS idx_portal_listing ON observations(portal, listing_key);
+CREATE INDEX IF NOT EXISTS idx_day ON observations(day);
+CREATE INDEX IF NOT EXISTS idx_geohash ON observations(geohash);
 ```
 
 #### Field Specifications:
 1. `id` (`INTEGER PRIMARY KEY AUTOINCREMENT`): Unique numeric record identifier.
-2. `url_hash` (`TEXT`): First 16 hex characters of the SHA-256 hash of the listing URL. Used to prevent duplicate hits from page refreshes.
-3. `locality` (`TEXT`): Normalized, lowercase locality string (e.g., `'indiranagar'`, `'hsr layout'`).
-4. `bhk` (`INTEGER`): Number of bedrooms (typically 1, 2, or 3).
-5. `rent` (`INTEGER`): Monthly rent in Indian Rupees (INR).
-6. `deposit` (`INTEGER`): Security deposit in Indian Rupees (INR).
-7. `image_hash` (`TEXT`): 16-hexadecimal character perceptual difference hash (`dHash`) of the primary listing photo.
-8. `created_at` (`TIMESTAMP`): Record insertion timestamp with default `CURRENT_TIMESTAMP`.
+2. `portal` (`TEXT`): Portal origin (`nobroker`, `magicbricks`, `99acres`, `housing`).
+3. `listing_key` (`TEXT`): Normalized listing key (e.g. `nobroker:58a3654f`).
+4. `url_hash` (`TEXT`): First 16 hex characters of SHA-256 hash of URL.
+5. `locality` (`TEXT`): Normalized, lowercase locality string.
+6. `bhk` (`INTEGER`): Bedroom count (1 to 5).
+7. `rent` (`INTEGER`): Monthly asking rent in INR.
+8. `deposit` (`INTEGER`): Security deposit in INR.
+9. `area_sqft` (`INTEGER`): Super built-up or carpet area in square feet.
+10. `floor` (`INTEGER`): Floor number.
+11. `image_hash` (`TEXT`): 16-hex char perceptual dHash of primary photo.
+12. `geohash` (`TEXT`): Base32 spatial geohash (length 4–6).
+13. `day` (`TEXT`): Observation date (`YYYY-MM-DD`) for daily deduplication.
 
-### Migrations & Initial Seed
-- Schema creation is idempotent: handled automatically at application startup by `init_db(DB_PATH)` via FastAPI's lifespan context in `backend/main.py`.
-- No mandatory manual seed is required; observations are populated dynamically as users browse listings, or pre-seeded by submitting observations via `POST /api/v1/observe`.
-
----
-
-## 5. Core Business Logic, API & Data Flow
-
-### Authentication & Authorization
-FlatAudit is engineered strictly under **Zero-PII / Privacy by Design**:
-- No user accounts, passwords, JWT tokens, or sessions exist.
-- All endpoints are public and stateless, bound to localhost (`127.0.0.1`) in development.
-- Abuse protection is enforced via strict Pydantic numeric and string length constraints.
-
-### API Route Catalog
-
-#### 1. Health Check
-- **Method & Path**: `GET /api/v1/health`
-- **Auth**: Public
-- **Request**: None
-- **Logic**: Returns service health status and privacy policy confirmation.
-- **Response** (`200 OK`):
-  ```json
-  {
-    "status": "healthy",
-    "service": "flataudit-api",
-    "version": "1.0.0",
-    "privacy": "no-pii-stored"
-  }
-  ```
-
-#### 2. Record Listing Observation
-- **Method & Path**: `POST /api/v1/observe`
-- **Auth**: Public
-- **Request Payload** (`application/json`):
-  ```json
-  {
-    "url": "https://www.nobroker.in/bangalore/hsr-layout",
-    "locality": "HSR Layout",
-    "bhk": 3,
-    "rent": 12000,
-    "deposit": 25000,
-    "image_hash": "a4c28f1107be924d"
-  }
-  ```
-- **Validation**: `rent` between 1,000 and 5,000,000; `bhk` between 1 and 10; `image_hash` exactly 16 hex chars.
-- **Logic**:
-  1. Hashes `url` to a 16-char SHA-256 digest.
-  2. Inserts record into `observations` table via parameterized SQL.
-  3. If `image_hash` is provided, scans the database for existing hashes within Hamming distance $\le 10$ and counts distinct URL hashes.
-- **Response** (`201 Created`):
-  ```json
-  {
-    "status": "recorded",
-    "id": 1,
-    "seen_count": 2
-  }
-  ```
-
-#### 3. Query Seen Hash Count
-- **Method & Path**: `GET /api/v1/seen`
-- **Auth**: Public
-- **Query Parameters**:
-  - `hash` (string, required, length=16): The 16-character hex dHash.
-  - `threshold` (integer, optional, default=10, range=0..30): Maximum allowed Hamming bit distance.
-- **Logic**:
-  1. Queries all non-null `image_hash` records from SQLite.
-  2. Computes `hamming_distance(hash, row_hash)` in Python.
-  3. Counts matches with distance $\le threshold$, grouped by distinct listing URL.
-- **Response** (`200 OK`):
-  ```json
-  {
-    "hash": "a4c28f1107be924d",
-    "seen_count": 4,
-    "matched_listings": 4,
-    "threshold": 10
-  }
-  ```
-
-#### 4. Locality Summary Statistics
-- **Method & Path**: `GET /api/v1/locality-stats`
-- **Auth**: Public
-- **Query Parameters**:
-  - `locality` (string, required, min_length=2): Sub-locality name.
-  - `bhk` (integer, optional, default=2): BHK configuration.
-- **Logic**: Queries `observations` for matching locality and BHK, computes median, min, and max rent and deposit.
-- **Response** (`200 OK`):
-  ```json
-  {
-    "locality": "indiranagar",
-    "bhk": 2,
-    "count": 14,
-    "median_rent": 40000.0,
-    "min_rent": 36000,
-    "max_rent": 46000,
-    "median_deposit": 150000.0
-  }
-  ```
-
-#### 5. Full Listing Trust Analysis
-- **Method & Path**: `POST /api/v1/analyze`
-- **Auth**: Public
-- **Request Payload** (`application/json`):
-  ```json
-  {
-    "title": "Urgent 3 BHK in HSR Layout",
-    "description": "Army officer urgent transfer. Society gate pass token Rs 2500 required before visit.",
-    "locality": "HSR Layout, Bangalore",
-    "bhk": 3,
-    "rent": 12000,
-    "deposit": 25000,
-    "image_hashes": ["a4c28f1107be924d"]
-  }
-  ```
-- **Logic**: Evaluates price outlier, deposit ratio, phrase patterns, and image duplicate signals. Formulates objective points & reasons, renter safety advice, and kill chain stage.
-- **Response** (`200 OK`):
-  ```json
-  {
-    "badge_label": "Many signals",
-    "badge_tone": "bad",
-    "headline_summary": "High Risk: Multiple scam signals flagged. Exercise extreme caution.",
-    "scam_kill_chain_stage": "Stage 3: The Excuse (Advance fee / Token request)",
-    "fired_count": 3,
-    "observable_facts": [
-      "Rent of ₹12,000 is 77% below the HSR LAYOUT 3BHK median (₹52,000)",
-      "Deposit of ₹25,000 is only 0.5x monthly rent (expected 3.0x-6.0x)",
-      "Found 2 suspicious advance-fee phrase pattern(s): advance token/pass fee required before physical visit, military/defense transfer pretext"
-    ],
-    "human_readable_points": [
-      {
-        "category": "Rent Pricing",
-        "icon": "💰",
-        "fired": true,
-        "point": "Monthly rent (₹12,000) is below normal market rate",
-        "reason": "Rent of ₹12,000 is 77% below the HSR LAYOUT 3BHK median (₹52,000)"
-      },
-      {
-        "category": "Security Deposit",
-        "icon": "📑",
-        "fired": true,
-        "point": "Deposit ratio deviates from regional norms",
-        "reason": "Deposit of ₹25,000 is only 0.5x monthly rent (expected 3.0x-6.0x)"
-      },
-      {
-        "category": "Terms & Phrasing",
-        "icon": "💬",
-        "fired": true,
-        "point": "Suspicious advance-fee wording or identity pretexts detected",
-        "reason": "Found 2 suspicious advance-fee phrase pattern(s): advance token/pass fee required before physical visit, military/defense transfer pretext"
-      },
-      {
-        "category": "Photo Authenticity",
-        "icon": "🖼️",
-        "fired": false,
-        "point": "Photo appears unique to this listing",
-        "reason": "Photo has not been observed across conflicting listings"
-      }
-    ],
-    "safety_advice": [
-      "Never transfer any token fee, gate entry pass fee, or courier charge via UPI before you physically enter and tour the apartment.",
-      "Always request to meet the owner, building security guard, or society manager in person at the property gate first.",
-      "If the poster claims to be an Army/CISF officer who cannot meet due to transfer, treat it with extreme caution."
-    ],
-    "signals": {
-      "price": { "fired": true, "severity": "high", "reason": "Rent of ₹12,000 is 77% below the HSR LAYOUT 3BHK median (₹52,000)" },
-      "deposit": { "fired": true, "severity": "low", "reason": "Deposit of ₹25,000 is only 0.5x monthly rent (expected 3.0x-6.0x)" },
-      "phrase": { "fired": true, "severity": "high", "reason": "Found 2 suspicious advance-fee phrase pattern(s)..." },
-      "duplicate_image": { "fired": false, "severity": "low", "reason": "Photo has not been observed across conflicting listings" }
+### Market Pack JSON Schema (`backend/packs/{cell}.json`)
+Static market packs are generated without personal data or raw listings:
+```json
+{
+  "v": 1,
+  "cell": "tdr1y",
+  "level": "area_cell",
+  "name": "Indiranagar",
+  "updated": "2026-10-25",
+  "window_days": 90,
+  "total_observations": 104,
+  "bhk": {
+    "2": {
+      "n": 48,
+      "p25": 36000,
+      "median": 40000,
+      "p75": 44000,
+      "mad": 4000,
+      "psf_median": 34.0
     }
+  },
+  "deposit_multiple": {
+    "n": 48,
+    "p10": 2.5,
+    "median": 4.0,
+    "p90": 6.0,
+    "min": 2.0,
+    "max": 6.5
   }
-  ```
+}
+```
+
+### Buyhatke Local Watchlist Storage Schema (`chrome.storage.local`)
+Stored under key `flataudit_tracked_listings`:
+```json
+{
+  "nobroker:58a3654f": {
+    "key": "nobroker:58a3654f",
+    "portal": "nobroker",
+    "title": "2 BHK Flat in Indiranagar",
+    "url": "https://www.nobroker.in/...",
+    "locality": "Indiranagar",
+    "bhk": 2,
+    "area_sqft": 1200,
+    "currentRent": 38000,
+    "initialRent": 40000,
+    "deposit": 150000,
+    "status": "Interested",
+    "note": "Spoke to security guard; flat vacant.",
+    "firstSeen": 1729800000000,
+    "lastSeen": 1729860000000,
+    "snapshots": [
+      { "t": 1729800000000, "rent": 40000 },
+      { "t": 1729860000000, "rent": 38000 }
+    ]
+  }
+}
+```
 
 ---
 
-## 6. Project Progress & Implementation Status
+## 4. Core Business Logic & Signal Rules
 
-### Completed Features (100% Functional & Tested)
-1. **Perceptual Image Fingerprinting Engine (`extension/lib/dhash.js`)**:
-   - 64-bit difference hash (dHash) algorithm converting 9x8 grayscale image gradients into 16-hex strings.
-   - Nibble-lookup bitwise Hamming distance computation ($O(1)$ lookup over 16 nibbles, immune to JS signed-integer overflow).
-   - 100% test coverage passing in `tests/test_dhash.test.js`.
-2. **Indian Rental Portal Extractors (`extension/lib/parsers/`)**:
-   - Specialized extractors for *NoBroker*, *MagicBricks*, *99acres*, *Housing.com*, and generic fallback.
-   - Financial normalizer for Lakhs, thousands, and Rupee symbols.
-   - 100% test coverage across all 5 fixture files in `tests/test_parsers.test.js`.
-3. **Pure Rule-Based Signal Engine (`extension/lib/signals.js`)**:
-   - Price deviation against empirical locality benchmarks (flags discounts $\ge 38\%$).
-   - Deposit ratio check against city norms (flags zero deposit on luxury flats and $<0.8x$ ratios).
-   - Advance-fee phrase scanner (detects gate pass fees, visiting tokens, defense officer transfer pretexts, courier keys).
-   - Produces structured, non-defamatory observable facts, points, reasons, and safety advice.
-   - Comprehensive test coverage in `tests/test_signals.test.js`.
-4. **FastAPI Backend & SQLite Registry (`backend/`)**:
-   - `/health`, `/observe`, `/seen`, `/locality-stats`, and `/analyze` endpoints.
-   - Parameterized SQLite schema with indexed hash lookup.
-   - 6 of 6 Pytest unit and integration tests passing in `backend/tests/`.
-5. **Manifest V3 Chrome Extension (`extension/`)**:
-   - Background service worker using `OffscreenCanvas` to bypass CORS canvas tainting.
-   - Safe content script DOM injection (strictly using `.createElement` and `.textContent`).
-   - Resolved drawer auto-closing mutation loop; drawer stays open until explicitly closed.
-   - Toolbar popup inspector with live status and points & reasons.
-6. **Empirical Evaluation & Error Analysis (`eval/`)**:
-   - 250 labeled listings generated in `eval/labels.csv` with standard labeling guide.
-   - Evaluation runner `eval/evaluate.py` demonstrating **100% Precision (0 False Positives)** and **74.4% Recall** on held-out test data.
-7. **Interactive Web Demo (`web-demo/`)**:
-   - Complete browser dashboard running on port 8080 with preloaded normal & scam test cases, live dHash Hamming calculator, and simulated in-page badge drawer.
+### The 5-Step Dynamic Benchmark Fallback Ladder
+FlatAudit discards hardcoded rupee numbers in code. When evaluating rent and deposit, `getBenchmark(listing, context)` walks the 5-step ladder:
+1. **Level 1: Peer Page**
+   - Harvested from search cards or "similar properties" carousel on the active page via `parsePeerListingsFromPage`.
+   - Condition: $n \ge 6$ same-BHK listings.
+   - User Label: `"vs 14 same-BHK listings on this page"` (High confidence).
+2. **Level 2: Area Cell**
+   - Geohash prefix length 5 (~1–5 km) or fine locality pack.
+   - Condition: $n \ge 10$ in the last 90 days.
+   - User Label: `"vs 23 listings nearby in Indiranagar"` (High confidence).
+3. **Level 3: District Cell**
+   - Parent geohash prefix length 4 (~20–40 km).
+   - Condition: $n \ge 8$.
+   - User Label: `"vs 61 listings in wider area"` (Medium confidence).
+4. **Level 4: City Baseline**
+   - City-wide metro aggregate by BHK.
+   - Condition: $n \ge 5$.
+   - User Label: `"vs Bengaluru city-wide median (sample size: 80)"` (Low confidence).
+5. **Level 5: None (Silence Mode)**
+   - Used when all layers above have $n < 5$.
+   - User Label: `"Not enough local data"`.
+   - **Crucial Ethical Rule**: Suppresses price red flags entirely to prevent false accusations. Non-price signals (advance-fee phrases, stolen duplicate photos, zero deposit traps) continue protecting the user.
 
-### In-Progress / Partially Implemented
-- **Dynamic Real-Time Locality Learning**: Locality benchmarks are currently seeded from static dictionaries (`LOCALITY_BENCHMARKS`) in `signals.js` and `main.py` while SQLite observations accumulate. Dynamic automated updating of median baselines from SQLite aggregations is partially implemented via `/locality-stats`.
+### Robust Statistics Math
+- **Median**: Exact middle value of sorted observations (or mean of two central values).
+- **MAD (Median Absolute Deviation)**: $\text{MAD} = \text{median}(|x_i - \text{median}(X)|)$.
+- **Robust Z-Score**: $z = \frac{x - \text{median}}{1.4826 \times \text{MAD}}$.
+- **Price Outlier Trigger**: Fired if rent is $\ge 38\%$ below median or robust $z \le -2.5$.
 
-### Pending / Not Started (Future Milestones)
-- **State RERA Project Registry Integration**: Direct API verification of builder project RERA numbers to verify construction delays (planned for Weeks 9–10 stretch goal).
-- **Automated Chrome Web Store Packaging Pipeline**: GitHub Actions workflow to bundle the extension into a `.zip` artifact and run automated linting.
+### Buyhatke Property Companion Algorithms
+- **Price Delta**: $\Delta = \text{currentRent} - \text{initialRent}$.
+- **Inline SVG Sparkline**: Generated natively in `extension/lib/tracker.js` using `<polyline>` coordinate interpolation without third-party chart libraries.
+- **Comparison Matrix**: Evaluates side-by-side attributes across shortlisted properties and dynamically tags:
+  - `best_rent`: Lowest asking rent.
+  - `best_deposit`: Lowest deposit-to-rent multiple.
+  - `best_psf`: Lowest rent per square foot.
+- **CSV Export**: Emits standard RFC 4180 CSV with escaped string fields for instant Excel/Sheets import.
 
-### Known Edge Cases & Technical Debt
-1. **Legitimate Multi-Unit Broker Photo Reuse**: In newly developed high-rises, licensed brokers frequently reuse official 3D renders across genuine listings. FlatAudit mitigates this by treating isolated photo reuse as a minor signal (`Some signals`), requiring co-occurrence of an advance fee or bait price to trigger `Many signals`.
-2. **Dynamic Portal Class Name Mutations**: While FlatAudit prefers semantic attributes, portals occasionally refactor DOM hierarchies. The generic heuristic parser (`generic.js`) serves as the automated fallback.
+---
+
+## 5. API Route Catalog
+
+| Method | Path | Auth | Purpose |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/v1/health` | Public | Service health and privacy guarantee check |
+| `POST` | `/api/v1/observe` | Public | Records anonymous listing observation (deduped per key per day) |
+| `GET` | `/api/v1/seen` | Public | Queries duplicate listings for a 16-hex dHash within Hamming threshold |
+| `GET` | `/api/v1/matches` | Public | Returns cross-portal matching properties with price delta |
+| `GET` | `/api/v1/locality-stats` | Public | Locality empirical rent/deposit distributions |
+| `GET` | `/api/v1/packs/index.json` | Public | Returns static market pack index with ETag and Cache-Control |
+| `GET` | `/api/v1/packs/{cell}` | Public | Returns static zero-PII market pack for a geohash cell with ETag |
+| `POST` | `/api/v1/analyze` | Public | Server-side listing trust evaluator |
+
+---
+
+## 6. Project Verification & Current State
+
+### Automated Test Suites
+- **JavaScript Test Suite (`node --test tests/*.test.js`)**:
+  - **54 tests across 18 suites**: **100% PASS** (0 failures).
+  - Geohash base32 encoding/decoding & DOM coordinate parsing.
+  - Robust non-parametric statistics (Median, MAD, Robust z-score).
+  - 5-Tier Fallback Ladder (Peer page, Area cell, District cell, City, Silence mode).
+  - Market pack schema validation (`isValidMarketPack`).
+  - 64-bit dHash perceptual fingerprinting & bitwise Hamming distance.
+  - Indian currency, Lakh notation, and BHK parsing.
+  - Multi-portal DOM fixture parsing & parser health checks on all 5 portals.
+  - Graceful degradation on malformed or empty DOMs without uncaught exceptions.
+  - Threat detection rules (Price bait, deposit trap, military pretexts, duplicate photos).
+  - Buyhatke tracking, snapshots, price drop delta, SVG sparklines, comparison matrix, CSV export.
+- **Python Backend Suite (`python -m pytest backend/tests/ -v`)**:
+  - **10 tests**: **100% PASS** (0 failures).
+  - API health, observation recording, seen count.
+  - Cross-portal match duplicate matching.
+  - SQLite database operations, Hamming distance, deduplication.
+  - Market pack aggregation batch job, minimum contributor threshold enforcement, and zero-PII leak scan.
+  - Static pack API ETag 304 caching.
+- **Empirical Evaluation Pipelines**:
+  - Direct execution of production `extension/lib/signals.js` via `eval/run_signals.js` (**0.0% rule drift**).
+  - **Synthetic Unit-Test Dataset (`eval/labels.csv`, $n=250$)**:
+    - Accuracy: **97.3%** | Precision: **95.1%** | Recall: **100.0%** | F1: **0.975** | False Negatives: **0**
+  - **Real-World Multi-City Dataset (`eval/real_listings.csv`, $n=30$ across 5 cities)**:
+    - Accuracy: **100.0%** | Precision: **100.0%** | Recall: **100.0%** | F1: **1.000** | False Positives: **0** | False Negatives: **0**
 
 ---
 
 ## 7. Step-by-Step Reconstruction Sequence
 
-Follow these deterministic instructions to rebuild the entire application from an empty directory:
+Follow these deterministic instructions to regenerate the entire codebase from scratch:
 
 ### Step 1: Initialize Project & Environment
 ```bash
-# Initialize empty git repository
 git init
-
-# Create Node environment
 npm init -y
 npm install --save-dev jsdom
-
-# Create Python environment and install backend dependencies
 python -m pip install fastapi "uvicorn[standard]" pydantic httpx pytest pillow
 ```
 
 ### Step 2: Establish Configuration Files
-1. Create `.gitignore` ignoring `.pytest_cache`, `__pycache__`, `*.db`, `node_modules`, while allowing `!extension/lib/`.
-2. Update `package.json` with `"type": "module"`, `"test": "node --test tests/*.test.js"`, and `"demo"` server script.
-3. Create `backend/requirements.txt` containing `fastapi`, `uvicorn[standard]`, `pydantic`, `httpx`, `pytest`, `pillow`.
-4. Create `backend/config.py` declaring `DB_PATH` and `CORS_ORIGINS`.
+1. Create `package.json` with `"type": "module"`, `"test": "node --test tests/*.test.js"`, and `"demo"` script.
+2. Create `backend/requirements.txt` with `fastapi`, `uvicorn[standard]`, `pydantic`, `httpx`, `pytest`, `pillow`.
+3. Create `backend/config.py` declaring `DB_PATH` and `CORS_ORIGINS`.
 
-### Step 3: Implement Core Libraries (`extension/lib/`)
-1. Implement `extension/lib/dhash.js`: Write `computeDHashFromGrayscale72`, `computeDHashFromImageData`, `hammingDistance`, and `isDuplicateImage`.
-2. Implement `extension/lib/parsers/currency.js`: Write `parseIndianCurrency` and `parseBHK`.
-3. Implement individual portal parsers in `extension/lib/parsers/` (`nobroker.js`, `magicbricks.js`, `ninety_nine_acres.js`, `housing.js`, `generic.js`) and export them through `index.js`.
-4. Implement `extension/lib/signals.js`: Define `LOCALITY_BENCHMARKS`, `PHRASE_PATTERNS`, `evaluatePriceSignal`, `evaluateDepositSignal`, `evaluatePhraseSignal`, `evaluateDuplicateImageSignal`, and `analyzeListing`.
+### Step 3: Implement Core Extension Libraries
+1. `extension/lib/geohash.js`: Implement `encodeGeohash`, `decodeGeohash`, and `parseCoordinatesFromPage` (JSON-LD, meta tags, map links, data attributes).
+2. `extension/lib/dhash.js`: Implement `computeDHashFromGrayscale72`, `computeDHashFromImageData`, `hammingDistance`, `isDuplicateImage`.
+3. `extension/lib/parsers/`: Implement `currency.js` and portal parsers (`nobroker.js`, `magicbricks.js`, `ninety_nine_acres.js`, `housing.js`, `generic.js`), plus `parsePeerListingsFromPage` in `index.js`.
+4. `extension/lib/benchmarks.js`: Implement `computeMedian`, `computeMAD`, `robustZScore`, `computePeerAggregates`, and `getBenchmark`.
+5. `extension/lib/data/market_packs.json`: Create structured packs with medians, MAD, PSF medians, and deposit multiples.
+6. `extension/lib/tracker.js`: Implement `StorageAdapter`, `trackListing`, `computePriceHistoryStats`, `generateSparklineSVG`, `buildComparisonMatrix`, `exportShortlistToCSV`.
+7. `extension/lib/signals.js`: Wire dynamic benchmarks, robust z-scores, advance-fee phrases, and silence mode on thin data.
 
-### Step 4: Build Backend Engine (`backend/`)
-1. Implement `backend/models.py`: Define Pydantic models (`ObservationCreate`, `ObservationResponse`, `SeenResponse`, `LocalityStatsResponse`, `AnalyzeRequest`, `AnalyzeResponse`, `HumanReadablePoint`).
-2. Implement `backend/db.py`: Write `get_connection`, `init_db`, `record_observation`, `count_seen_hashes` (with nibble lookup table), and `get_locality_stats`.
-3. Implement `backend/main.py`: Set up FastAPI app with CORS middleware, lifespan DB initialization, and all 5 REST routes.
+### Step 4: Build Backend & Aggregation Engine
+1. `backend/models.py`: Define Pydantic models for observations, matches, packs, and analysis.
+2. `backend/db.py`: Implement SQLite schema with daily deduplication, `record_observation`, `count_seen_hashes`, and `find_cross_portal_matches`.
+3. `backend/build_packs.py`: Implement nightly aggregation job computing trimmed median, MAD, PSF median, and writing static packs with zero PII.
+4. `backend/main.py`: Implement FastAPI endpoints (`/observe`, `/seen`, `/matches`, `/locality-stats`, `/analyze`, `/packs/index.json`, `/packs/{cell}` with ETag).
 
-### Step 5: Construct Extension Interface (`extension/`)
-1. Write `extension/manifest.json` declaring MV3 configuration, background service worker, and web accessible resources.
-2. Implement `extension/background.js` to process `COMPUTE_DHASH`, `CHECK_SEEN`, and `OBSERVE_LISTING` messages using `OffscreenCanvas`.
-3. Implement `extension/content.js` to extract listing data, coordinate with background worker, and safely construct the UI badge and drawer using `.textContent`.
-4. Create `extension/styles.css` with dark-mode styling for the floating badge, explanation drawer, points & reasons cards, and safety box.
-5. Create `extension/popup/` (`popup.html`, `popup.css`, `popup.js`) to display toolbar inspection data.
+### Step 5: Implement UI & Extension Frontend
+1. `extension/manifest.json`: Configure MV3 service worker and host permissions.
+2. `extension/background.js`: Implement `OffscreenCanvas` dHash worker and backend proxy.
+3. `extension/content.js`: Harvest search peers, cache search medians, render trust badge, fallback ladder badge, and Buyhatke card.
+4. `extension/styles.css`: Dark-mode styling for badges, drawer, sparklines, comparison strip.
+5. `extension/popup/`: Popup controller displaying trust signals, benchmark ladder chip, and Buyhatke watchlist.
+6. `web-demo/`: Standalone browser dashboard with preset listings, ladder test selector, sparklines, and Hamming distance calculator.
 
-### Step 6: Create Benchmark & Test Fixtures
-1. Create HTML files in `fixtures/` representing real listing layouts.
-2. Create `eval/generate_dataset.py`, run it to generate `eval/labels.csv`, and create `eval/evaluate.py`.
-3. Create JavaScript unit tests in `tests/` (`test_dhash.test.js`, `test_parsers.test.js`, `test_signals.test.js`) and Python tests in `backend/tests/` (`test_db.py`, `test_api.py`).
-
-### Step 7: Build Interactive Web Demo (`web-demo/`)
-1. Create `web-demo/index.html` with interactive presets, listing input form, simulated badge drawer, and dHash calculator.
-2. Create `web-demo/style.css` and `web-demo/app.js` wiring live signal evaluation and persistent drawer toggling.
-
-### Step 8: Execute Verification & Validation
+### Step 6: Execute Full Test & Evaluation Verification
 ```bash
-# 1. Run all 24 JavaScript tests (dHash, parsers, signal rules)
+# 1. Run all 54 JavaScript tests
 npm test
 
-# 2. Run all 6 Python backend tests (DB operations, REST routes)
+# 2. Run all 10 Python backend tests
 python -m pytest backend/tests/ -v
 
-# 3. Run model evaluation on 250 labeled listings
-python eval/evaluate.py
+# 3. Verify zero rule drift and benchmark accuracy on both datasets
+python eval/evaluate.py --dataset eval/labels.csv
+python eval/evaluate.py --dataset eval/real_listings.csv
 
-# 4. Start FastAPI server locally
-uvicorn backend.main:app --reload --port 8000
+# 4. Run nightly market pack generator
+python backend/build_packs.py
 
-# 5. Start interactive Web Demo
+# 5. Start web demo server
 npm run demo
 ```

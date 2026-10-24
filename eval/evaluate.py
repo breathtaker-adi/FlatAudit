@@ -1,93 +1,42 @@
 """
 FlatAudit Evaluation Harness
-Evaluates rule-based signals and ML baseline on the 250-listing labeled dataset.
-Outputs Precision, Recall, F1, Confusion Matrix, and False Positive Error Analysis.
+Evaluates the single source of truth (extension/lib/signals.js) on benchmark datasets.
+Outputs Precision, Recall, F1, Confusion Matrix, Per-City Metrics, and Error Analysis.
+
+Usage:
+  python eval/evaluate.py                               # Defaults to synthetic unit-test data
+  python eval/evaluate.py --dataset eval/real_listings.csv # Real multi-city dataset
 """
 
 import csv
-import re
+import json
+import subprocess
+import sys
+import argparse
 from pathlib import Path
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List
 
-LOCALITY_BENCHMARKS = {
-    'indiranagar': {1: 22000, 2: 40000, 3: 65000, 'deposit_norm': (3, 6)},
-    'hsr layout': {1: 18000, 2: 32000, 3: 52000, 'deposit_norm': (3, 6)},
-    'koramangala': {1: 22000, 2: 42000, 3: 68000, 'deposit_norm': (3, 6)},
-    'whitefield': {1: 16000, 2: 28000, 3: 45000, 'deposit_norm': (2, 5)},
-    'bellandur': {1: 18000, 2: 32000, 3: 50000, 'deposit_norm': (2, 5)},
-    'powai': {1: 34000, 2: 55000, 3: 85000, 'deposit_norm': (2, 4)},
-    'andheri': {1: 32000, 2: 52000, 3: 78000, 'deposit_norm': (2, 4)},
-    'bandra': {1: 45000, 2: 75000, 3: 130000, 'deposit_norm': (2, 5)},
-    'dlf phase 2': {1: 24000, 2: 40000, 3: 60000, 'deposit_norm': (1, 3)},
-    'cyber city': {1: 25000, 2: 42000, 3: 62000, 'deposit_norm': (1, 3)},
-    'sector 56': {1: 16000, 2: 28000, 3: 42000, 'deposit_norm': (1, 2)},
-    'hinjawadi': {1: 14000, 2: 23000, 3: 35000, 'deposit_norm': (1, 3)},
-    'wakad': {1: 15000, 2: 24000, 3: 36000, 'deposit_norm': (1, 3)}
-}
-
-PHRASE_PATTERNS = [
-    re.compile(r"gate\s*pass|visiting\s*token|token\s*before|entry\s*(?:pass|slip)|visiting\s*card\s*charge|courier\s*clearance|refundable\s*upon\s*gate\s*entry", re.I),
-    re.compile(r"(?:army|military|defence|defense|cisf|crpf)\s*officer|(?:transferred|posted)\s*to\s*(?:srinagar|border|cantt)|military\s*camp|urgent\s*duty\s*posting", re.I),
-    re.compile(r"relocated\s*(?:abroad|permanently|overseas)|money\s*is\s*not\s*my\s*motive|keys?\s*(?:are\s*)?(?:with|deposited\s*at)\s*courier|key\s*courier", re.I),
-    re.compile(r"(?:traveling|leaving)\s*out\s*of\s*country\s*tonight|100%\s*refundable\s*if\s*you\s*do\s*not\s*like|whatsapp\s*immediately\s*for\s*upi", re.I)
-]
-
-def get_locality_benchmark(locality: str):
-    norm = locality.lower()
-    for k, v in LOCALITY_BENCHMARKS.items():
-        if k in norm:
-            return v
-    return None
-
-def predict_listing_rule(row: Dict[str, Any], price_threshold_pct: float = -38.0) -> Tuple[int, List[str]]:
+def run_js_signals(listings: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
-    Returns (predicted_label: 0 or 1, list of fired signals)
+    Executes the shipped production signals.js via eval/run_signals.js bridge
+    to guarantee zero code drift between evaluation and production extension.
     """
-    reasons = []
-    rent = float(row["rent"])
-    deposit = float(row["deposit"])
-    bhk = int(row["bhk"])
-    locality = row["locality"]
-    text = f"{row['title']} {row['description']}"
-    is_dup_img = (row["is_duplicate_photo"].strip().lower() == "true")
+    bridge_script = Path(__file__).parent / "run_signals.js"
+    payload = json.dumps(listings)
 
-    # 1. Price deviation
-    bench = get_locality_benchmark(locality)
-    if bench and bhk in bench:
-        median = bench[bhk]
-        diff_pct = ((rent - median) / median) * 100.0
-        if diff_pct <= price_threshold_pct:
-            reasons.append(f"Price outlier: {diff_pct:.0f}% below median")
-
-    # 2. Deposit anomaly
-    if deposit == 0:
-        reasons.append("Deposit anomaly: Zero deposit scheme")
-    elif rent > 0:
-        ratio = deposit / rent
-        if ratio < 0.8 and bench and bench['deposit_norm'][0] >= 3:
-            reasons.append(f"Deposit anomaly: only {ratio:.1f}x rent")
-
-    # 3. Phrase patterns
-    phrase_matches = sum(1 for p in PHRASE_PATTERNS if p.search(text))
-    if phrase_matches > 0:
-        reasons.append(f"Phrase signal: {phrase_matches} advance-fee pattern(s)")
-
-    # 4. Duplicate image
-    if is_dup_img:
-        reasons.append("Image signal: Reused photo fingerprint")
-
-    # Composite decision rule:
-    # A listing is flagged as suspicious (1) if:
-    # - At least one high-weight phrase pattern matched, OR
-    # - Both extreme price bait AND duplicate image match, OR
-    # - Total fired signals >= 2
-    is_suspicious = (
-        phrase_matches >= 1 or
-        ("Price outlier" in " ".join(reasons) and is_dup_img) or
-        len(reasons) >= 2
+    proc = subprocess.run(
+        ["node", str(bridge_script)],
+        input=payload,
+        text=True,
+        capture_output=True,
+        encoding="utf-8"
     )
 
-    return (1 if is_suspicious else 0), reasons
+    if proc.returncode != 0:
+        print(f"Error executing run_signals.js: {proc.stderr}", file=sys.stderr)
+        sys.exit(1)
+
+    return json.loads(proc.stdout)
 
 def compute_metrics(y_true: List[int], y_pred: List[int]) -> Dict[str, float]:
     tp = sum(1 for yt, yp in zip(y_true, y_pred) if yt == 1 and yp == 1)
@@ -114,74 +63,122 @@ def compute_metrics(y_true: List[int], y_pred: List[int]) -> Dict[str, float]:
     }
 
 def run_evaluation(csv_path: str = "eval/labels.csv"):
-    with open(csv_path, "r", encoding="utf-8") as f:
+    path = Path(csv_path)
+    if not path.exists():
+        print(f"Dataset {csv_path} not found.")
+        return
+
+    with open(path, "r", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         rows = list(reader)
 
-    train_rows = [r for r in rows if r["split"] == "train"]
-    test_rows = [r for r in rows if r["split"] == "test"]
+    is_synthetic = "labels.csv" in path.name
+    dataset_type = "Synthetic Unit-Test Dataset (Rules Baseline)" if is_synthetic else "Real-World Multi-City Dataset"
 
-    print(f"Loaded {len(rows)} listings from {csv_path}")
-    print(f"Train set: {len(train_rows)} | Test set: {len(test_rows)}")
+    train_rows = [r for r in rows if r.get("split") == "train"]
+    test_rows = [r for r in rows if r.get("split") == "test"]
 
-    # 1. Evaluate Train Set
-    y_train_true = [1 if r["label"] == "suspicious" else 0 for r in train_rows]
-    y_train_pred = [predict_listing_rule(r)[0] for r in train_rows]
-    train_metrics = compute_metrics(y_train_true, y_train_pred)
+    if not test_rows:
+        test_rows = rows
+        train_rows = rows
 
-    # 2. Evaluate Held-out Test Set
+    print(f"\nLoaded {len(rows)} listings from {csv_path} [{dataset_type}]")
+    print(f"Evaluating directly using production engine: extension/lib/signals.js (Zero Drift)")
+
+    # 1. Evaluate Train Set (if applicable)
+    train_metrics = None
+    if train_rows and train_rows != test_rows:
+        train_results = run_js_signals(train_rows)
+        y_train_true = [1 if r["label"] == "suspicious" else 0 for r in train_rows]
+        y_train_pred = [1 if res["isSuspicious"] else 0 for res in train_results]
+        train_metrics = compute_metrics(y_train_true, y_train_pred)
+
+    # 2. Evaluate Test Set
+    test_results = run_js_signals(test_rows)
     y_test_true = [1 if r["label"] == "suspicious" else 0 for r in test_rows]
-    test_preds_and_reasons = [predict_listing_rule(r) for r in test_rows]
-    y_test_pred = [p[0] for p in test_preds_and_reasons]
+    y_test_pred = [1 if res["isSuspicious"] else 0 for res in test_results]
     test_metrics = compute_metrics(y_test_true, y_test_pred)
 
-    # 3. Error Analysis on Held-out Test Set
+    # 3. Per-City Analysis (if city column present)
+    city_metrics = {}
+    cities = sorted(list(set(r.get("city", "Unknown") for r in test_rows if r.get("city"))))
+    for city in cities:
+        city_indices = [idx for idx, r in enumerate(test_rows) if r.get("city") == city]
+        if city_indices:
+            cy_true = [y_test_true[i] for i in city_indices]
+            cy_pred = [y_test_pred[i] for i in city_indices]
+            city_metrics[city] = {
+                "n": len(city_indices),
+                "metrics": compute_metrics(cy_true, cy_pred)
+            }
+
+    # 4. Error Analysis
     false_positives = []
     false_negatives = []
 
-    for r, (pred, reasons) in zip(test_rows, test_preds_and_reasons):
+    for r, res in zip(test_rows, test_results):
         true_label = 1 if r["label"] == "suspicious" else 0
-        if true_label == 0 and pred == 1:
-            false_positives.append((r, reasons))
-        elif true_label == 1 and pred == 0:
-            false_negatives.append((r, reasons))
+        pred_label = 1 if res["isSuspicious"] else 0
+        if true_label == 0 and pred_label == 1:
+            false_positives.append((r, res["observableFacts"]))
+        elif true_label == 1 and pred_label == 0:
+            false_negatives.append((r, res["observableFacts"]))
 
-    # Print summary to console
-    print("\n" + "="*50)
-    print("FLATAUDIT EVALUATION RESULTS (HELD-OUT TEST SET)")
-    print("="*50)
+    # Console Summary
+    print("\n" + "="*55)
+    print(f"FLATAUDIT EVALUATION RESULTS ({path.name})")
+    print(f"Classification: {dataset_type}")
+    print("="*55)
     print(f"Accuracy:    {test_metrics['accuracy']*100:.1f}%")
     print(f"Precision:   {test_metrics['precision']*100:.1f}%")
     print(f"Recall:      {test_metrics['recall']*100:.1f}%")
     print(f"F1-Score:    {test_metrics['f1']:.3f}")
     print(f"Specificity: {test_metrics['specificity']*100:.1f}%")
-    print("\nConfusion Matrix (Test Set):")
+    print("\nConfusion Matrix:")
     print(f"  True Positives (TP):  {test_metrics['tp']}")
     print(f"  False Positives (FP): {test_metrics['fp']}")
     print(f"  True Negatives (TN):  {test_metrics['tn']}")
     print(f"  False Negatives (FN): {test_metrics['fn']}")
-    print("="*50)
+
+    if city_metrics:
+        print("\nPer-City Performance Breakdown:")
+        print(f"  {'City':<15} {'N':<5} {'Accuracy':<10} {'Precision':<10} {'Recall':<10}")
+        print("  " + "-"*48)
+        for c, data in city_metrics.items():
+            m = data["metrics"]
+            print(f"  {c:<15} {data['n']:<5} {m['accuracy']*100:6.1f}%    {m['precision']*100:6.1f}%    {m['recall']*100:6.1f}%")
+    print("="*55)
 
     # Generate Markdown Report
-    report_content = f"""# FlatAudit Model Evaluation & Error Analysis Report
+    output_filename = "evaluation_real_results.md" if not is_synthetic else "evaluation_results.md"
+    report_path = Path("eval") / output_filename
 
-**Date**: 2026-10-24  
-**Evaluation Set**: 250 Indian Rental Listings (`eval/labels.csv`)  
-**Split**: 70% Train (175 listings) / 30% Held-out Test (75 listings)  
+    per_city_table = ""
+    if city_metrics:
+        per_city_table = "### Per-City Breakdown\n\n| City | Sample Size (N) | Accuracy | Precision | Recall |\n| :--- | :--- | :--- | :--- | :--- |\n"
+        for c, data in city_metrics.items():
+            m = data["metrics"]
+            per_city_table += f"| **{c}** | {data['n']} | {m['accuracy']*100:.1f}% | {m['precision']*100:.1f}% | {m['recall']*100:.1f}% |\n"
+
+    report_content = f"""# FlatAudit Evaluation & Error Analysis Report
+
+**Evaluated Dataset**: `{path.name}` ({dataset_type})  
+**Evaluator**: Direct execution of production `extension/lib/signals.js` via `run_signals.js` bridge (Zero Code Drift).  
+**Sample Size**: {len(rows)} listings  
 
 ---
 
 ## 1. Overall Performance Metrics
 
-| Metric | Train Split (n=175) | Held-Out Test Split (n=75) | Benchmark Goal |
-| :--- | :--- | :--- | :--- |
-| **Precision** | **{train_metrics['precision']*100:.1f}%** | **{test_metrics['precision']*100:.1f}%** | > 85% |
-| **Recall** | **{train_metrics['recall']*100:.1f}%** | **{test_metrics['recall']*100:.1f}%** | > 85% |
-| **F1 Score** | **{train_metrics['f1']:.3f}** | **{test_metrics['f1']:.3f}** | > 0.85 |
-| **Accuracy** | **{train_metrics['accuracy']*100:.1f}%** | **{test_metrics['accuracy']*100:.1f}%** | > 90% |
-| **Specificity** | **{train_metrics['specificity']*100:.1f}%** | **{test_metrics['specificity']*100:.1f}%** | > 90% |
+| Metric | Value (Held-Out / Evaluation Split) | Target Goal |
+| :--- | :--- | :--- |
+| **Accuracy** | **{test_metrics['accuracy']*100:.1f}%** | > 85% |
+| **Precision** | **{test_metrics['precision']*100:.1f}%** | > 85% |
+| **Recall** | **{test_metrics['recall']*100:.1f}%** | > 80% |
+| **F1 Score** | **{test_metrics['f1']:.3f}** | > 0.85 |
+| **Specificity** | **{test_metrics['specificity']*100:.1f}%** | > 90% |
 
-### Confusion Matrix (Test Split)
+### Confusion Matrix
 
 ```
                      Actual Suspicious    Actual Normal
@@ -189,56 +186,42 @@ Predicted Suspicious        {test_metrics['tp']:2d} (TP)             {test_metri
 Predicted Normal            {test_metrics['fn']:2d} (FN)             {test_metrics['tn']:2d} (TN)
 ```
 
+{per_city_table}
+
 ---
 
-## 2. In-Depth Error Analysis
+## 2. Error Analysis
 
-### A. False Positives (FP = {len(false_positives)})
-False positives occur when a legitimate listing is incorrectly flagged with anomaly signals.
+### False Positives (FP = {len(false_positives)})
 """
     if false_positives:
-        for idx, (fp_row, reasons) in enumerate(false_positives, 1):
+        for idx, (fp_row, facts) in enumerate(false_positives, 1):
             report_content += f"""
-**FP #{idx} - Listing #{fp_row['id']}**: {fp_row['title']}  
-- **Rent**: ₹{int(fp_row['rent']):,} | **Deposit**: ₹{int(fp_row['deposit']):,} | **Locality**: {fp_row['locality']}
-- **Why Flagged**: {'; '.join(reasons)}
-- **Root Cause**: Legitimate real estate broker reused identical model flat photography across multiple inventory units in the same building.
-- **Mitigation**: Distinguish isolated photo reuse from photo reuse combined with advance payment requests.
+**FP #{idx} - Listing #{fp_row.get('id', 'N/A')}**: {fp_row.get('title', '')}  
+- **City**: {fp_row.get('city', 'N/A')} | **Locality**: {fp_row.get('locality', '')} | **Rent**: ₹{int(float(fp_row.get('rent', 0))):,} | **Deposit**: ₹{int(float(fp_row.get('deposit', 0))):,}
+- **Fired Facts**: {'; '.join(facts)}
 """
     else:
-        report_content += "\n*Zero False Positives observed on the held-out test split.*\n"
+        report_content += "\n*Zero False Positives observed on this dataset.*\n"
 
     report_content += f"""
-### B. False Negatives (FN = {len(false_negatives)})
-False negatives occur when a scam listing avoids detection.
+### False Negatives (FN = {len(false_negatives)})
 """
     if false_negatives:
-        for idx, (fn_row, reasons) in enumerate(false_negatives, 1):
+        for idx, (fn_row, facts) in enumerate(false_negatives, 1):
             report_content += f"""
-**FN #{idx} - Listing #{fn_row['id']}**: {fn_row['title']}  
-- **Rent**: ₹{int(fn_row['rent']):,} | **Deposit**: ₹{int(fn_row['deposit']):,} | **Locality**: {fn_row['locality']}
-- **Fired Signals**: {'; '.join(reasons) if reasons else 'None'}
-- **Root Cause**: Scammer used subtle wording that avoided common keywords while pricing near the lower boundary of normal variance.
-- **Mitigation**: Incorporate NLP semantic embedding similarity for novel advance-fee phrasing.
+**FN #{idx} - Listing #{fn_row.get('id', 'N/A')}**: {fn_row.get('title', '')}  
+- **City**: {fn_row.get('city', 'N/A')} | **Locality**: {fn_row.get('locality', '')} | **Rent**: ₹{int(float(fn_row.get('rent', 0))):,} | **Deposit**: ₹{int(float(fn_row.get('deposit', 0))):,}
+- **Fired Facts**: {'; '.join(facts) if facts else 'None'}
 """
     else:
-        report_content += "\n*Zero False Negatives observed on the held-out test split.*\n"
+        report_content += "\n*Zero False Negatives observed on this dataset.*\n"
 
-    report_content += """
----
-
-## 3. Comparison: Rule-Based vs Machine Learning Model
-
-We compared the transparent rule-based signal engine against a Logistic Regression baseline trained on normalized numeric features (`rent_zscore`, `deposit_ratio`, `phrase_hit_count`, `duplicate_photo_flag`).
-
-- **Rule-Based Engine**: Interpretable, zero opaque weights, provides exact plain-language explanations required by the project ethics standard ("never accuse, state observable facts").
-- **ML Baseline**: Yielded comparable F1 (within ±1.5%), but struggled to generate the exact observable justification text demanded by the in-page badge.
-- **Decision**: Keep the rule-based signal engine as primary, using empirical market distributions.
-"""
-
-    report_path = Path("eval/evaluation_results.md")
     report_path.write_text(report_content, encoding="utf-8")
-    print(f"\nWritten detailed evaluation report to {report_path.resolve()}")
+    print(f"Written detailed evaluation report to {report_path.resolve()}")
 
 if __name__ == "__main__":
-    run_evaluation()
+    parser = argparse.ArgumentParser(description="Evaluate FlatAudit trust signals on labeled datasets")
+    parser.add_argument("--dataset", default="eval/labels.csv", help="Path to CSV dataset file")
+    args = parser.parse_args()
+    run_evaluation(args.dataset)

@@ -1,16 +1,25 @@
 import re
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Query, HTTPException, status
+from fastapi import FastAPI, Query, HTTPException, status, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from backend.config import CORS_ORIGINS, DB_PATH
-from backend.db import init_db, record_observation, count_seen_hashes, get_locality_stats
+from backend.db import (
+    init_db,
+    record_observation,
+    count_seen_hashes,
+    get_locality_stats,
+    find_cross_portal_matches
+)
 from backend.models import (
     ObservationCreate,
     ObservationResponse,
     SeenResponse,
     LocalityStatsResponse,
+    CrossPortalMatchItem,
+    CrossPortalMatchResponse,
     AnalyzeRequest,
     AnalyzeResponse,
     SignalDetail
@@ -104,7 +113,12 @@ def observe_listing(payload: ObservationCreate):
         rent=payload.rent,
         deposit=payload.deposit,
         image_hash=payload.image_hash,
-        url=payload.url
+        url=payload.url,
+        portal=payload.portal,
+        listing_key=payload.listing_key,
+        area_sqft=payload.area_sqft,
+        floor=payload.floor,
+        geohash=payload.geohash
     )
 
     seen_count = 1
@@ -134,13 +148,45 @@ def get_seen_hash(
         "threshold": threshold
     }
 
+@app.get("/api/v1/matches", response_model=CrossPortalMatchResponse)
+def get_cross_portal_matches_endpoint(
+    rent: int = Query(..., ge=1000, le=5000000),
+    portal: Optional[str] = Query(None),
+    listing_key: Optional[str] = Query(None),
+    locality: Optional[str] = Query(None),
+    bhk: Optional[int] = Query(2, ge=1, le=10),
+    area_sqft: Optional[int] = Query(None),
+    floor: Optional[int] = Query(None),
+    image_hash: Optional[str] = Query(None)
+):
+    """
+    Finds cross-portal matching properties ("Also listed on Portal B at ₹X").
+    """
+    matches = find_cross_portal_matches(
+        portal=portal,
+        listing_key=listing_key,
+        locality=locality,
+        bhk=bhk,
+        rent=rent,
+        area_sqft=area_sqft,
+        floor=floor,
+        image_hash=image_hash
+    )
+    lowest_rent = matches[0]["rent"] if matches else None
+    return {
+        "target_portal": portal,
+        "match_count": len(matches),
+        "lowest_rent": lowest_rent,
+        "matches": matches
+    }
+
 @app.get("/api/v1/locality-stats", response_model=LocalityStatsResponse)
 def get_locality_price_stats(
     locality: str = Query(..., min_length=2),
     bhk: int = Query(2, ge=1, le=5)
 ):
     """
-    Returns empirical distribution stats for a given locality and BHK.
+    Returns empirical distribution stats for a given locality and BHK with sample size.
     """
     stats = get_locality_stats(locality, bhk)
     return stats
@@ -148,11 +194,7 @@ def get_locality_price_stats(
 @app.post("/api/v1/analyze", response_model=AnalyzeResponse)
 def analyze_listing_endpoint(req: AnalyzeRequest):
     """
-    Evaluates listing against observable threat signals:
-    - Price outlier (z-score / deviation against locality median)
-    - Deposit ratio compared to market norms
-    - Advance-fee / identity-pretext phrasing
-    - Stolen/reused image dHash fingerprint duplicate count
+    Evaluates listing against observable threat signals and Buyhatke price benchmarks.
     """
     full_text = f"{req.title or ''} {req.description or ''}"
     fired_signals: List[Dict[str, Any]] = []
@@ -184,7 +226,7 @@ def analyze_listing_endpoint(req: AnalyzeRequest):
                     "details": {"diff_pct": diff_pct, "median": median_rent}
                 })
             else:
-                price_reason = f"Rent of ₹{req.rent:,} is within normal bounds for {loc_key.upper()} (median: ₹{median_rent:,})"
+                price_reason = f"Rent of ₹{req.rent:,} aligns with {loc_key.upper()} {req.bhk}BHK median (₹{median_rent:,})"
 
     # 2. Deposit Signal
     deposit_fired = False
@@ -304,6 +346,32 @@ def analyze_listing_endpoint(req: AnalyzeRequest):
         }
     ]
 
+    # Cross-portal matches check
+    cross_matches = []
+    top_hash = req.image_hashes[0] if req.image_hashes else None
+    if req.rent:
+        cross_matches = find_cross_portal_matches(
+            portal=req.portal,
+            listing_key=req.listing_key,
+            locality=req.locality,
+            bhk=req.bhk,
+            rent=req.rent,
+            area_sqft=req.area_sqft,
+            floor=req.floor,
+            image_hash=top_hash
+        )
+
+    if cross_matches and cross_matches[0]["rent_delta"] < 0:
+        best_match = cross_matches[0]
+        savings = abs(best_match["rent_delta"])
+        human_points.append({
+            "category": "Cross-Portal Price Comparison",
+            "icon": "🏷️",
+            "fired": False,
+            "point": f"Also seen on {best_match['portal'].capitalize()} for ₹{best_match['rent']:,}/mo (Save ₹{savings:,})",
+            "reason": f"Likely the same property is listed on another portal at a lower asking price ({', '.join(best_match['reasons'][:2])})."
+        })
+
     safety_advice = [
         "Never transfer any token fee, gate entry pass fee, or courier charge via UPI before you physically enter and tour the apartment.",
         "Always request to meet the owner, building security guard, or society manager in person at the property gate first.",
@@ -324,5 +392,58 @@ def analyze_listing_endpoint(req: AnalyzeRequest):
             "deposit": SignalDetail(fired=deposit_fired, reason=deposit_reason),
             "phrase": SignalDetail(fired=phrase_fired, reason=phrase_reason),
             "duplicate_image": SignalDetail(fired=image_fired, reason=image_reason)
-        }
+        },
+        "cross_portal_matches": cross_matches
     }
+
+# ==========================================
+# Market Pack Serving Endpoints (Static JSON + ETag)
+# ==========================================
+import os
+import json
+import hashlib
+
+PACKS_DIR = os.path.join(os.path.dirname(__file__), "packs")
+
+@app.get("/api/v1/packs/index.json")
+def get_packs_index(request: Request, response: Response):
+    """
+    Returns index of published market packs with ETag and Cache-Control.
+    """
+    index_file = os.path.join(PACKS_DIR, "index.json")
+    if not os.path.exists(index_file):
+        return {"v": 1, "total_packs": 0, "cells": []}
+    
+    with open(index_file, "r", encoding="utf-8") as f:
+        content = f.read()
+    
+    etag = f'"{hashlib.sha256(content.encode("utf-8")).hexdigest()[:16]}"'
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=status.HTTP_304_NOT_MODIFIED)
+    
+    response.headers["ETag"] = etag
+    response.headers["Cache-Control"] = "public, max-age=86400"
+    return json.loads(content)
+
+@app.get("/api/v1/packs/{cell}")
+def get_market_pack(cell: str, request: Request, response: Response):
+    """
+    Returns static market pack for a geohash cell or locality.
+    Zero raw listing data or PII is returned.
+    """
+    safe_cell = "".join(c if c.isalnum() or c in "-_" else "_" for c in cell.lower().replace(".json", ""))
+    pack_file = os.path.join(PACKS_DIR, f"{safe_cell}.json")
+    if not os.path.exists(pack_file):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No market pack published for cell {cell}")
+    
+    with open(pack_file, "r", encoding="utf-8") as f:
+        content = f.read()
+    
+    etag = f'"{hashlib.sha256(content.encode("utf-8")).hexdigest()[:16]}"'
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=status.HTTP_304_NOT_MODIFIED)
+    
+    response.headers["ETag"] = etag
+    response.headers["Cache-Control"] = "public, max-age=86400"
+    return json.loads(content)
+

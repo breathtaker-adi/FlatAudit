@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlatAudit Inspector</title>
+  <title>FlatAudit Inspector & Buyhatke Companion</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
@@ -13,16 +13,29 @@
         <span class="logo-shield">🛡️</span>
         <div>
           <h1>FlatAudit</h1>
-          <span class="subtitle">Rental Trust & Safety Inspector</span>
+          <span class="subtitle">Rental Trust & Buyhatke Companion</span>
         </div>
       </div>
-      <div class="status-indicator" id="backend-status" title="Local Backend Status">
-        <span class="dot"></span>
-        <span class="text">API</span>
+      <div class="header-right">
+        <div class="status-indicator" id="backend-status" title="Local Backend Status">
+          <span class="dot"></span>
+          <span class="text">API</span>
+        </div>
       </div>
     </header>
 
-    <main class="content">
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button type="button" class="tab-btn active" id="tab-btn-trust" data-tab="view-trust">
+        🛡️ Trust Signals
+      </button>
+      <button type="button" class="tab-btn" id="tab-btn-watchlist" data-tab="view-watchlist">
+        📈 Watchlist & Compare (<span id="tracked-badge-count">0</span>)
+      </button>
+    </nav>
+
+    <!-- Tab 1: Trust Signals & Current Listing -->
+    <main class="content tab-view active" id="view-trust">
       <!-- Verdict Banner -->
       <div class="verdict-banner tone-ok" id="verdict-banner">
         <span class="verdict-icon" id="verdict-icon">🛡️</span>
@@ -34,11 +47,22 @@
 
       <!-- Property Summary -->
       <div class="prop-strip">
-        <h2 id="prop-title">No listing detected yet</h2>
+        <div class="prop-strip-top">
+          <h2 id="prop-title">No listing detected yet</h2>
+          <button type="button" class="btn-track-quick" id="btn-quick-track">★ Track</button>
+        </div>
         <div class="meta-tags">
           <span class="tag" id="tag-rent">₹ --</span>
           <span class="tag" id="tag-deposit">Dep: --</span>
           <span class="tag" id="tag-bhk">-- BHK</span>
+          <span class="tag" id="tag-area">-- sqft</span>
+        </div>
+        <div class="benchmark-pill" id="benchmark-ladder-pill" style="display: none;">
+          <div class="bm-left">
+            <span id="bm-level-icon">📊</span>
+            <span id="bm-source-label">vs 14 listings on this page</span>
+          </div>
+          <span class="bm-conf-tag" id="bm-conf-tag">High</span>
         </div>
       </div>
 
@@ -63,6 +87,12 @@
         </div>
       </div>
 
+      <!-- Cross-Portal Match Strip (if any) -->
+      <div class="cross-portal-strip" id="cross-portal-strip" style="display: none;">
+        <div class="cp-title" id="cp-match-title">🏷️ Also Seen on Another Portal</div>
+        <div class="cp-desc" id="cp-match-desc">Cross-portal match details</div>
+      </div>
+
       <!-- Renter Safety Advice -->
       <div class="safety-card">
         <div class="safety-title">💡 Renter Protection Advice:</div>
@@ -73,10 +103,45 @@
       </div>
     </main>
 
+    <!-- Tab 2: Buyhatke Watchlist & Side-by-Side Compare -->
+    <main class="content tab-view" id="view-watchlist">
+      <div class="watchlist-toolbar">
+        <div class="toolbar-title">
+          <b>Saved Rentals (<span id="wl-total-count">0</span>)</b>
+          <span class="toolbar-sub">Local-first price tracking</span>
+        </div>
+        <div class="toolbar-actions">
+          <button type="button" class="btn-action" id="btn-export-csv" title="Export CSV">📥 Export CSV</button>
+        </div>
+      </div>
+
+      <!-- Compare Selected Section (Appears when 2+ checked) -->
+      <div class="compare-tray" id="compare-tray" style="display: none;">
+        <div class="compare-tray-header">
+          <span>⚖️ Side-by-Side Comparison (<span id="compare-count">0</span> selected)</span>
+          <button type="button" class="btn-clear-compare" id="btn-clear-compare">Clear Selection</button>
+        </div>
+        <div class="compare-table-wrapper" id="compare-table-wrapper">
+          <!-- Dynamically populated compare table with highlighted best values -->
+        </div>
+      </div>
+
+      <!-- Tracked Listings List -->
+      <div class="tracked-list" id="tracked-list">
+        <div class="empty-state" id="empty-state">
+          <span class="empty-icon">📌</span>
+          <b>No saved listings yet</b>
+          <p>Click "★ Track Flat" on any rental page or in the Trust Signals tab to record rent history.</p>
+        </div>
+      </div>
+    </main>
+
     <footer class="footer">
-      <a href="http://localhost:8080" target="_blank" class="footer-link">Interactive Web Demo</a>
+      <a href="http://localhost:8080" target="_blank" class="footer-link">Interactive Demo</a>
       <span>•</span>
-      <span class="footer-note">Privacy-Preserving</span>
+      <button type="button" class="footer-btn" id="popup-feedback-btn">🚩 This looks wrong?</button>
+      <span>•</span>
+      <span class="footer-note">Zero PII</span>
     </footer>
   </div>
 

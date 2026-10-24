@@ -51,11 +51,12 @@
 | **T-01** | Malicious listing injects XSS payloads via title/description into badge | Critical | **Zero `innerHTML` policy**: All badge UI nodes are instantiated using `document.createElement()`, and page data is applied exclusively via `.textContent`. Browser auto-escapes all HTML entities. | **Mitigated** |
 | **T-02** | SQL Injection via locality or URL parameters | High | SQLite queries in `db.py` use parameterized placeholders (`?`) exclusively; zero string concatenation. | **Mitigated** |
 | **T-03** | Canvas pixel tampering via third-party ads | Medium | Image fetching and hashing is delegated to the background service worker using `createImageBitmap` and `OffscreenCanvas`, isolating canvas reads from page JavaScript. | **Mitigated** |
+| **T-04** | Market Pack poisoning / fake observation spam | High | **Robust Statistical Defense**: Daily deduplication per portal+key; median and MAD robust statistics; minimum contributor thresholds ($k \ge 5$) before pack publication; client-side schema validation via `isValidMarketPack()` rejects corrupted or malformed packs. | **Mitigated** |
 
 ### 3. Repudiation & Defamation Liability
 | Threat ID | Threat Description | Severity | Mitigation in FlatAudit | Status |
 | :--- | :--- | :--- | :--- | :--- |
-| **R-01** | Accusing innocent landlords of fraud/crime leading to legal liability | High | **Observable Facts Principle**: The system never uses defamatory terms ("scammer", "fraudster", "criminal"). Output labels are strictly `Looks normal`, `Some signals`, `Many signals`. Badges only state verifiable facts (e.g. *"Rent is 78% below HSR median"*, *"Photo appeared in 4 other listings"*). | **Mitigated** |
+| **R-01** | Accusing innocent landlords of fraud/crime leading to legal liability | High | **Observable Facts Principle & Silence Rule**: The system never uses defamatory terms ("scammer", "fraudster", "criminal"). Output labels are strictly `Looks normal`, `Some signals`, `Many signals`. Level 5 of fallback ladder stays silent when local data is thin ($n < 5$) to prevent false alarms. | **Mitigated** |
 | **R-02** | Auditability of model decisions | Low | Every signal evaluation returns explicit `{fired, reason, details}` metadata retained in memory. | **Mitigated** |
 
 ### 4. Information Disclosure (Privacy by Design)
@@ -63,6 +64,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **I-01** | Leaking tenant browsing history or phone numbers | High | **Privacy by Design**: FlatAudit parses only the listing being viewed on demand. Phone numbers, contact tokens, and broker identities are explicitly discarded and never sent to the backend. | **Mitigated** |
 | **I-02** | Storing copyrighted listing photography | Medium | Only 64-bit perceptual hashes (16 hex chars) are stored; raw image files are never written to disk or sent to backend storage. | **Mitigated** |
+| **I-03** | Leakage of private watchlist notes or shortlisted properties | High | **Local-Only Sandboxing**: Watchlists, price drop snapshots, and user notes are stored strictly in `chrome.storage.local`. They never leave the browser and are never transmitted to any API or portal. | **Mitigated** |
 
 ### 5. Denial of Service (DoS)
 | Threat ID | Threat Description | Severity | Mitigation in FlatAudit | Status |
@@ -75,10 +77,13 @@
 | :--- | :--- | :--- | :--- | :--- |
 | **E-01** | Manifest V3 permissions abuse | High | Manifest permissions trimmed strictly to `storage` and localhost/portal host matches. No `webRequestBlocking`, no `cookies`, no `management`. | **Mitigated** |
 | **E-02** | Remote code execution via `eval()` | Critical | Strict Content Security Policy (`script-src 'self'; object-src 'self'`). Zero dynamic code execution. | **Mitigated** |
+| **E-03** | Host permission misuse across third-party websites | High | Host permissions limited strictly to the 4 supported rental portals (`nobroker.in`, `magicbricks.com`, `99acres.com`, `housing.com`) and local backend (`127.0.0.1:8000`). | **Mitigated** |
 
 ---
 
 ## 3. Residual Risks & Accepted Constraints
 
 1. **Legitimate Image Reuse**: Real estate builders and multi-unit brokers frequently reuse model 3D renderings across genuine flats. As documented, this remains an accepted signal caveat: photo reuse is treated as a supporting hint, never standalone proof of fraud.
-2. **Localhost API Binding**: In development mode, the FastAPI backend binds to `127.0.0.1:8000`. Production deployment requires TLS termination with token-bucket rate limiting.
+2. **Localhost API Binding & Configurable Endpoints**: In development mode, the FastAPI backend binds to `127.0.0.1:8000`. The extension allows users to customize the backend URL in storage, supporting self-hosted TLS instances.
+3. **Thin Data Silence Mode**: In unfamiliar tier-2/3 cities, Level 5 of the benchmark ladder suppresses price outlier warnings. This is an intentional safety constraint: FlatAudit prefers saying "not enough local data" rather than guessing.
+

@@ -1,6 +1,7 @@
-import { parseIndianCurrency, parseBHK } from './currency.js';
+import { parseIndianCurrency, parseBHK, parseArea, parseFloor } from './currency.js';
+import { parseListingKey, canonicalizeUrl } from '../tracker.js';
 
-export function parseGeneric(document) {
+export function parseGeneric(document, url = '') {
   // Try finding title
   const titleEl = document.querySelector('h1, meta[property="og:title"], title');
   const title = titleEl ? (titleEl.content || titleEl.textContent || '').trim() : '';
@@ -37,6 +38,10 @@ export function parseGeneric(document) {
   // BHK heuristic
   const bhk = parseBHK(title) || parseBHK(bodyText) || 2;
 
+  // Area & floor heuristics
+  const area_sqft = parseArea(bodyText);
+  const floor = parseFloor(bodyText);
+
   // Description heuristic
   const descEl = document.querySelector('[class*="description"], [id*="description"], article, p');
   const description = descEl ? descEl.textContent.trim() : bodyText.slice(0, 1000);
@@ -52,13 +57,20 @@ export function parseGeneric(document) {
     .filter(src => src && !src.includes('avatar') && !src.includes('icon') && !src.includes('logo'))
     .slice(0, 5);
 
+  const listingKey = parseListingKey('generic', url, document);
+
   return {
     portal: 'generic',
+    listingKey,
+    url: canonicalizeUrl(url),
     title,
     locality,
     rent,
     deposit,
     bhk,
+    area_sqft,
+    areaSqft: area_sqft,
+    floor,
     description,
     images
   };

@@ -2,41 +2,35 @@
  * Listing Trust Analyzer - Signal Evaluation Engine
  *
  * Observable-facts based threat signal detection for Indian rental portals.
+ * Uses dynamic market benchmarks and peer-page data instead of hardcoded numbers.
  * Never uses defamatory labels ("scammer", "fraud"); only states verifiable observations.
  */
 
-export const LOCALITY_BENCHMARKS = {
-  // Bangalore
-  'indiranagar': { bhk1: 22000, bhk2: 40000, bhk3: 65000, depositMonths: [3, 6], city: 'Bangalore' },
-  'hsr layout': { bhk1: 18000, bhk2: 32000, bhk3: 52000, depositMonths: [3, 6], city: 'Bangalore' },
-  'koramangala': { bhk1: 22000, bhk2: 42000, bhk3: 68000, depositMonths: [3, 6], city: 'Bangalore' },
-  'whitefield': { bhk1: 16000, bhk2: 28000, bhk3: 45000, depositMonths: [2, 5], city: 'Bangalore' },
-  'bellandur': { bhk1: 18000, bhk2: 32000, bhk3: 50000, depositMonths: [2, 5], city: 'Bangalore' },
+import { getBenchmark, robustZScore } from './benchmarks.js';
+import marketPacksData from './data/market_packs.json' with { type: 'json' };
 
-  // Mumbai
-  'powai': { bhk1: 34000, bhk2: 55000, bhk3: 85000, depositMonths: [2, 4], city: 'Mumbai' },
-  'andheri': { bhk1: 30000, bhk2: 50000, bhk3: 75000, depositMonths: [2, 4], city: 'Mumbai' },
-  'bandra': { bhk1: 45000, bhk2: 75000, bhk3: 130000, depositMonths: [2, 5], city: 'Mumbai' },
-
-  // Gurgaon / NCR
-  'cyber city': { bhk1: 25000, bhk2: 42000, bhk3: 62000, depositMonths: [1, 3], city: 'Gurgaon' },
-  'dlf phase 2': { bhk1: 24000, bhk2: 40000, bhk3: 60000, depositMonths: [1, 3], city: 'Gurgaon' },
-  'sector 56': { bhk1: 16000, bhk2: 28000, bhk3: 42000, depositMonths: [1, 2], city: 'Gurgaon' },
-
-  // Pune
-  'hinjawadi': { bhk1: 14000, bhk2: 23000, bhk3: 35000, depositMonths: [1, 3], city: 'Pune' },
-  'wakad': { bhk1: 15000, bhk2: 24000, bhk3: 36000, depositMonths: [1, 3], city: 'Pune' },
-
-  // City-Level Fallbacks
-  'bengaluru': { bhk1: 18000, bhk2: 32000, bhk3: 52000, depositMonths: [3, 6], city: 'Bengaluru' },
-  'bangalore': { bhk1: 18000, bhk2: 32000, bhk3: 52000, depositMonths: [3, 6], city: 'Bengaluru' },
-  'mumbai': { bhk1: 32000, bhk2: 52000, bhk3: 80000, depositMonths: [2, 4], city: 'Mumbai' },
-  'gurgaon': { bhk1: 22000, bhk2: 36000, bhk3: 55000, depositMonths: [1, 3], city: 'Gurgaon' },
-  'delhi': { bhk1: 16000, bhk2: 28000, bhk3: 45000, depositMonths: [1, 3], city: 'Delhi' },
-  'noida': { bhk1: 14000, bhk2: 24000, bhk3: 38000, depositMonths: [1, 2], city: 'Noida' },
-  'pune': { bhk1: 14000, bhk2: 23000, bhk3: 35000, depositMonths: [1, 3], city: 'Pune' },
-  'hyderabad': { bhk1: 15000, bhk2: 26000, bhk3: 42000, depositMonths: [1, 3], city: 'Hyderabad' }
-};
+// Backwards-compatible export mapping for external tools & tests
+export const LOCALITY_BENCHMARKS = Object.fromEntries(
+  (marketPacksData?.packs || []).flatMap(pack => {
+    const entries = [];
+    if (pack.aliases) {
+      for (const alias of pack.aliases) {
+        entries.push([
+          alias.toLowerCase(),
+          {
+            bhk1: pack.bhk?.['1']?.median || 20000,
+            bhk2: pack.bhk?.['2']?.median || 35000,
+            bhk3: pack.bhk?.['3']?.median || 55000,
+            depositMonths: [pack.deposit_multiple?.min || 2, pack.deposit_multiple?.max || 5],
+            city: pack.city,
+            n: pack.bhk?.['2']?.n || 10
+          }
+        ]);
+      }
+    }
+    return entries;
+  })
+);
 
 export const PHRASE_PATTERNS = [
   {
@@ -89,7 +83,7 @@ export const PHRASE_PATTERNS = [
 ];
 
 /**
- * Normalizes locality query to match standard benchmarks
+ * Normalizes locality query to match standard benchmarks (for legacy callers)
  */
 export function findLocalityBenchmark(localityStr) {
   if (!localityStr) return null;
@@ -103,83 +97,167 @@ export function findLocalityBenchmark(localityStr) {
 }
 
 /**
- * Evaluates price outlier signal against locality and BHK benchmarks.
- * Always returns rich, human-readable points even when the property is completely normal.
+ * Evaluates price outlier signal against dynamic fallback benchmarks.
+ * Supports both function signatures:
+ *   evaluatePriceSignal(listing, context)
+ *   evaluatePriceSignal(rent, localityStr, bhk, context)
  */
-export function evaluatePriceSignal(rent, localityStr, bhk = 2) {
+export function evaluatePriceSignal(arg1, arg2, arg3, arg4) {
+  let listing = {};
+  let context = {};
+
+  if (typeof arg1 === 'object' && arg1 !== null) {
+    listing = arg1;
+    context = arg2 || {};
+  } else {
+    listing = {
+      rent: arg1,
+      locality: arg2 || '',
+      bhk: typeof arg3 === 'number' ? arg3 : 2
+    };
+    context = arg4 || {};
+  }
+
+  const rent = listing.rent;
+  const bhk = listing.bhk || 2;
+  const localityStr = listing.locality || '';
+
   if (!rent || rent <= 0) {
     return {
       fired: false,
       reason: 'Rent amount not specified or unparsed',
       point: 'Monthly rent unlisted or not detected.',
-      humanReason: 'Could not extract an explicit numeric monthly rent from the listing details.'
+      humanReason: 'Could not extract an explicit numeric monthly rent from the listing details.',
+      details: null
     };
   }
 
-  let benchmark = findLocalityBenchmark(localityStr);
-  if (!benchmark) {
-    // Sensible metro fallback if specific locality string is unmapped
-    benchmark = { key: 'metro area', bhk1: 18000, bhk2: 30000, bhk3: 48000, depositMonths: [2, 5], city: 'Metro Area' };
+  // Walk the dynamic fallback ladder (Peer Page -> Area Cell -> District Cell -> City -> None)
+  const benchmark = getBenchmark(listing, context);
+
+  // If level is 'none' (insufficient local data): Stay silent! Do not flag without evidence
+  if (benchmark.level === 'none' || !benchmark.median) {
+    return {
+      fired: false,
+      reason: 'Not enough local price data to verify price deviation (sample size < 5)',
+      point: 'Insufficient local benchmark data (price check deferred).',
+      humanReason: 'FlatAudit requires at least 5 local peer observations to verify rent deviations. Non-price safety checks continue running.',
+      details: {
+        rent,
+        level: 'none',
+        sampleSize: 0,
+        confidence: 'none'
+      }
+    };
   }
 
-  const bhkKey = `bhk${Math.min(Math.max(bhk, 1), 3)}`;
-  const medianRent = benchmark[bhkKey] || 30000;
+  const medianRent = benchmark.median;
   const diffPercent = Math.round(((rent - medianRent) / medianRent) * 100);
+  const ratio = Math.round((rent / medianRent) * 100) / 100;
+  const z = benchmark.mad > 0 ? robustZScore(rent, medianRent, benchmark.mad) : 0;
 
-  // Scammers use bait pricing significantly below market (e.g. 38%+ cheaper)
-  if (diffPercent <= -38) {
+  // Extract locality descriptor for readable reporting
+  const locLabel = (localityStr ? localityStr.split(',')[0].trim().toUpperCase() : 'MARKET');
+
+  // Condition: Under 0.62x median (diff <= -38%) or robust z <= -2.5
+  if (diffPercent <= -38 || (z <= -2.5 && benchmark.mad > 0)) {
     return {
       fired: true,
       severity: diffPercent <= -50 ? 'high' : 'medium',
-      reason: `Rent of ₹${rent.toLocaleString('en-IN')} is ${Math.abs(diffPercent)}% below the ${benchmark.key.toUpperCase()} ${bhk}BHK median (₹${medianRent.toLocaleString('en-IN')})`,
+      reason: `Rent of ₹${rent.toLocaleString('en-IN')} is ${Math.abs(diffPercent)}% below the ${locLabel} ${bhk}BHK median (₹${medianRent.toLocaleString('en-IN')}) [${benchmark.sourceLabel}]`,
       point: `Monthly rent (₹${rent.toLocaleString('en-IN')}) is ${Math.abs(diffPercent)}% lower than normal.`,
-      humanReason: `Typical ${bhk}BHK flats in ${benchmark.key.toUpperCase()} rent for ~₹${medianRent.toLocaleString('en-IN')}/mo. Extremely cheap rent is often used as clickbait to attract urgent inquiries.`,
-      details: { rent, medianRent, diffPercent, locality: benchmark.key, bhk }
+      humanReason: `Typical ${bhk}BHK flats in this area rent for ~₹${medianRent.toLocaleString('en-IN')}/mo. Extremely cheap rent is often used as bait to solicit advance tokens. (${benchmark.sourceLabel})`,
+      details: {
+        rent,
+        medianRent,
+        diffPercent,
+        ratio,
+        zScore: Math.round(z * 10) / 10,
+        sampleSize: benchmark.n,
+        level: benchmark.level,
+        confidence: benchmark.confidence,
+        sourceLabel: benchmark.sourceLabel,
+        locality: locLabel,
+        bhk
+      }
     };
   }
 
   return {
     fired: false,
-    reason: `Rent of ₹${rent.toLocaleString('en-IN')} is within normal range for ${benchmark.key.toUpperCase()} ${bhk}BHK (median: ₹${medianRent.toLocaleString('en-IN')})`,
+    reason: `Rent of ₹${rent.toLocaleString('en-IN')} is within normal range for ${locLabel} ${bhk}BHK (median: ₹${medianRent.toLocaleString('en-IN')}) [${benchmark.sourceLabel}]`,
     point: `Rent of ₹${rent.toLocaleString('en-IN')}/mo aligns with local market rates.`,
-    humanReason: `Rent matches the typical rate for ${bhk}BHK apartments in ${benchmark.key.toUpperCase()} (market median: ₹${medianRent.toLocaleString('en-IN')}).`,
-    details: { rent, medianRent, diffPercent }
+    humanReason: `Rent matches the typical rate for ${bhk}BHK apartments (market median: ₹${medianRent.toLocaleString('en-IN')}, ${benchmark.sourceLabel}).`,
+    details: {
+      rent,
+      medianRent,
+      diffPercent,
+      ratio,
+      sampleSize: benchmark.n,
+      level: benchmark.level,
+      confidence: benchmark.confidence,
+      sourceLabel: benchmark.sourceLabel
+    }
   };
 }
 
 /**
- * Evaluates deposit ratio against local market norms.
+ * Evaluates deposit ratio against dynamic market norms.
+ * Supports both signatures:
+ *   evaluateDepositSignal(listing, context)
+ *   evaluateDepositSignal(rent, deposit, localityStr, context)
  */
-export function evaluateDepositSignal(rent, deposit, localityStr) {
+export function evaluateDepositSignal(arg1, arg2, arg3, arg4) {
+  let listing = {};
+  let context = {};
+
+  if (typeof arg1 === 'object' && arg1 !== null) {
+    listing = arg1;
+    context = arg2 || {};
+  } else {
+    listing = {
+      rent: arg1,
+      deposit: arg2,
+      locality: arg3 || ''
+    };
+    context = arg4 || {};
+  }
+
+  const rent = listing.rent;
+  const deposit = listing.deposit;
+  const localityStr = listing.locality || '';
+
   if (deposit === null || deposit === undefined || !rent || rent <= 0) {
     return {
       fired: false,
       reason: 'Deposit details not available',
       point: 'Deposit details not specified',
-      humanReason: 'The listing does not mention an explicit security deposit amount.'
+      humanReason: 'The listing does not mention an explicit security deposit amount.',
+      details: null
     };
   }
 
   const ratio = +(deposit / rent).toFixed(1);
-  const benchmark = findLocalityBenchmark(localityStr);
-  const [minNorm, maxNorm] = benchmark ? benchmark.depositMonths : [1.5, 6];
+  const benchmark = getBenchmark(listing, context);
+  const minNorm = benchmark.depositMultiple ? benchmark.depositMultiple.min : 1.5;
+  const maxNorm = benchmark.depositMultiple ? benchmark.depositMultiple.max : 6.0;
 
   // Condition 1: 0 deposit or token deposit on an expensive listing claiming urgency
-  if (deposit === 0 || (deposit > 0 && ratio < 0.8 && minNorm >= 3)) {
+  if (deposit === 0 || (deposit > 0 && ratio < 0.8 && minNorm >= 2.5)) {
     const isZero = deposit === 0;
     return {
       fired: true,
       severity: isZero ? 'medium' : 'low',
       reason: isZero
-        ? `Listing advertises zero security deposit, atypical for ${benchmark?.city || 'this area'}`
-        : `Deposit of ₹${deposit.toLocaleString('en-IN')} is only ${ratio}x monthly rent (expected ${minNorm}x–${maxNorm}x in ${benchmark?.city || 'this city'})`,
+        ? `Listing advertises zero security deposit, atypical for local rental norms [${benchmark.sourceLabel}]`
+        : `Deposit of ₹${deposit.toLocaleString('en-IN')} is only ${ratio}x monthly rent (expected ${minNorm}x–${maxNorm}x) [${benchmark.sourceLabel}]`,
       point: isZero
         ? 'Zero security deposit advertised for a furnished apartment.'
         : `Security deposit is unusually low (only ${ratio}x monthly rent).`,
       humanReason: isZero
-        ? `Landlords in ${benchmark?.city || 'this area'} customarily require ${minNorm} to ${maxNorm} months deposit. Zero deposit offers are frequently paired with high-pressure booking token fees.`
-        : `Standard deposit in ${benchmark?.city || 'this city'} is usually ${minNorm}x to ${maxNorm}x monthly rent. A token-sized deposit can be a sign of a rushed booking pretext.`,
-      details: { rent, deposit, ratio, expectedRange: [minNorm, maxNorm] }
+        ? `Landlords customarily require ${minNorm} to ${maxNorm} months deposit (${benchmark.sourceLabel}). Zero deposit offers are frequently paired with high-pressure booking token fees.`
+        : `Standard deposit is usually ${minNorm}x to ${maxNorm}x monthly rent. A token-sized deposit can be a sign of a rushed booking pretext.`,
+      details: { rent, deposit, ratio, expectedRange: [minNorm, maxNorm], sampleSize: benchmark.n }
     };
   }
 
@@ -191,16 +269,16 @@ export function evaluateDepositSignal(rent, deposit, localityStr) {
       reason: `Deposit of ₹${deposit.toLocaleString('en-IN')} is ${ratio}x monthly rent (unusually high)`,
       point: `Demanding an abnormally high deposit (${ratio} months rent).`,
       humanReason: `Deposit is significantly above typical market standards (${minNorm}x–${maxNorm}x). Verify landlord identity and society ownership before transferring large sums.`,
-      details: { rent, deposit, ratio }
+      details: { rent, deposit, ratio, sampleSize: benchmark.n }
     };
   }
 
   return {
     fired: false,
-    reason: `Deposit ratio of ${ratio}x monthly rent is within normal bounds (${minNorm}x–${maxNorm}x)`,
+    reason: `Deposit ratio of ${ratio}x monthly rent is within normal bounds (${minNorm}x–${maxNorm}x) [${benchmark.sourceLabel}]`,
     point: `Deposit of ₹${deposit.toLocaleString('en-IN')} (${ratio}x rent) is standard.`,
-    humanReason: `Security deposit adheres to normal rental customs in ${benchmark?.city || 'this region'} (${minNorm}x–${maxNorm}x monthly rent).`,
-    details: { rent, deposit, ratio }
+    humanReason: `Security deposit adheres to normal rental customs (${minNorm}x–${maxNorm}x monthly rent, ${benchmark.sourceLabel}).`,
+    details: { rent, deposit, ratio, sampleSize: benchmark.n }
   };
 }
 
@@ -218,174 +296,195 @@ export function evaluatePhraseSignal(text) {
     };
   }
 
-  const matches = [];
+  const matched = [];
   let highestSeverity = 'low';
 
   for (const group of PHRASE_PATTERNS) {
     for (const pattern of group.patterns) {
       if (pattern.test(text)) {
-        matches.push({
-          category: group.category,
-          label: group.label,
-          matchedTerm: text.match(pattern)[0]
-        });
+        matched.push({ category: group.category, label: group.label, severity: group.severity });
         if (group.severity === 'high') highestSeverity = 'high';
         else if (group.severity === 'medium' && highestSeverity !== 'high') highestSeverity = 'medium';
-        break; // Match once per group
+        break;
       }
     }
   }
 
-  if (matches.length > 0) {
-    const summary = matches.map(m => `"${m.matchedTerm}"`).join(', ');
-    const labelsList = matches.map(m => m.label).join('; ');
+  if (matched.length > 0) {
+    const labels = matched.map(m => m.label).join('; ');
     return {
       fired: true,
       severity: highestSeverity,
-      matchedCount: matches.length,
-      matches,
-      reason: `Found ${matches.length} suspicious advance-fee phrase pattern(s): ${summary}`,
-      point: `Demands advance fees or uses identity pretexts before physical visit.`,
-      humanReason: `The listing mentions: ${labelsList} (e.g. ${summary}). Legitimate landlords and societies in India do not demand entry fees or gate pass payments prior to an in-person viewing.`,
-      matchedTerms: matches.map(m => m.matchedTerm)
+      matchedPatterns: matched,
+      matchedCount: matched.length,
+      reason: `Found ${matched.length} suspicious advance-fee phrase pattern(s): ${labels}`,
+      point: `Contains ${matched.length} advance-fee or token payment demand phrase(s).`,
+      humanReason: `Listing description contains terms frequently associated with rental advance fraud: "${labels}".`,
+      details: { matchedCount: matched.length, categories: matched.map(m => m.category) }
     };
   }
 
   return {
     fired: false,
+    matchedPatterns: [],
     matchedCount: 0,
-    matches: [],
     reason: 'No advance-fee or identity-pretext phrases detected',
-    point: 'No advance-fee or identity-pretext phrases detected.',
-    humanReason: 'Description contains regular property specifications (amenities, parking, direction) without suspicious token or gate pass demands.'
+    point: 'No advance payment or gate pass phrases detected.',
+    humanReason: 'The listing text contains standard description wording with no requests for visiting tokens or gate fees.',
+    details: { matchedCount: 0 }
   };
 }
 
 /**
- * Evaluates image duplicate signal based on seen count in database.
+ * Evaluates duplicate image fingerprint signal from historical registry observations.
  */
-export function evaluateDuplicateImageSignal(seenCount) {
-  if (!seenCount || seenCount <= 1) {
+export function evaluateDuplicateImageSignal(seenCount = 1) {
+  const count = typeof seenCount === 'number' ? seenCount : 1;
+
+  if (count > 3) {
     return {
-      fired: false,
-      reason: 'Photo has not been observed across conflicting listings',
-      point: 'Listing photo appears unique.',
-      humanReason: 'This image fingerprint has not been seen across other conflicting addresses in the registry.'
+      fired: true,
+      severity: 'high',
+      seenCount: count,
+      reason: `Photo fingerprint has appeared across ${count} distinct listings in the registry`,
+      point: `Photo reused across ${count} different listings.`,
+      humanReason: `This exact apartment photo has been indexed across ${count} separate listings. Scammers commonly reuse stolen high-resolution photos across multiple cities.`,
+      details: { seenCount: count }
+    };
+  }
+
+  if (count > 1) {
+    return {
+      fired: true,
+      severity: 'medium',
+      seenCount: count,
+      reason: `Photo fingerprint has appeared across ${count} listings in the registry`,
+      point: `Photo seen in ${count} listings.`,
+      humanReason: `This photo fingerprint was observed in ${count} previous listings. Verify whether this is a multi-agent listing or reused stock photo.`,
+      details: { seenCount: count }
     };
   }
 
   return {
-    fired: true,
-    severity: seenCount > 3 ? 'high' : 'medium',
-    count: seenCount,
-    reason: `This photo fingerprint has appeared across ${seenCount} distinct listings in the registry`,
-    point: `Photo reused across ${seenCount} different listings.`,
-    humanReason: `The visual fingerprint for this photo appeared in ${seenCount} separate listings. While genuine brokers occasionally share photos of identical builder units, heavy photo reuse can indicate downloaded internet imagery.`
+    fired: false,
+    seenCount: 1,
+    reason: 'Photo has not been observed across conflicting listings',
+    point: 'Photo appears unique to this listing.',
+    humanReason: 'The image fingerprint has not been observed across conflicting rental posts.',
+    details: { seenCount: 1 }
   };
 }
 
 /**
- * Aggregates all individual signals into an objective observable report.
- * Label is strictly one of: 'Looks normal', 'Some signals', 'Many signals'.
+ * Composite evaluator running all signals and constructing factual points & reasons.
+ * Accepts optional options parameter to provide peerListings or customPacks.
  */
-export function analyzeListing(listingData, duplicateStats = { seenCount: 1 }) {
-  const fullText = `${listingData.title || ''} ${listingData.description || ''}`;
+export function analyzeListing(listing, options = {}) {
+  const seenCount = options.seenCount || 1;
+  const fullText = `${listing.title || ''} ${listing.description || ''}`;
 
-  const priceResult = evaluatePriceSignal(listingData.rent, listingData.locality, listingData.bhk);
-  const depositResult = evaluateDepositSignal(listingData.rent, listingData.deposit, listingData.locality);
-  const phraseResult = evaluatePhraseSignal(fullText);
-  const duplicateResult = evaluateDuplicateImageSignal(duplicateStats.seenCount);
+  // Evaluate individual signals with benchmark context
+  const priceSignal = evaluatePriceSignal(listing, options);
+  const depositSignal = evaluateDepositSignal(listing, options);
+  const phraseSignal = evaluatePhraseSignal(fullText);
+  const imageSignal = evaluateDuplicateImageSignal(seenCount);
 
   const firedSignals = [];
-  if (priceResult.fired) firedSignals.push({ id: 'price', category: 'Price Check', icon: '💰', ...priceResult });
-  if (depositResult.fired) firedSignals.push({ id: 'deposit', category: 'Deposit Check', icon: '📑', ...depositResult });
-  if (phraseResult.fired) firedSignals.push({ id: 'phrase', category: 'Advance Fee Pretext', icon: '⚠️', ...phraseResult });
-  if (duplicateResult.fired) firedSignals.push({ id: 'image', category: 'Photo Duplication', icon: '🖼️', ...duplicateResult });
+  if (priceSignal.fired) firedSignals.push({ id: 'price', ...priceSignal });
+  if (depositSignal.fired) firedSignals.push({ id: 'deposit', ...depositSignal });
+  if (phraseSignal.fired) firedSignals.push({ id: 'phrase', ...phraseSignal });
+  if (imageSignal.fired) firedSignals.push({ id: 'duplicateImage', ...imageSignal });
 
+  const firedCount = firedSignals.length;
   const highSeverityCount = firedSignals.filter(s => s.severity === 'high').length;
-  const totalFired = firedSignals.length;
 
   let badgeLabel = 'Looks normal';
-  let badgeTone = 'ok'; // ok | warn | bad
-  let headlineSummary = 'This listing looks normal. No major red flags detected.';
+  let badgeTone = 'ok';
+  let headlineSummary = 'This listing looks normal. Pricing, deposit, and descriptions match local norms.';
 
-  if (highSeverityCount >= 2 || totalFired >= 3) {
+  if (highSeverityCount >= 2 || firedCount >= 3) {
     badgeLabel = 'Many signals';
     badgeTone = 'bad';
     headlineSummary = 'High Risk: Multiple scam signals flagged. Exercise extreme caution.';
-  } else if (highSeverityCount === 1 || totalFired >= 1) {
+  } else if (highSeverityCount === 1 || firedCount >= 1) {
     badgeLabel = 'Some signals';
     badgeTone = 'warn';
-    headlineSummary = 'Notice: One or more unusual signals found. Review carefully.';
+    headlineSummary = 'Notice: One or more unusual signals found. Review observations carefully.';
   }
 
-  // Construct structured Human-Readable Points & Reasons
+  // Kill Chain Stage determination
+  let killChainStage = 'Stage 0: Unflagged';
+  if (phraseSignal.fired) {
+    killChainStage = 'Stage 3: The Excuse (Advance fee / Token request)';
+  } else if (priceSignal.fired || imageSignal.fired) {
+    killChainStage = 'Stage 1: Fake Listing (Bait price / Stolen photos)';
+  }
+
+  // Observable Facts (Defamation-free statements)
+  const observableFacts = firedSignals.map(s => s.reason);
+
+  // Human-Readable Points & Reasons (Always 4 structured cards)
   const humanReadablePoints = [
     {
       category: 'Rent Pricing',
       icon: '💰',
-      fired: priceResult.fired,
-      severity: priceResult.severity || 'ok',
-      point: priceResult.point,
-      reason: priceResult.humanReason
+      fired: priceSignal.fired,
+      point: priceSignal.point,
+      reason: priceSignal.humanReason
     },
     {
       category: 'Security Deposit',
       icon: '📑',
-      fired: depositResult.fired,
-      severity: depositResult.severity || 'ok',
-      point: depositResult.point,
-      reason: depositResult.humanReason
+      fired: depositSignal.fired,
+      point: depositSignal.point,
+      reason: depositSignal.humanReason
     },
     {
       category: 'Terms & Phrasing',
       icon: '💬',
-      fired: phraseResult.fired,
-      severity: phraseResult.severity || 'ok',
-      point: phraseResult.point,
-      reason: phraseResult.humanReason
+      fired: phraseSignal.fired,
+      point: phraseSignal.point,
+      reason: phraseSignal.humanReason
     },
     {
       category: 'Photo Authenticity',
       icon: '🖼️',
-      fired: duplicateResult.fired,
-      severity: duplicateResult.severity || 'ok',
-      point: duplicateResult.point,
-      reason: duplicateResult.humanReason
+      fired: imageSignal.fired,
+      point: imageSignal.point,
+      reason: imageSignal.humanReason
     }
   ];
 
-  // Specific Actionable Safety Advice for Renters
   const safetyAdvice = [
     'Never transfer any token fee, gate entry pass fee, or courier charge via UPI before you physically enter and tour the apartment.',
     'Always request to meet the owner, building security guard, or society manager in person at the property gate first.',
-    'If the poster claims to be an Army/CISF officer who cannot meet due to transfer, treat it with extreme caution — this is the #1 rental pretext in India.'
+    'Legitimate landlords in India never charge entry or registration fees to inspect a rental property.'
   ];
+
+  const resolvedBenchmark = getBenchmark(listing, options);
 
   return {
     badgeLabel,
     badgeTone,
     headlineSummary,
-    firedCount: totalFired,
-    signals: {
-      price: priceResult,
-      deposit: depositResult,
-      phrase: phraseResult,
-      duplicateImage: duplicateResult
-    },
-    observableFacts: firedSignals.map(s => s.reason),
+    scamKillChainStage: killChainStage,
+    firedCount,
+    observableFacts,
     humanReadablePoints,
     safetyAdvice,
-    scamKillChainStage: determineKillChainStage(firedSignals)
+    benchmark: {
+      level: resolvedBenchmark.level,
+      sourceLabel: resolvedBenchmark.sourceLabel,
+      n: resolvedBenchmark.n,
+      median: resolvedBenchmark.median,
+      mad: resolvedBenchmark.mad,
+      confidence: resolvedBenchmark.confidence
+    },
+    signals: {
+      price: priceSignal,
+      deposit: depositSignal,
+      phrase: phraseSignal,
+      duplicateImage: imageSignal
+    }
   };
-}
-
-function determineKillChainStage(firedSignals) {
-  const hasPhrase = firedSignals.some(s => s.id === 'phrase');
-  const hasPrice = firedSignals.some(s => s.id === 'price');
-  const hasImage = firedSignals.some(s => s.id === 'image');
-
-  if (hasPhrase) return 'Stage 3: The Excuse (Advance fee / Token request)';
-  if (hasPrice || hasImage) return 'Stage 1: Fake Listing (Bait price / Stolen photos)';
-  return 'Stage 0: Unflagged';
 }

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FlatAudit | Listing Trust Analyzer Interactive Demo & Testbed</title>
+  <title>FlatAudit | Listing Trust Analyzer & Buyhatke Companion Demo</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
@@ -14,7 +14,7 @@
         <span class="shield-icon">🛡️</span>
         <div>
           <h1>FlatAudit <span class="tag-version">v1.0.0</span></h1>
-          <p class="tagline">Privacy-Preserving Indian Rental Listing Fraud Signal Analyzer</p>
+          <p class="tagline">Rental Trust Inspector & Buyhatke-Style Property Companion</p>
         </div>
       </div>
       <div class="header-actions">
@@ -25,230 +25,342 @@
       </div>
     </header>
 
-    <div class="kill-chain-bar">
-      <div class="kc-title">Scam Kill Chain Mapping:</div>
-      <div class="kc-steps">
-        <div class="kc-step" id="kc-1">
-          <span class="kc-num">1</span>
-          <div><b>Fake Listing</b><span>Bait price, stolen photos</span></div>
-        </div>
-        <div class="kc-step" id="kc-2">
-          <span class="kc-num">2</span>
-          <div><b>Lead Capture</b><span>Spam calls, urgency</span></div>
-        </div>
-        <div class="kc-step" id="kc-3">
-          <span class="kc-num">3</span>
-          <div><b>The Excuse</b><span>Army officer, gate pass</span></div>
-        </div>
-        <div class="kc-step" id="kc-4">
-          <span class="kc-num">4</span>
-          <div><b>Bait & Switch</b><span>Pushed to worse flats</span></div>
+    <!-- Top Navigation Tabs -->
+    <nav class="demo-nav-tabs">
+      <button type="button" class="demo-tab-btn active" id="demo-tab-inspector" data-tab="tab-content-inspector">
+        🛡️ Trust Signal Inspector
+      </button>
+      <button type="button" class="demo-tab-btn" id="demo-tab-buyhatke" data-tab="tab-content-buyhatke">
+        📈 Buyhatke Companion (Watchlist, Sparklines & Compare)
+      </button>
+    </nav>
+
+    <!-- TAB 1: Trust Signal Inspector -->
+    <div class="demo-tab-content active" id="tab-content-inspector">
+      <div class="kill-chain-bar">
+        <div class="kc-title">Scam Kill Chain Mapping:</div>
+        <div class="kc-steps">
+          <div class="kc-step" id="kc-1">
+            <span class="kc-num">1</span>
+            <div><b>Fake Listing</b><span>Bait price, stolen photos</span></div>
+          </div>
+          <div class="kc-step" id="kc-2">
+            <span class="kc-num">2</span>
+            <div><b>Lead Capture</b><span>Spam calls, urgency</span></div>
+          </div>
+          <div class="kc-step" id="kc-3">
+            <span class="kc-num">3</span>
+            <div><b>The Excuse</b><span>Army officer, gate pass</span></div>
+          </div>
+          <div class="kc-step" id="kc-4">
+            <span class="kc-num">4</span>
+            <div><b>Bait & Switch</b><span>Pushed to worse flats</span></div>
+          </div>
         </div>
       </div>
+
+      <main class="main-content">
+        <!-- Left Column: Interactive Inspector & Presets -->
+        <section class="panel inspector-panel">
+          <div class="panel-header">
+            <h2>Listing Signal Inspector</h2>
+            <span class="subtitle">Test listings or load empirical benchmark cases</span>
+          </div>
+
+          <div class="presets-bar">
+            <span class="preset-label">Load Preset:</span>
+            <div class="preset-buttons">
+              <button class="preset-btn active" data-preset="normal">✓ Normal 2BHK (Indiranagar)</button>
+              <button class="preset-btn" data-preset="army_token">⚠️ Army Token Scam (HSR)</button>
+              <button class="preset-btn" data-preset="bait_price">⚠️ Bait Price (Cyber City)</button>
+              <button class="preset-btn" data-preset="zero_deposit">⚠️ Zero Deposit (Pune)</button>
+            </div>
+          </div>
+
+          <form id="listing-form" class="listing-form">
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="input-title">Listing Headline</label>
+                <input type="text" id="input-title" required>
+              </div>
+              <div class="form-group flex-1">
+                <label for="input-locality">Locality</label>
+                <select id="input-locality">
+                  <option value="Indiranagar, Bangalore">Indiranagar (Bangalore)</option>
+                  <option value="HSR Layout, Bangalore">HSR Layout (Bangalore)</option>
+                  <option value="Koramangala, Bangalore">Koramangala (Bangalore)</option>
+                  <option value="Powai, Mumbai">Powai (Mumbai)</option>
+                  <option value="Cyber City, Gurgaon">Cyber City (Gurgaon)</option>
+                  <option value="Hinjawadi, Pune">Hinjawadi (Pune)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="input-bhk">BHK</label>
+                <select id="input-bhk">
+                  <option value="1">1 BHK</option>
+                  <option value="2" selected>2 BHK</option>
+                  <option value="3">3 BHK</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="input-rent">Monthly Rent (₹)</label>
+                <input type="number" id="input-rent" required>
+              </div>
+              <div class="form-group">
+                <label for="input-deposit">Security Deposit (₹)</label>
+                <input type="number" id="input-deposit" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-desc">Property Description</label>
+              <textarea id="input-desc" rows="4" required></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="input-image-hash">Photo dHash Fingerprint (64-bit Hex)</label>
+                <input type="text" id="input-image-hash" value="a4c28f1107be924d" maxlength="16" class="code-input">
+              </div>
+              <div class="form-group flex-1">
+                <label for="input-seen-count">Registry Seen Count</label>
+                <input type="number" id="input-seen-count" value="1" min="1" max="20">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="input-benchmark-ladder">Benchmark Fallback Ladder Test Mode</label>
+                <select id="input-benchmark-ladder">
+                  <option value="auto">Auto (Area / City Pack)</option>
+                  <option value="level1_peer">Level 1: Peer Page (12 same-BHK cards from current search)</option>
+                  <option value="level2_area">Level 2: Area Cell (Nearby locality pack, n=48)</option>
+                  <option value="level3_district">Level 3: District Cell (Wider metro prefix, n=62)</option>
+                  <option value="level4_city">Level 4: City Baseline (City-wide median, n=80)</option>
+                  <option value="level5_none">Level 5: None / Unknown (Thin data, sample &lt; 5 - Silence test)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">⚡ Evaluate Trust Signals</button>
+              <button type="button" id="btn-reset" class="btn btn-secondary">Reset Fields</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Right Column: Live Analysis & Badge Simulation -->
+        <section class="panel results-panel">
+          <div class="panel-header">
+            <h2>Human-Readable Trust Analysis</h2>
+            <span class="subtitle">Plain-language points, reasons, and safety advice for renters</span>
+          </div>
+
+          <!-- Active Benchmark Ladder Status Banner -->
+          <div class="benchmark-level-card" id="benchmark-level-card">
+            <div class="bm-header">
+              <span id="demo-bm-tag">📊 Level 1: Peer Page (n=12)</span>
+              <span class="bm-conf-pill conf-high" id="demo-bm-conf">HIGH CONFIDENCE</span>
+            </div>
+            <p id="demo-bm-desc">vs 12 listings on this page (Market Median: ₹40,000/mo)</p>
+          </div>
+
+          <!-- Simulated In-Page Badge Banner with Live Clickable Drawer -->
+          <div class="badge-preview-card">
+            <div class="card-label">SIMULATED IN-PAGE BROWSER BADGE (CLICK TO TOGGLE DRAWER):</div>
+            <div class="preview-badge-row">
+              <div class="mock-badge" id="mock-badge-btn" role="button" tabindex="0">
+                <span class="badge-icon" id="badge-icon-el">🛡️</span>
+                <span class="badge-name">FlatAudit</span>
+                <span class="badge-pill tone-ok" id="badge-pill-el">Looks normal</span>
+              </div>
+              <span class="badge-hint" id="badge-hint-text">👈 Click to inspect drawer (stays open)</span>
+            </div>
+
+            <!-- Embedded Floating Drawer Preview -->
+            <div class="mock-drawer-container" id="mock-drawer-container">
+              <div class="mock-drawer-header">
+                <div class="mock-drawer-title">
+                  <span>🛡️</span>
+                  <b>FlatAudit Trust Check</b>
+                </div>
+                <button type="button" class="mock-drawer-close" id="mock-drawer-close-btn">×</button>
+              </div>
+              <div class="mock-drawer-body" id="mock-drawer-body">
+                <!-- Populated dynamically with points & reasons -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Overall Summary Banner -->
+          <div class="verdict-banner tone-ok" id="verdict-banner">
+            <span class="verdict-icon" id="verdict-icon">✓</span>
+            <div>
+              <h3 id="verdict-title">Listing Verified Normal</h3>
+              <p id="verdict-subtitle">No red flags detected. Rent and deposit conform to local market norms.</p>
+            </div>
+          </div>
+
+          <!-- Structured Points & Reasons List -->
+          <div class="points-section">
+            <div class="section-label">OBSERVATIONS (POINTS & REASONS)</div>
+            <div class="points-grid" id="points-grid">
+              <!-- Populated dynamically with point cards -->
+            </div>
+          </div>
+
+          <!-- Renter Safety Advice -->
+          <div class="safety-card">
+            <div class="safety-title">💡 What You Should Do (Renter Safety Checklist):</div>
+            <ul class="safety-checklist" id="safety-checklist">
+              <li>Never transfer any token, gate fee, or courier charge via UPI before an in-person flat walkthrough.</li>
+              <li>Meet the building caretaker, security guard, or current tenant at the society entrance first.</li>
+              <li>If the poster claims to be an Army/CISF officer who cannot meet due to transfer, treat it with extreme caution.</li>
+            </ul>
+          </div>
+        </section>
+      </main>
+
+      <!-- Bottom Grid: dHash Visualizer & Benchmark Metrics -->
+      <section class="bottom-grid">
+        <div class="panel dhash-panel">
+          <div class="panel-header">
+            <h2>64-bit dHash & Hamming Distance Visualizer</h2>
+            <span class="subtitle">Perceptual gradient comparison resilient to scaling and re-encoding</span>
+          </div>
+          <div class="dhash-content">
+            <div class="hash-input-block">
+              <div class="hash-box">
+                <label>Hash A (Base Listing):</label>
+                <input type="text" id="hash-a" value="a4c28f1107be924d" maxlength="16" class="code-input">
+              </div>
+              <div class="hash-box">
+                <label>Hash B (Compared Photo):</label>
+                <input type="text" id="hash-b" value="a4c28f1107be924f" maxlength="16" class="code-input">
+              </div>
+            </div>
+            <div class="hash-result-box" id="hamming-result-box">
+              <div class="metric-group">
+                <span class="m-val" id="hamming-dist-val">2 bits</span>
+                <span class="m-lbl">Hamming Distance (out of 64)</span>
+              </div>
+              <div class="metric-badge" id="hamming-verdict">
+                Duplicate Match (≤ 10 bits difference)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel eval-panel">
+          <div class="panel-header">
+            <h2>Empirical Evaluation Benchmark</h2>
+            <span class="subtitle">Tested on 250 Indian listings (70% train / 30% held-out test)</span>
+          </div>
+          <div class="eval-metrics-grid">
+            <div class="stat-box">
+              <span class="s-number">95.1%</span>
+              <span class="s-label">Precision</span>
+            </div>
+            <div class="stat-box">
+              <span class="s-number">100.0%</span>
+              <span class="s-label">Recall</span>
+            </div>
+            <div class="stat-box">
+              <span class="s-number">0.975</span>
+              <span class="s-label">F1-Score</span>
+            </div>
+            <div class="stat-box">
+              <span class="s-number">97.3%</span>
+              <span class="s-label">Accuracy</span>
+            </div>
+          </div>
+          <div class="eval-footer-note">
+            Single-source-of-truth rules: production JavaScript evaluated directly with zero Python rule drift.
+          </div>
+        </div>
+      </section>
     </div>
 
-    <main class="main-content">
-      <!-- Left Column: Interactive Inspector & Presets -->
-      <section class="panel inspector-panel">
-        <div class="panel-header">
-          <h2>Listing Signal Inspector</h2>
-          <span class="subtitle">Test listings or load empirical benchmark cases</span>
-        </div>
-
-        <div class="presets-bar">
-          <span class="preset-label">Load Preset:</span>
-          <div class="preset-buttons">
-            <button class="preset-btn active" data-preset="normal">✓ Normal 2BHK (Indiranagar)</button>
-            <button class="preset-btn" data-preset="army_token">⚠️ Army Token Scam (HSR)</button>
-            <button class="preset-btn" data-preset="bait_price">⚠️ Bait Price (Cyber City)</button>
-            <button class="preset-btn" data-preset="zero_deposit">⚠️ Zero Deposit (Pune)</button>
+    <!-- TAB 2: Buyhatke Companion (Watchlist, Sparklines, Compare & CSV Export) -->
+    <div class="demo-tab-content" id="tab-content-buyhatke">
+      <main class="main-content">
+        <!-- Left Column: Simulation Controls & Cross-Portal Testbed -->
+        <section class="panel inspector-panel">
+          <div class="panel-header">
+            <h2>Buyhatke Price Drop Simulator</h2>
+            <span class="subtitle">Test price tracking, sparkline generation, and cross-portal matching</span>
           </div>
-        </div>
 
-        <form id="listing-form" class="listing-form">
-          <div class="form-row">
-            <div class="form-group flex-2">
-              <label for="input-title">Listing Headline</label>
-              <input type="text" id="input-title" required>
-            </div>
-            <div class="form-group flex-1">
-              <label for="input-locality">Locality</label>
-              <select id="input-locality">
-                <option value="Indiranagar, Bangalore">Indiranagar (Bangalore)</option>
-                <option value="HSR Layout, Bangalore">HSR Layout (Bangalore)</option>
-                <option value="Koramangala, Bangalore">Koramangala (Bangalore)</option>
-                <option value="Powai, Mumbai">Powai (Mumbai)</option>
-                <option value="Cyber City, Gurgaon">Cyber City (Gurgaon)</option>
-                <option value="Hinjawadi, Pune">Hinjawadi (Pune)</option>
-              </select>
+          <div class="sim-actions-box">
+            <span class="preset-label">Simulation Controls:</span>
+            <div class="sim-btn-grid">
+              <button type="button" class="btn btn-primary" id="btn-sim-track-primary">
+                ★ Track Indiranagar 2BHK (₹42,000)
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-sim-drop-1">
+                📉 Revisit with ₹2,000 Drop (₹40,000)
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-sim-drop-2">
+                📉 Revisit with Further Drop (₹38,500)
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-sim-add-more">
+                ➕ Add HSR 3BHK & Powai 1BHK for Compare
+              </button>
             </div>
           </div>
 
-          <div class="form-row">
-            <div class="form-group">
-              <label for="input-bhk">BHK</label>
-              <select id="input-bhk">
-                <option value="1">1 BHK</option>
-                <option value="2" selected>2 BHK</option>
-                <option value="3">3 BHK</option>
-              </select>
+          <!-- Cross-Portal Match Demonstration -->
+          <div class="cross-match-panel">
+            <div class="panel-subhead">
+              <h3>Cross-Portal Duplicate Match Testbed</h3>
+              <span class="panel-sub">Simulates observing the same property across NoBroker and MagicBricks</span>
             </div>
-            <div class="form-group">
-              <label for="input-rent">Monthly Rent (₹)</label>
-              <input type="number" id="input-rent" required>
-            </div>
-            <div class="form-group">
-              <label for="input-deposit">Security Deposit (₹)</label>
-              <input type="number" id="input-deposit" required>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="input-desc">Property Description</label>
-            <textarea id="input-desc" rows="4" required></textarea>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group flex-2">
-              <label for="input-image-hash">Photo dHash Fingerprint (64-bit Hex)</label>
-              <input type="text" id="input-image-hash" value="a4c28f1107be924d" maxlength="16" class="code-input">
-            </div>
-            <div class="form-group flex-1">
-              <label for="input-seen-count">Registry Seen Count</label>
-              <input type="number" id="input-seen-count" value="1" min="1" max="20">
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" class="btn btn-primary">⚡ Evaluate Trust Signals</button>
-            <button type="button" id="btn-reset" class="btn btn-secondary">Reset Fields</button>
-          </div>
-        </form>
-      </section>
-
-      <!-- Right Column: Live Analysis & Badge Simulation -->
-      <section class="panel results-panel">
-        <div class="panel-header">
-          <h2>Human-Readable Trust Analysis</h2>
-          <span class="subtitle">Plain-language points, reasons, and safety advice for renters</span>
-        </div>
-
-        <!-- Simulated In-Page Badge Banner with Live Clickable Drawer -->
-        <div class="badge-preview-card">
-          <div class="card-label">SIMULATED IN-PAGE BROWSER BADGE (CLICK TO TOGGLE DRAWER):</div>
-          <div class="preview-badge-row">
-            <div class="mock-badge" id="mock-badge-btn" role="button" tabindex="0">
-              <span class="badge-icon" id="badge-icon-el">🛡️</span>
-              <span class="badge-name">FlatAudit</span>
-              <span class="badge-pill tone-ok" id="badge-pill-el">Looks normal</span>
-            </div>
-            <span class="badge-hint" id="badge-hint-text">👈 Click to inspect drawer (stays open)</span>
-          </div>
-
-          <!-- Embedded Floating Drawer Preview -->
-          <div class="mock-drawer-container" id="mock-drawer-container">
-            <div class="mock-drawer-header">
-              <div class="mock-drawer-title">
-                <span>🛡️</span>
-                <b>FlatAudit Trust Check</b>
+            <div class="cross-demo-box">
+              <button type="button" class="btn btn-primary" id="btn-run-cross-match">
+                🔍 Find Cross-Portal Matches for Current Flat
+              </button>
+              <div class="cross-match-output" id="cross-match-output">
+                Click button above to query cross-portal duplicates.
               </div>
-              <button type="button" class="mock-drawer-close" id="mock-drawer-close-btn">×</button>
-            </div>
-            <div class="mock-drawer-body" id="mock-drawer-body">
-              <!-- Populated dynamically with points & reasons -->
             </div>
           </div>
-        </div>
+        </section>
 
-        <!-- Overall Summary Banner -->
-        <div class="verdict-banner tone-ok" id="verdict-banner">
-          <span class="verdict-icon" id="verdict-icon">✓</span>
-          <div>
-            <h3 id="verdict-title">Listing Verified Normal</h3>
-            <p id="verdict-subtitle">No red flags detected. Rent and deposit conform to local market norms.</p>
-          </div>
-        </div>
-
-        <!-- Structured Points & Reasons List -->
-        <div class="points-section">
-          <div class="section-label">OBSERVATIONS (POINTS & REASONS)</div>
-          <div class="points-grid" id="points-grid">
-            <!-- Populated dynamically with point cards -->
-          </div>
-        </div>
-
-        <!-- Renter Safety Advice -->
-        <div class="safety-card">
-          <div class="safety-title">💡 What You Should Do (Renter Safety Checklist):</div>
-          <ul class="safety-checklist" id="safety-checklist">
-            <li>Never transfer any token, gate fee, or courier charge via UPI before an in-person flat walkthrough.</li>
-            <li>Meet the building caretaker, security guard, or current tenant at the society entrance first.</li>
-            <li>If the poster claims to be an Army/CISF officer who cannot meet due to transfer, treat it with extreme caution.</li>
-          </ul>
-        </div>
-      </section>
-    </main>
-
-    <!-- Bottom Section: Image Fingerprinting & Evaluation Showcase -->
-    <section class="bottom-grid">
-      <!-- dHash Visualizer -->
-      <div class="panel dhash-panel">
-        <div class="panel-header">
-          <h2>64-bit dHash & Hamming Distance Visualizer</h2>
-          <span class="subtitle">Perceptual gradient comparison resilient to scaling and re-encoding</span>
-        </div>
-        <div class="dhash-content">
-          <div class="hash-input-block">
-            <div class="hash-box">
-              <label>Hash A (Base Listing):</label>
-              <input type="text" id="hash-a" value="a4c28f1107be924d" maxlength="16" class="code-input">
-            </div>
-            <div class="hash-box">
-              <label>Hash B (Compared Photo):</label>
-              <input type="text" id="hash-b" value="a4c28f1107be924f" maxlength="16" class="code-input">
+        <!-- Right Column: Watchlist, Live Inline Sparkline & Compare Matrix -->
+        <section class="panel results-panel">
+          <div class="panel-header">
+            <div class="title-with-actions">
+              <div>
+                <h2>Your Saved Watchlist (<span id="demo-wl-count">0</span>)</h2>
+                <span class="subtitle">Local-first browser storage • Price change history sparklines</span>
+              </div>
+              <button type="button" class="btn btn-secondary" id="btn-demo-export-csv">
+                📥 Export Shortlist (CSV)
+              </button>
             </div>
           </div>
-          <div class="hash-result-box" id="hamming-result-box">
-            <div class="metric-group">
-              <span class="m-val" id="hamming-dist-val">2 bits</span>
-              <span class="m-lbl">Hamming Distance (out of 64)</span>
-            </div>
-            <div class="metric-badge" id="hamming-verdict">
-              Duplicate Match (≤ 10 bits difference)
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Evaluation Metrics Card -->
-      <div class="panel eval-panel">
-        <div class="panel-header">
-          <h2>Empirical Evaluation Benchmark</h2>
-          <span class="subtitle">Tested on 250 Indian listings (70% train / 30% held-out test)</span>
-        </div>
-        <div class="eval-metrics-grid">
-          <div class="stat-box">
-            <span class="s-number">100.0%</span>
-            <span class="s-label">Precision</span>
+          <!-- Side-by-side Compare Matrix (when 2+ selected) -->
+          <div class="compare-card-section" id="demo-compare-section" style="display: none;">
+            <div class="compare-card-head">
+              <span>⚖️ Side-by-Side Comparison (<span id="demo-compare-count">0</span> selected)</span>
+              <button type="button" class="btn-text-link" id="btn-demo-clear-compare">Clear Selection</button>
+            </div>
+            <div class="compare-matrix-scroll" id="demo-compare-matrix">
+              <!-- Populated dynamically with highlighted best values -->
+            </div>
           </div>
-          <div class="stat-box">
-            <span class="s-number">74.4%</span>
-            <span class="s-label">Recall</span>
+
+          <!-- Tracked Cards Container -->
+          <div class="demo-watchlist-cards" id="demo-watchlist-cards">
+            <!-- Populated dynamically -->
           </div>
-          <div class="stat-box">
-            <span class="s-number">0.853</span>
-            <span class="s-label">F1-Score</span>
-          </div>
-          <div class="stat-box">
-            <span class="s-number">86.7%</span>
-            <span class="s-label">Accuracy</span>
-          </div>
-        </div>
-        <div class="eval-footer-note">
-          Zero False Positives on held-out test split (0 defamatory false accusations).
-        </div>
-      </div>
-    </section>
+        </section>
+      </main>
+    </div>
   </div>
 
   <script type="module" src="app.js"></script>

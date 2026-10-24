@@ -57,3 +57,36 @@ export function parseBHK(raw) {
   if (/rk/i.test(raw)) return 1;
   return null;
 }
+
+/**
+ * Extracts area in square feet (e.g. "1,250 sq.ft", "900 sqft", "1450 sq ft")
+ * @param {string} raw
+ * @returns {number|null}
+ */
+export function parseArea(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  const match = raw.match(/([\d,]+(?:\.\d+)?)\s*(?:sq\.?\s*ft|sqft|sq-ft|square\s*feet)/i);
+  if (match) {
+    const num = parseFloat(match[1].replace(/,/g, ''));
+    return isNaN(num) ? null : Math.round(num);
+  }
+  return null;
+}
+
+/**
+ * Extracts floor level from strings like "4th of 12 floors", "3rd floor", "Ground"
+ * @param {string} raw
+ * @returns {number|null}
+ */
+export function parseFloor(raw) {
+  if (!raw || typeof raw !== 'string') return null;
+  if (/ground/i.test(raw)) return 0;
+  if (/basement|lower\s*ground/i.test(raw)) return -1;
+  const match = raw.match(/(\d+)(?:st|nd|rd|th)?\s*(?:floor|\s*of\s*\d+\s*floors)/i);
+  if (match) {
+    const fl = parseInt(match[1], 10);
+    return isNaN(fl) ? null : fl;
+  }
+  return null;
+}
+

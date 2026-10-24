@@ -75,3 +75,42 @@ def test_analyze_endpoint_scam_signals():
     for fact in data["observable_facts"]:
         assert "scammer" not in fact.lower()
         assert "fraud" not in fact.lower()
+
+def test_cross_portal_matches_and_deduplication():
+    shared_hash = "a1b2c3d4e5f60718"
+
+    # 1. Record listing on MagicBricks at ₹40,000
+    client.post("/api/v1/observe", json={
+        "portal": "magicbricks",
+        "listing_key": "mb:cross-1",
+        "locality": "Indiranagar",
+        "bhk": 2,
+        "rent": 40000,
+        "deposit": 120000,
+        "area_sqft": 1250,
+        "floor": 3,
+        "image_hash": shared_hash
+    })
+
+    # 2. Query matches from NoBroker perspective (where rent is ₹42,000)
+    match_res = client.get(
+        f"/api/v1/matches?rent=42000&portal=nobroker&listing_key=nb:cross-2&locality=Indiranagar&bhk=2&area_sqft=1250&floor=3&image_hash={shared_hash}"
+    )
+    assert match_res.status_code == 200
+    match_data = match_res.json()
+    assert match_data["match_count"] >= 1
+    best_match = match_data["matches"][0]
+    assert best_match["portal"] == "magicbricks"
+    assert best_match["rent"] == 40000
+    assert best_match["rent_delta"] == -2000  # 2,000 cheaper on magicbricks
+    assert "Matching photo fingerprint" in best_match["reasons"][0]
+    assert "Same locality and BHK" in best_match["reasons"][1]
+
+def test_locality_stats_sample_size():
+    res = client.get("/api/v1/locality-stats?locality=indiranagar&bhk=2")
+    assert res.status_code == 200
+    data = res.json()
+    assert "sample_size" in data
+    assert "confidence" in data
+    assert data["sample_size"] >= 1
+

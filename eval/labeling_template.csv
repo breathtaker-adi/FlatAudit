@@ -1,0 +1,13 @@
+# FlatAudit Multi-City Real Listing Labeling Template
+# Instructions:
+# 1. Inspect real rental listings on major portals (NoBroker, MagicBricks, 99acres, Housing).
+# 2. Extract visible parameters: City, Locality, BHK, Rent, Deposit, Title, Description.
+# 3. Label as 'normal' or 'suspicious'. Provide a 1-sentence verifiable observable reason.
+# 4. Never record personal phone numbers, names, or private identities.
+#
+id,city,locality,bhk,rent,deposit,title,description,image_hash,is_duplicate_photo,label,reason,split
+1,Bengaluru,Indiranagar,2,42000,160000,"2 BHK Semi Furnished Flat for Rent in Indiranagar","Well ventilated 2 BHK apartment near 100 Feet Road. Guard available for direct in-person viewing.",10a2f4c8b9d3e512,False,normal,Market rent matches locality median (~40k) with direct gate viewing.,test
+2,Bengaluru,Indiranagar,2,14000,20000,"Urgent 2 BHK Full Furnished Flat in Indiranagar","Owner transferred to border security camp. Gate pass entry fee Rs 2000 mandatory before viewing via UPI barcode slip.",a4c28f1107be924d,True,suspicious,Bait rent 65% below median with military pretext and advance entry slip demand.,test
+3,Mumbai,Powai,2,58000,200000,"2 BHK Flat in Hiranandani Gardens Powai","Modern 2 BHK with piped gas and reserved parking. Caretaker holds keys for walk-in inspections.",55e70b13c4d68023,False,normal,Normal market rent for Powai Hiranandani complex (~55k-60k).,test
+4,Gurgaon,Cyber City,2,12500,20000,"Urgent 2 BHK Penthouse near Cyber City Metro","Defense officer transfer. Society security gate registration token Rs 2000 required before physical entrance.",f1e2d3c4b5a69788,True,suspicious,Bait pricing 70% below market with gate registration fee demanded via UPI.,test
+5,Pune,Hinjawadi,2,24000,50000,"2 BHK Semi Furnished Flat in Hinjawadi Phase 1","Ideal for IT engineers. Direct viewing through society security guard.",33a58d9be2f46801,False,normal,Market rate aligns with Hinjawadi Phase 1 2BHK median (~23k).,test

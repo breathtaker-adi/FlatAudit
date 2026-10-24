@@ -3,32 +3,154 @@ import { parseMagicBricks } from './magicbricks.js';
 import { parse99acres } from './ninety_nine_acres.js';
 import { parseHousing } from './housing.js';
 import { parseGeneric } from './generic.js';
+import { parseIndianCurrency, parseBHK, parseArea } from './currency.js';
+import { parseCoordinatesFromPage } from '../geohash.js';
 
 /**
  * Identifies the portal and parses listing attributes from a Document object.
+ * Also parses geographic coordinates and geohash if present.
  * @param {Document} document
  * @param {string} [url]
  * @returns {object} Extracted listing details
  */
 export function extractListing(document, url = '') {
   const currentUrl = url || (typeof window !== 'undefined' ? window.location.href : '');
+  let listing = null;
 
   // Detect via URL or explicit DOM marker
   if (currentUrl.includes('nobroker.in') || document.querySelector('[data-portal="nobroker"]')) {
-    return parseNoBroker(document);
-  }
-  if (currentUrl.includes('magicbricks.com') || document.querySelector('[data-portal="magicbricks"]')) {
-    return parseMagicBricks(document);
-  }
-  if (currentUrl.includes('99acres.com') || document.querySelector('[data-portal="99acres"]')) {
-    return parse99acres(document);
-  }
-  if (currentUrl.includes('housing.com') || document.querySelector('[data-portal="housing"]')) {
-    return parseHousing(document);
+    listing = parseNoBroker(document, currentUrl);
+  } else if (currentUrl.includes('magicbricks.com') || document.querySelector('[data-portal="magicbricks"]')) {
+    listing = parseMagicBricks(document, currentUrl);
+  } else if (currentUrl.includes('99acres.com') || document.querySelector('[data-portal="99acres"]')) {
+    listing = parse99acres(document, currentUrl);
+  } else if (currentUrl.includes('housing.com') || document.querySelector('[data-portal="housing"]')) {
+    listing = parseHousing(document, currentUrl);
+  } else {
+    listing = parseGeneric(document, currentUrl);
   }
 
-  // Fallback to generic heuristic
-  return parseGeneric(document);
+  // Enrich with coordinates and geohash if available in DOM
+  const geo = parseCoordinatesFromPage(document);
+  if (geo) {
+    listing.lat = geo.lat;
+    listing.lng = geo.lng;
+    listing.geohash = geo.geohash;
+  }
+
+  listing.isValid = isListingValid(listing);
+  return listing;
+}
+
+/**
+ * Validates that a parsed listing contains essential non-empty fields: rent, bhk, locality.
+ * @param {object} listing 
+ * @returns {boolean}
+ */
+export function isListingValid(listing) {
+  if (!listing || typeof listing !== 'object') return false;
+  return Boolean(
+    listing.rent &&
+    typeof listing.rent === 'number' &&
+    listing.rent > 0 &&
+    listing.bhk &&
+    typeof listing.bhk === 'number' &&
+    listing.bhk >= 1 &&
+    listing.locality &&
+    typeof listing.locality === 'string' &&
+    listing.locality.trim().length > 0
+  );
+}
+
+/**
+ * Parses peer listing cards from a search results page or recommended listings section.
+ * Returns an array of comparable listings { rent, bhk, deposit, area_sqft, locality }.
+ * 
+ * @param {Document} document 
+ * @param {string} [url] 
+ * @returns {Array<object>} Array of parsed peer listings
+ */
+export function parsePeerListingsFromPage(document, url = '') {
+  if (!document || typeof document.querySelectorAll !== 'function') return [];
+
+  const peers = [];
+
+  // 1. MagicBricks search cards
+  const mbCards = document.querySelectorAll('.mb-srp__card');
+  if (mbCards.length >= 3) {
+    for (const card of mbCards) {
+      const priceEl = card.querySelector('.mb-srp__card__price--amount, [class*="price--amount"]');
+      const rent = priceEl ? parseIndianCurrency(priceEl.textContent) : null;
+      if (rent && rent > 0) {
+        const bhkEl = card.querySelector('[data-field="bhk"] .val, [class*="bhk"]');
+        const areaEl = card.querySelector('[data-field="area"] .val, [class*="area"]');
+        const depEl = card.querySelector('[data-field="deposit"] .val, [class*="deposit"]');
+        const locEl = card.querySelector('.mb-srp__card--locality, [class*="locality"]');
+
+        peers.push({
+          rent,
+          bhk: bhkEl ? parseBHK(bhkEl.textContent) : 2,
+          area_sqft: areaEl ? parseArea(areaEl.textContent) : null,
+          deposit: depEl ? parseIndianCurrency(depEl.textContent) : null,
+          locality: locEl ? locEl.textContent.trim() : ''
+        });
+      }
+    }
+    return peers;
+  }
+
+  // 2. 99acres search tuples
+  const acresCards = document.querySelectorAll('.srpTuple__tupleDetails, .srpTuple__priceWrap');
+  if (acresCards.length >= 3) {
+    for (const card of acresCards) {
+      const parent = card.closest('.srpTuple__tupleDetails') || card;
+      const priceEl = parent.querySelector('.srpTuple__price:not([class*="Wrap"]), [id*="priceDisplay"]');
+      const rent = priceEl ? parseIndianCurrency(priceEl.textContent) : null;
+      if (rent && rent > 0) {
+        const bhkEl = parent.querySelector('.unit-type, [class*="configuration"]');
+        const areaEl = parent.querySelector('.super-area, [class*="area"]');
+        const depEl = parent.querySelector('.srpTuple__deposit, [class*="deposit"]');
+        const locEl = parent.querySelector('.srpTuple__subLocation, [class*="subLocation"]');
+
+        peers.push({
+          rent,
+          bhk: bhkEl ? parseBHK(bhkEl.textContent) : 2,
+          area_sqft: areaEl ? parseArea(areaEl.textContent) : null,
+          deposit: depEl ? parseIndianCurrency(depEl.textContent) : null,
+          locality: locEl ? locEl.textContent.trim() : ''
+        });
+      }
+    }
+    return peers;
+  }
+
+  // 3. NoBroker cards
+  const nbCards = document.querySelectorAll('[data-listing-id], .srp-tuple, [class*="card"]');
+  const seenNbIds = new Set();
+  for (const card of nbCards) {
+    const id = card.getAttribute('data-listing-id') || card.id;
+    if (id && seenNbIds.has(id)) continue;
+    if (id) seenNbIds.add(id);
+
+    const priceEl = card.querySelector('#price-display, .rent-item .value, [id*="rent"], [class*="price"]');
+    const rent = priceEl ? parseIndianCurrency(priceEl.textContent) : null;
+    if (rent && rent >= 4000 && rent <= 1000000) {
+      const bhkEl = card.querySelector('#bhk-display, .bhk-item .value, [class*="bhk"]');
+      const areaEl = card.querySelector('.area-item .value, [id*="area"], [class*="area"]');
+      const depEl = card.querySelector('#deposit-display, .deposit-item .value, [id*="deposit"]');
+      const locEl = card.querySelector('.locality-subtext, [class*="locality"]');
+
+      peers.push({
+        rent,
+        bhk: bhkEl ? parseBHK(bhkEl.textContent) : 2,
+        area_sqft: areaEl ? parseArea(areaEl.textContent) : null,
+        deposit: depEl ? parseIndianCurrency(depEl.textContent) : null,
+        locality: locEl ? locEl.textContent.trim() : ''
+      });
+    }
+  }
+
+  return peers;
 }
 
 export {
