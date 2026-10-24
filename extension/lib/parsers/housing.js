@@ -1,0 +1,37 @@
+import { parseIndianCurrency, parseBHK } from './currency.js';
+
+export function parseHousing(document) {
+  const container = document.querySelector('[data-portal="housing"]') || document.body;
+
+  const titleEl = container.querySelector('.css-title, h1');
+  const title = titleEl ? titleEl.textContent.trim() : '';
+
+  const localityEl = container.querySelector('.css-locality, [class*="locality"]');
+  const locality = localityEl ? localityEl.textContent.trim() : '';
+
+  const rentEl = container.querySelector('.css-spec-row.rent .val, [class*="rent"] .val');
+  const rent = rentEl ? parseIndianCurrency(rentEl.textContent) : null;
+
+  const depositEl = container.querySelector('.css-spec-row.deposit .val, [class*="deposit"] .val');
+  const deposit = depositEl ? parseIndianCurrency(depositEl.textContent) : null;
+
+  const bhkEl = container.querySelector('.css-spec-row.bhk .val, [class*="bhk"] .val');
+  const bhk = bhkEl ? parseBHK(bhkEl.textContent) : (parseBHK(title) || 2);
+
+  const descEl = container.querySelector('.css-desc-text, [class*="desc"]');
+  const description = descEl ? descEl.textContent.trim() : '';
+
+  const imageEls = Array.from(container.querySelectorAll('.css-slide-img, img'));
+  const images = imageEls.map(img => img.src || img.getAttribute('src')).filter(Boolean);
+
+  return {
+    portal: 'housing',
+    title,
+    locality,
+    rent,
+    deposit,
+    bhk,
+    description,
+    images
+  };
+}
