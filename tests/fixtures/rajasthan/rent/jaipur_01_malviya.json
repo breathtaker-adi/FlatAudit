@@ -1,0 +1,36 @@
+{
+  "$schema": "../../schemas/listing_fixture.schema.json",
+  "id": "RAJ-RENT-JAI-001",
+  "meta": {
+    "city": "jaipur",
+    "locality": "malviya_nagar",
+    "portal": "nobroker",
+    "capture_date": "2026-10-18",
+    "is_synthetic_stress_test": false
+  },
+  "extracted_features": {
+    "listing_fingerprint": "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92",
+    "monthly_rent": 8500,
+    "security_deposit": 8500,
+    "deposit_rent_ratio": 1.0,
+    "bedrooms": 2,
+    "description_raw": "Fully furnished luxury flat near Malviya Nagar flyover. Owner army officer transferred to border cantt. Need Rs 2500 visiting gate pass fee via UPI before viewing.",
+    "regex_matches": ["RULE_ADVANCE_GATE_PASS_UPI", "RULE_MILITARY_POSTING_EXCUSE"],
+    "image_dhashes": ["d41d8cd98f00b204", "e3a1f4c2b9087a11"],
+    "corpus_duplicate_count": 3
+  },
+  "ground_truth": {
+    "classification": "suspicious",
+    "expected_flags": [
+      "ADVANCE_FEE_REGEX_MATCH",
+      "PRICE_ZSCORE_DEVIATION",
+      "CROSS_LISTING_DUPLICATE_IMAGES"
+    ],
+    "reason": "Classic advance token military transfer pretext requesting UPI visiting fee."
+  },
+  "verification": {
+    "verified_by": "lead_researcher",
+    "verified_on": "2026-10-19",
+    "source_archive_path": "internal_cold_storage/2026_q4/raj_rent_001.png"
+  }
+}

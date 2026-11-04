@@ -1,0 +1,50 @@
+{
+  "$schema": "../../schemas/listing_fixture.schema.json",
+  "id": "RAJ-SALE-JAI-001",
+  "meta": {
+    "city": "jaipur",
+    "locality": "mansarovar",
+    "portal": "99acres",
+    "capture_date": "2026-10-12",
+    "is_synthetic_stress_test": false
+  },
+  "extracted_features": {
+    "listing_fingerprint": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "property_type": "apartment",
+    "transaction_type": "new_booking",
+    "agreed_price": 4200000,
+    "built_up_area_sq_m": 85.0,
+    "carpet_area_sq_m": 62.0,
+    "road_width_ft": 30,
+    "is_main_road": false,
+    "is_corner_plot": false,
+    "rera_registration_number": "RAJ/P/2023/1234",
+    "declared_promoter_name": "Example Infra LLP",
+    "raj_rera_dossier": {
+      "physical_progress_pct": 52.0,
+      "funds_withdrawn_pct": 78.5,
+      "cost_incurred_pct": 51.2,
+      "qpr_filing_lag_days": 110,
+      "velocity_metrics": {
+        "runway_months_remaining": 6,
+        "historic_velocity_pct_per_quarter": 3.0
+      }
+    }
+  },
+  "ground_truth": {
+    "classification": "high_risk",
+    "expected_flags": [
+      "ESCROW_OVERDRAWN",
+      "IMPROBABLE_DEADLINE",
+      "COMPLIANCE_NON_REPORTING"
+    ],
+    "calculated_dlc_value": 1683000,
+    "underreported_tax_risk": false,
+    "reason": "Form R-3 demonstrates +27.3% escrow withdrawal above certified work; QPR overdue by >90 days."
+  },
+  "verification": {
+    "verified_by": "lead_researcher",
+    "verified_on": "2026-10-15",
+    "source_archive_path": "internal_cold_storage/2026_q4/raj_sale_001.pdf"
+  }
+}

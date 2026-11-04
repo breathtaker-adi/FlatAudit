@@ -2,7 +2,10 @@
   "state": "Karnataka",
   "city": "Bengaluru",
   "effectiveDate": "2024-01-01",
+  "verification_status": "provisional_circular_rate",
+  "verified_by_hand": false,
   "source": "Department of Stamps and Registration, Government of Karnataka (Kaveri 2.0)",
+  "sourceUrl": "https://kaveri.karnataka.gov.in",
   "disclaimer": "Government guidance value represents the minimum reference rate for stamp duty calculation. It is not an open market valuation.",
   "localities": {
     "indiranagar": {

@@ -149,36 +149,42 @@ export function parseReraId(raw) {
   if (!raw || typeof raw !== 'string') return null;
 
   // 1. Look for specific state RERA formats first
-  const stateMatch = raw.match(/\b(PRM\/KA\/RERA\/[\w\/\-]+|ACK\/KA\/RERA\/[\w\/\-]+|P\d{11}|P\d{9}|HRERA[-\w\/\-]+)\b/i);
+  const stateMatch = raw.match(
+    /\b(RAJ\s*[\/\-]\s*[PA]\s*[\/\-]\s*\d{4}\s*[\/\-]\s*\d+|RAJ-?RERA[-\w\/\-]+|PRM\/KA\/RERA\/[\w\/\-]+|ACK\/KA\/RERA\/[\w\/\-]+|P\d{11}|P\d{9}|HRERA[-\w\/\-]+|UPRERA[-\w\/\-]+|PR\/GJ\/[\w\/\-]+|DLRERA[\w\/\-]+)\b/i
+  );
   if (stateMatch) {
-    return stateMatch[1].trim();
+    return stateMatch[1].trim().replace(/\s+/g, '');
   }
 
-  // 2. Generic RERA prefix: match "RERA" followed by optional descriptors and delimiter
+  // 2. Generic RERA prefix: must contain at least 2 digits and not be common descriptive words
   const genericMatch = raw.match(/\bRERA\b(?:\s*(?:Registration|Registered|Regn?|Number|No|ID))?\.?[:\s#-]+([A-Z0-9][A-Z0-9\/\-]{4,})/i);
   if (genericMatch) {
-    return genericMatch[1].trim();
+    const candidate = genericMatch[1].trim();
+    const INVALID_WORDS = /^(?:website|registered|registration|approved|disclaimer|details|status|portal|number|license|got_it|project|projects|amenities|developer|builder|rera|apply)$/i;
+    if (!INVALID_WORDS.test(candidate) && /\d{2,}/.test(candidate)) {
+      return candidate;
+    }
   }
 
   return null;
 }
 
+import { classifyListingType } from './classifier.js';
+
+export { classifyListingType };
+
 /**
- * Determines whether a listing represents a property for sale or rent
+ * Determines whether a listing represents a property for sale or rent.
+ * Uses classifyListingType internally. If classification is unknown, defaults to 'rent'
+ * for backward compatibility with legacy single-mode callers.
+ * 
  * @param {string} rawText
  * @param {string} [url='']
- * @returns {'sale'|'rent'}
+ * @returns {'sale'|'rent'|'unknown'}
  */
 export function parseListingType(rawText, url = '') {
-  const combined = (rawText + ' ' + url).toLowerCase();
-  if (/\/(?:buy|sale|property-for-sale|buy-property)\b/.test(combined)) return 'sale';
-  if (/\b(?:total\s*price|resale|emi\s*starts|price\s*per\s*sqft|crore|cr\b|possession\s*status)\b/.test(combined)) {
-    if (/\b(?:for\s*rent|monthly\s*rent|security\s*deposit)\b/.test(combined) && !/\b(?:crore|cr\b)/.test(combined)) {
-      return 'rent';
-    }
-    return 'sale';
-  }
-  return 'rent';
+  const result = classifyListingType(null, rawText, url);
+  return result.mode;
 }
 
 

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FlatAudit Expansion Plan: States, Price Freshness, Yearly Memory</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#0f1520;--surf:#172030;--line:#26334a;--text:#e6ebf5;--muted:#9aa8c2;--acc:#7cc4ff;--warn:#f2b84b;--bad:#ff8a80;--ok:#6fd6a0;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.6 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:840px;margin:0 auto;padding:32px 20px 72px}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.5rem;font-weight:700;margin:50px 0 14px}
+h3{font-size:1.1rem;font-weight:700;margin-bottom:6px}
+p{margin:0 0 12px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:62ch;margin-top:14px}
+ul{margin:6px 0;padding-left:20px}
+li{margin:4px 0}
+.box{background:var(--surf);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:8px;padding:14px 16px;margin:16px 0}
+.box.warn{border-left-color:var(--warn)}
+.box.ok{border-left-color:var(--ok)}
+.box.bad{border-left-color:var(--bad)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cols .box{margin:0}
+.tw{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted)}
+pre{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font:.85rem/1.5 ui-monospace,Menlo,Consolas,monospace;margin:12px 0}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--surf);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.wk{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:16px 0}
+.wk header{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.wk .t{font-size:.82rem;color:var(--muted)}
+.done{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);color:var(--ok)}
+.ck{list-style:none;padding:0}
+.ck li{display:flex;gap:9px;align-items:flex-start}
+.ck input{margin-top:6px;accent-color:var(--acc);width:16px;height:16px;flex:none}
+.ck input:checked+span{color:var(--muted);text-decoration:line-through}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:18px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .25s}
+.note{font-size:.88rem;color:var(--muted)}
+@media (max-width:640px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<h1>Expansion plan: more states, fresher prices, yearly memory</h1>
+<p class="lead">Adds Rajasthan and other states, fixes rent-vs-sale detection, handles sudden price moves, keeps a multi-year record, and sets honest expectations about price-history APIs.</p>
+<div class="bar" aria-hidden="true"><i id="fill"></i></div>
+<p class="note" id="pct">0% complete</p>
+
+<h2>Fix these before expanding</h2>
+<div class="box warn"><ul>
+<li><b>Verify the pilot data by hand.</b> The 20 Karnataka projects (registration IDs, completion dates, escrow banks, litigation fields), the bundled guidance values and the Karnataka stamp-duty and GST figures must each be checked against the official portal or government notice. If any was generated from memory, it can be wrong, and a wrong “official” date is worse than no data. Add a <code>verified_on</code> date and source URL to every record, and hide records without them.</li>
+<li><b>Rent vs sale detection is a blocker.</b> Wrong mode means wrong benchmarks and wrong signals. Fix it first (see below).</li>
+<li><b>Re-word the circle-rate flag.</b> “High-risk anomaly” for prices far below a guidance value breaks your own wording guide. Say what is observable: “Asking price per sq ft is X% below the state guidance value (source, date).” Low prices have innocent causes too.</li>
+<li><b>Treat 30 real listings as a smoke test.</b> Each new state needs its own labeled set.</li>
+</ul></div>
+
+<h2>Your questions, answered</h2>
+<div class="cols">
+<div class="box"><h3>Detect rent or sale</h3><p>Combine independent signals and show “can’t tell” when they disagree, with a one-tap switch the user can set. Details in Phase 0.</p></div>
+<div class="box"><h3>Sudden price hikes</h3><p>Compare a recent window to a baseline, using repeat listings and like-for-like groups, and show “market moved” with sample sizes. Details in Phase 1.</p></div>
+<div class="box"><h3>Remember every year</h3><p>Keep raw listings for a short time, but keep monthly area statistics for years, plus dated data files. Details in Phase 1.</p></div>
+<div class="box"><h3>APIs for price history</h3><p>No free official source I know of gives per-listing price history for Indian properties. Area averages come from your own backend; official indices add context. Details below.</p></div>
+</div>
+
+<h2>Price data: what exists</h2>
+<div class="tw"><table>
+<tr><th>Source</th><th>Gives</th><th>Limits</th></tr>
+<tr><td>Your own aggregates</td><td>Mean/median price per area, trend, repeat-price changes, time on market</td><td>Needs users and weeks of data; the main source</td></tr>
+<tr><td>RBI House Price Index</td><td>Quarterly index for major cities, built from registration-authority transaction data; time series on RBI’s data portal</td><td>City-level, sales only, quarterly lag, provisional latest figures; context, not a listing price</td></tr>
+<tr><td>Rent index</td><td>Official consumer price indices include housing rent components</td><td>Coarse and not per locality; verify current series before use</td></tr>
+<tr><td>Commercial data providers</td><td>Locality price series</td><td>Licensed and paid; check terms before any use</td></tr>
+<tr><td>Portal APIs</td><td>Usually none public for listing data</td><td>Don’t assume access; partner-only at best</td></tr>
+<tr><td>Third-party scraper services</td><td>Bulk listing data</td><td>Same Terms of Service and blocking risk as scraping yourself; avoid</td></tr>
+<tr><td>Registration-department records</td><td>Actual sale values</td><td>Access, format and terms differ by state; I haven’t verified current options</td></tr>
+</table></div>
+<div class="box ok"><b>Design for it:</b> add a <code>PriceSource</code> interface (<code>getAreaStats(cell, type, bhk)</code>, <code>getIndex(city, type)</code>). Your backend implements it today; an official index or a licensed provider can plug in later without changing the extension. Always label each number with its source, level and date.</div>
+
+<h2>Architecture for many states</h2>
+<pre>states/
+  registry.json         // id, name, portal URL, ID pattern, link template, status
+  karnataka.js          // StateAdapter
+  rajasthan.js
+  ...
+StateAdapter {
+  id, portalUrl, idPattern,
+  linkOut(reraId),                 // official search URL
+  parseProjectPage(doc),           // user-opened page only
+  fieldMap, fixtures[], healthCheck(),
+  costRules: "data/costs/&lt;state&gt;.json",       // effective_from, source, verified_on
+  guidanceValues: "data/guidance/&lt;state&gt;.json"
+}
+ProjectFacts = same schema for every state, with a "fields found" list</pre>
+<ul>
+<li>Detect the state from the RERA ID pattern, the listing’s city, or the portal page; show “this state isn’t supported yet” instead of guessing.</li>
+<li>Build a field-coverage matrix per state: which facts exist, which don’t.</li>
+<li>Add states one at a time with the same template; stop when each takes days, not weeks.</li>
+</ul>
+
+<h2>Plan (about 12–14 weeks, one state at a time)</h2>
+
+<section class="wk"><header><h3>Phase 0: Truth audit and rent/sale detection</h3><span class="t">about 1–2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Check every pilot project, guidance value and cost rule against its official source; add <code>source</code>, <code>verified_on</code>, <code>effective_from</code>; drop what you can’t verify</span></li>
+<li><input type="checkbox"><span>Rent/sale classifier: URL words, breadcrumb and title, price units (per month, Lakh, Cr), presence of deposit or RERA/possession, portal-specific markers</span></li>
+<li><input type="checkbox"><span>Score signals; require at least two independent agreeing signals, otherwise mode = unknown</span></li>
+<li><input type="checkbox"><span>Unknown shows a mode switch; remember the user’s choice per listing key</span></li>
+<li><input type="checkbox"><span>Edge cases: PG and shared rooms, plots, commercial, lease, “rent or sale” ads; mark unsupported ones</span></li>
+<li><input type="checkbox"><span>Test on 100+ real pages per portal, in several cities; target 98%+ correct mode, with unknown allowed but wrong not</span></li>
+<li><input type="checkbox"><span>Rewrite the circle-rate message in neutral wording</span></li></ul>
+<div class="done">Done when: wrong-mode results are rare, unknown is handled gracefully, and all shipped data has a source and date.</div></section>
+
+<section class="wk"><header><h3>Phase 1: Price freshness and yearly memory</h3><span class="t">about 2–3 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Keep raw observations for about 90 days only, then drop them</span></li>
+<li><input type="checkbox"><span>Table <code>cell_month</code>: cell, month, type, BHK, property type, status, n, median, p25, p75, MAD, price per sq ft median; keep for years, publish only when contributors ≥ k</span></li>
+<li><input type="checkbox"><span>Archive monthly packs (<code>packs/YYYY-MM/</code>); the extension caches the last 13 months for a cell for year-over-year views</span></li>
+<li><input type="checkbox"><span>Recency-weighted benchmark: recent listings count more; shorter window for rent than for sale; tune on real data</span></li>
+<li><input type="checkbox"><span>Spike check: compare the last 30 days with the prior 90 days per cell; require enough samples in both; show “moved +X% (n=A/B)”</span></li>
+<li><input type="checkbox"><span>Use repeat-listing price changes as the main evidence, plus like-for-like groups, so new premium listings don’t fake a hike</span></li>
+<li><input type="checkbox"><span>When the market is moving fast, widen the “typical range” and lower confidence instead of flagging more listings</span></li>
+<li><input type="checkbox"><span>Rent seasonality: compare against the same months last year once available</span></li>
+<li><input type="checkbox"><span>Cap each contributor’s influence and dedupe per listing per day to resist skew and fake data</span></li>
+<li><input type="checkbox"><span>Local watchlist: keep full detail for recent months, weekly points for older ones; CSV backup</span></li>
+<li><input type="checkbox"><span>Data files (stamp duty, guidance values) carry <code>effective_from</code> and <code>valid_until</code>; show “may be outdated” after a year and set a yearly review reminder</span></li></ul>
+<div class="done">Done when: an area page shows current median, 30-day movement, 12-month trend, sample sizes and last update.</div></section>
+
+<section class="wk"><header><h3>Phase 2: Source abstraction and index context</h3><span class="t">about 1 week</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Implement the <code>PriceSource</code> interface with your backend as the first provider</span></li>
+<li><input type="checkbox"><span>Add an optional city index series from the RBI House Price Index, shown as “city index, quarterly” with its date</span></li>
+<li><input type="checkbox"><span>Never mix index values with listing prices in one number; show side by side</span></li>
+<li><input type="checkbox"><span>Record each source’s terms and refresh schedule in the docs</span></li></ul>
+<div class="done">Done when: swapping a source needs no extension change.</div></section>
+
+<section class="wk"><header><h3>Phase 3: Rajasthan</h3><span class="t">about 3 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Read the official Rajasthan RERA portal’s project and promoter pages; note the fields and search options (project name, registration number, promoter, district)</span></li>
+<li><input type="checkbox"><span>Save 10 sanitized project pages as fixtures; define the field map and ID pattern from the official records</span></li>
+<li><input type="checkbox"><span>Build <code>rajasthan.js</code>: link-out, user-opened page reader, health check; include quarterly progress report data if present</span></li>
+<li><input type="checkbox"><span>Hand-build a verified pilot file for about 20 projects in Jaipur and one tier-2 city such as Jodhpur, each with source and date</span></li>
+<li><input type="checkbox"><span>Rajasthan cost rules: stamp duty, registration and local guidance rates (check the local name and notices); verified and dated</span></li>
+<li><input type="checkbox"><span>Label 50 real sale and 50 real rent listings from Rajasthan cities; report accuracy, mode detection and field extraction</span></li></ul>
+<div class="done">Done when: a Rajasthan listing reaches its official project page and shows verified, dated facts.</div></section>
+
+<section class="wk"><header><h3>Phase 4: Maharashtra, then Telangana, then Haryana</h3><span class="t">about 2–3 weeks each, sequential</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Repeat the adapter template: fixtures, field map, health check, verified pilot file, cost rules</span></li>
+<li><input type="checkbox"><span>Label 50 real sale listings and check mode detection per state</span></li>
+<li><input type="checkbox"><span>Stop adding states if one takes more than 4 weeks; document what blocked it</span></li></ul>
+<div class="done">Done when: each state has a coverage entry, field accuracy and a labeled set.</div></section>
+
+<section class="wk"><header><h3>Phase 5: Honest coverage and release v1.2</h3><span class="t">about 1–2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Coverage map in the README and popup: supported, link-out only, not supported</span></li>
+<li><input type="checkbox"><span>Per-state metrics table: field accuracy, mode detection, link success, sample sizes</span></li>
+<li><input type="checkbox"><span>Update threat model, privacy policy and permissions for new states and the monthly pack archive</span></li>
+<li><input type="checkbox"><span>Real-user test with 5+ people, including one in Rajasthan; tag v1.2</span></li></ul>
+<div class="done">Done when: every claim in the README is backed by a number and a date.</div></section>
+
+<h2>Metrics</h2>
+<ul>
+<li><b>Mode detection:</b> % correct, % unknown, % wrong (target near zero wrong).</li>
+<li><b>Field extraction per state:</b> % of key fields matching the official page.</li>
+<li><b>Freshness:</b> median age of the data behind each verdict; share of verdicts with a visible sample size.</li>
+<li><b>Spike check:</b> back-test on any period where you know prices moved; count false alarms.</li>
+</ul>
+
+<h2>Risks</h2>
+<div class="box warn"><b>Stale or wrong official data:</b> portals and rates change. Dates, sources and “may be outdated” warnings are mandatory.</div>
+<div class="box warn"><b>Cold start in smaller cities:</b> most verdicts will say “not enough data”. That is the correct answer.</div>
+<div class="box warn"><b>Too many states:</b> one person can’t maintain many portal readers. Go sequential and stop when upkeep exceeds your time.</div>
+<div class="box warn"><b>Index misuse:</b> a city index is not a flat’s value. Keep them visibly separate.</div>
+
+<h2>Next 7 days</h2>
+<div class="box ok"><ul>
+<li>Verify 10 of the 20 pilot projects against K-RERA and write down every mismatch.</li>
+<li>Collect 30 rent and 30 sale pages from two portals and test the current mode detection.</li>
+<li>Open the Rajasthan RERA project and promoter pages and list the fields you see.</li></ul></div>
+</main>
+<script>
+(function(){
+var K="flataudit-expansion-v1",boxes=[].slice.call(document.querySelectorAll('.ck input')),saved=[];
+try{saved=JSON.parse(localStorage.getItem(K)||"[]")}catch(e){}
+boxes.forEach(function(b,i){b.checked=!!saved[i];b.addEventListener('change',upd)});
+function upd(){
+var s=boxes.map(function(b){return b.checked?1:0}),n=s.reduce(function(a,c){return a+c},0),p=boxes.length?Math.round(n*100/boxes.length):0;
+document.getElementById('fill').style.width=p+'%';
+document.getElementById('pct').textContent=p+'% complete ('+n+' of '+boxes.length+' tasks)';
+try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}
+}
+upd();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FlatAudit Roadmap: a Buyhatke-style companion for property</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#0f1520;--surf:#172030;--line:#26334a;--text:#e6ebf5;--muted:#9aa8c2;--acc:#7cc4ff;--warn:#f2b84b;--bad:#ff8a80;--ok:#6fd6a0;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.6 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:840px;margin:0 auto;padding:32px 20px 72px}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.5rem;font-weight:700;margin:50px 0 14px}
+h3{font-size:1.1rem;font-weight:700}
+p{margin:0 0 12px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:62ch;margin-top:14px}
+ul{margin:6px 0;padding-left:20px}
+li{margin:4px 0}
+.box{background:var(--surf);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:8px;padding:14px 16px;margin:16px 0}
+.box.warn{border-left-color:var(--warn)}
+.box.ok{border-left-color:var(--ok)}
+.box.bad{border-left-color:var(--bad)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tw{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted)}
+pre{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font:.85rem/1.5 ui-monospace,Menlo,Consolas,monospace;margin:12px 0}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--surf);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.wk{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:16px 0}
+.wk header{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.wk .t{font-size:.82rem;color:var(--muted)}
+.lbl{font-weight:600;color:var(--acc);margin:10px 0 2px}
+.done{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);color:var(--ok)}
+.ck{list-style:none;padding:0}
+.ck li{display:flex;gap:9px;align-items:flex-start}
+.ck input{margin-top:6px;accent-color:var(--acc);width:16px;height:16px;flex:none}
+.ck input:checked+span{color:var(--muted);text-decoration:line-through}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:18px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .25s}
+.note{font-size:.88rem;color:var(--muted)}
+@media (max-width:640px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<h1>FlatAudit roadmap: a Buyhatke-style companion for property</h1>
+<p class="lead">From “is this listing suspicious?” to “which listing should I pick, what did it cost before, and where else is it listed?” Planned to stay small enough for one person to finish and safe enough to publish.</p>
+<div class="bar" aria-hidden="true"><i id="fill"></i></div>
+<p class="note" id="pct">0% complete</p>
+
+<h2>Fix first: your numbers need real data</h2>
+<div class="box warn"><ul>
+<li><b>Synthetic labels:</b> if <code>labels.csv</code> comes from <code>generate_dataset.py</code>, then “100% precision” measures your rules against your own assumptions. It proves the code runs, not that it works on real listings. Recruiters and reviewers will spot this.</li>
+<li><b>Three copies of the rules:</b> <code>signals.js</code>, <code>evaluate.py</code> (<code>predict_listing_rule</code>) and the backend <code>/analyze</code> can drift apart. The evaluation should exercise the shipped code, not a re-implementation.</li>
+<li><b>Hard-coded benchmarks:</b> city medians in <code>LOCALITY_BENCHMARKS</code> are guesses until checked against real listings.</li>
+<li><b>Parsers on fixtures only:</b> fixtures you wrote will pass; live pages change. Test on real saved pages.</li>
+</ul></div>
+
+<h2>What “Buyhatke for property” means</h2>
+<div class="tw"><table>
+<tr><th>Buyhatke-style feature</th><th>Property equivalent</th><th>Phase</th></tr>
+<tr><td>Price history graph</td><td>Rent and deposit history for each listing you’ve viewed or saved</td><td>1</td></tr>
+<tr><td>Price-drop alerts</td><td>“Rent dropped ₹2,000” or “listing removed” notification</td><td>1</td></tr>
+<tr><td>Compare across sites</td><td>“Also listed on another portal” with the lowest rent seen</td><td>3</td></tr>
+<tr><td>Wishlist</td><td>Shortlist with notes and a side-by-side compare table</td><td>2</td></tr>
+<tr><td>Is this a good deal?</td><td>Rent vs real locality median, rent per sq ft, deposit multiple</td><td>4</td></tr>
+<tr><td>Fake-deal warnings</td><td>Your existing scam signals, kept as one tab</td><td>done</td></tr>
+</table></div>
+
+<h2>Principles that keep it practical</h2>
+<div class="cols">
+<div class="box ok"><h3>Do</h3><ul>
+<li>Local-first: history lives in the browser; the server is optional</li>
+<li>Read only pages the user opens or saves</li>
+<li>Share aggregates (medians, counts), never raw listings or contacts</li>
+<li>Go deep on one portal, then widen</li>
+<li>Keep every number explainable</li></ul></div>
+<div class="box bad"><h3>Don’t</h3><ul>
+<li>Run server-side crawlers of portals</li>
+<li>Republish listing text, photos or phone numbers</li>
+<li>Show a “fraud” verdict on a named person</li>
+<li>Add permissions without updating the threat model</li>
+<li>Chase every city before one city is accurate</li></ul></div>
+</div>
+
+<h2>Phases</h2>
+
+<section class="wk"><header><h3>Phase 0: Make the foundation honest</h3><span class="t">about 1 week</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Hand-label 100+ <b>real</b> listings you opened yourself (private file, not committed)</span></li>
+<li><input type="checkbox"><span>Make <code>evaluate.py</code> call the real <code>signals.js</code> (via a small Node script) or share one JSON rules file</span></li>
+<li><input type="checkbox"><span>Re-run metrics on real data; report precision and recall plus the false positives you found</span></li>
+<li><input type="checkbox"><span>Label the synthetic set clearly as “synthetic, for unit tests only” in the README</span></li>
+<li><input type="checkbox"><span>Replace guessed benchmarks with medians from your real labels, with sample sizes shown</span></li></ul>
+<div class="done">Done when: the README reports metrics on real listings and says how many.</div></section>
+
+<section class="wk"><header><h3>Phase 1: Watchlist and price history</h3><span class="t">2–3 weeks · the Buyhatke core</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Parse a stable listing key per portal (portal + listing ID from the URL) and canonicalize URLs</span></li>
+<li><input type="checkbox"><span>Add a “Track” button in the badge; store snapshots <code>{t, rent, deposit, status}</code> in <code>chrome.storage.local</code></span></li>
+<li><input type="checkbox"><span>Record a new snapshot only when something changed or 24h passed</span></li>
+<li><input type="checkbox"><span>Draw the history as an inline SVG sparkline (no chart library)</span></li>
+<li><input type="checkbox"><span>Popup page: list of tracked listings with current rent and change since first seen</span></li>
+<li><input type="checkbox"><span>Alerts on revisit first (“rent changed since you last saw it”)</span></li>
+<li><input type="checkbox"><span>Optional, opt-in: a slow background re-check of only the listings the user tracks, using <code>chrome.alarms</code> with long, randomized gaps and a low cap</span></li></ul>
+<div class="done">Done when: you track 3 real listings, revisit them over several days, and the history and change notices are correct.</div></section>
+
+<section class="wk"><header><h3>Phase 2: Shortlist and compare</h3><span class="t">about 2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Compare view for 2–4 tracked listings: rent, deposit multiple, area, rent per sq ft, floor, signals fired</span></li>
+<li><input type="checkbox"><span>Highlight the best value in each row; keep a user note per listing</span></li>
+<li><input type="checkbox"><span>Status tags: Interested, Visited, Rejected; export the shortlist as CSV</span></li>
+<li><input type="checkbox"><span>Add “time on market” from your first-seen date, labeled as “first seen by you”</span></li></ul>
+<div class="done">Done when: a friend can choose between three flats using only the compare view.</div></section>
+
+<section class="wk"><header><h3>Phase 3: “Also listed on…” matching</h3><span class="t">2–3 weeks · the clever part</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Extend the backend: store listing key, portal, area, floor and up to 3 image hashes per observation</span></li>
+<li><input type="checkbox"><span>Write a match score: image hash within a small distance (strong), same locality and BHK, rent within about 5%, area within about 3%, same floor</span></li>
+<li><input type="checkbox"><span>Require at least two independent signals; show “likely the same property”, never “the same”</span></li>
+<li><input type="checkbox"><span>Label 30+ true and false pairs by hand and measure match precision</span></li>
+<li><input type="checkbox"><span>UI: “Also seen on Portal B at ₹X” with the user’s own link, not stored third-party content</span></li></ul>
+<div class="done">Done when: match precision on your labeled pairs is reported and wrong matches are understood.</div></section>
+
+<section class="wk"><header><h3>Phase 4: Real market insight from crowd data</h3><span class="t">about 2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Compute locality medians from observations, trimmed for outliers, and show only when the sample is large enough (for example, 10 or more)</span></li>
+<li><input type="checkbox"><span>Fall back to broader area, then to city baseline, and show which level you used</span></li>
+<li><input type="checkbox"><span>Add rent per sq ft and deposit multiple vs local median with a plain verdict (“below / typical / above”)</span></li>
+<li><input type="checkbox"><span>Detect reposts: same hashes and area reappearing under new listing IDs</span></li>
+<li><input type="checkbox"><span>Deduplicate by listing key so one user refreshing cannot skew medians</span></li></ul>
+<div class="done">Done when: no verdict is shown without a visible sample size.</div></section>
+
+<section class="wk"><header><h3>Phase 5: Reach real users safely</h3><span class="t">about 2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Update the threat model for new permissions (storage, alarms, notifications) and justify each</span></li>
+<li><input type="checkbox"><span>Write a plain-language privacy policy; keep telemetry off by default and opt-in</span></li>
+<li><input type="checkbox"><span>Read each supported portal’s Terms of Service and note limits in the README</span></li>
+<li><input type="checkbox"><span>Add a selector health check: a test that fails loudly when a parser returns empty fields</span></li>
+<li><input type="checkbox"><span>User-test with 5–10 people looking for a flat; fix what confuses them</span></li>
+<li><input type="checkbox"><span>Publish to the Chrome Web Store as unlisted first; deploy the backend on a free tier</span></li></ul>
+<div class="done">Done when: 5 real people use it for a week and you have their feedback written down.</div></section>
+
+<section class="wk"><header><h3>Stretch</h3><span class="t">only after phase 5</span></header>
+<ul>
+<li>Phone use: check whether Firefox for Android supports your extension; or add a “paste a link” web page</li>
+<li>Buying side: price per sq ft and a RERA project lookup for one state</li>
+<li>Edge and Firefox ports; localization (Hindi labels)</li></ul></section>
+
+<h2>Data model changes</h2>
+<pre>// local (chrome.storage.local)
+tracked[key] = { portal, listingId, url, firstSeen, status, note,
+                 snapshots: [{ t, rent, deposit, listed: true }] }
+
+-- backend (SQLite now, Postgres if you add more than one server)
+observations(+ portal, listing_key, area_sqft, floor, image_hashes TEXT)
+UNIQUE(portal, listing_key, day)      -- one row per listing per day
+-- later: listing_clusters(cluster_id, listing_key) for cross-portal matches</pre>
+
+<h2>Risks and guardrails</h2>
+<div class="box warn"><b>Portal Terms and blocking:</b> a widely used extension that reads portal pages can attract blocks or notices. Keep it user-driven, rate-limited and aggregate-only, and don’t claim legal safety you haven’t checked.</div>
+<div class="box warn"><b>Cold start:</b> medians and cross-portal matches are weak until many people contribute. Make the local watchlist useful on its own so value doesn’t depend on the crowd.</div>
+<div class="box warn"><b>Selector breakage:</b> every portal redesign breaks a parser. Prefer one portal done well, with fixtures refreshed from real pages.</div>
+<div class="box warn"><b>Wrong matches and false alarms:</b> show confidence and reasons; let users hide a signal they disagree with.</div>
+
+<h2>How to know it works</h2>
+<ul>
+<li><b>Portfolio:</b> precision and recall on real listings; match precision on labeled pairs; a clear “limits” section.</li>
+<li><b>Usage:</b> tracked listings per user, revisits, and how often alerts lead to action.</li>
+<li><b>Trust:</b> zero stored personal data, verified by a test that inspects every API payload.</li>
+</ul>
+
+<h2>Next 7 days</h2>
+<div class="box ok"><ul>
+<li>Open and hand-label 30 real listings; save them as fixtures with personal details removed.</li>
+<li>Wire <code>evaluate.py</code> to the real <code>signals.js</code>.</li>
+<li>Prototype the “Track” button and one stored snapshot for a single portal.</li></ul></div>
+</main>
+<script>
+(function(){
+var K="flataudit-roadmap-v1",boxes=[].slice.call(document.querySelectorAll('.ck input')),saved=[];
+try{saved=JSON.parse(localStorage.getItem(K)||"[]")}catch(e){}
+boxes.forEach(function(b,i){b.checked=!!saved[i];b.addEventListener('change',upd)});
+function upd(){
+var s=boxes.map(function(b){return b.checked?1:0}),n=s.reduce(function(a,c){return a+c},0),p=boxes.length?Math.round(n*100/boxes.length):0;
+document.getElementById('fill').style.width=p+'%';
+document.getElementById('pct').textContent=p+'% complete ('+n+' of '+boxes.length+' tasks)';
+try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}
+}
+upd();
+})();
+</script>
+</body>
+</html>

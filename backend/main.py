@@ -1,4 +1,7 @@
 import re
+import os
+import time
+from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Query, HTTPException, status, Request, Response
@@ -11,7 +14,14 @@ from backend.db import (
     record_observation,
     count_seen_hashes,
     get_locality_stats,
-    find_cross_portal_matches
+    find_cross_portal_matches,
+    detect_price_spike,
+    get_area_trend,
+    rollup_monthly_aggregates,
+    check_stale_packs,
+    get_job_logs,
+    record_telemetry_observation,
+    record_telemetry_feedback
 )
 from backend.models import (
     ObservationCreate,
@@ -22,7 +32,11 @@ from backend.models import (
     CrossPortalMatchResponse,
     AnalyzeRequest,
     AnalyzeResponse,
-    SignalDetail
+    SignalDetail,
+    TelemetryObservationCreate,
+    TelemetryObservationResponse,
+    TelemetryFeedbackCreate,
+    TelemetryFeedbackResponse
 )
 
 @asynccontextmanager
@@ -94,12 +108,25 @@ PHRASE_PATTERNS = [
 
 @app.get("/api/v1/health")
 def health_check():
+    stale_info = check_stale_packs(threshold_days=45, db_file=DB_PATH)
     return {
         "status": "healthy",
         "service": "flataudit-api",
         "version": "1.0.0",
-        "privacy": "no-pii-stored"
+        "privacy": "no-pii-stored",
+        "packs": stale_info
     }
+
+@app.get("/api/v1/jobs/logs")
+def list_job_logs(job_name: Optional[str] = None, limit: int = 20):
+    """Returns recent background job execution logs."""
+    return {"logs": get_job_logs(job_name=job_name, limit=limit, db_file=DB_PATH)}
+
+@app.post("/api/v1/jobs/rollup")
+def trigger_rollup(month: str, force: bool = False):
+    """Executes monthly aggregate rollup for closed months."""
+    return rollup_monthly_aggregates(month_str=month, force=force, db_file=DB_PATH)
+
 
 @app.post("/api/v1/observe", response_model=ObservationResponse, status_code=status.HTTP_201_CREATED)
 def observe_listing(payload: ObservationCreate):
@@ -452,4 +479,136 @@ def get_market_pack(cell: str, request: Request, response: Response):
     response.headers["ETag"] = etag
     response.headers["Cache-Control"] = "public, max-age=86400"
     return json.loads(content)
+
+@app.get("/api/v1/spike-check")
+def check_price_spike(
+    locality: str = Query(..., description="Locality or geohash prefix"),
+    bhk: int = Query(2, ge=1, le=10),
+    listing_type: str = Query("rent")
+):
+    """
+    Evaluates 30-day sudden price spike against 90-day baseline.
+    Requires minimum 5 samples in both windows.
+    Returns delta percentage, repeat listing statistics, and neutral market explanation.
+    """
+    return detect_price_spike(locality, bhk, listing_type, db_file=DB_PATH)
+
+@app.get("/api/v1/area-trend")
+def get_area_trend_route(
+    locality: str = Query(..., description="Locality or geohash cell"),
+    bhk: int = Query(2, ge=1, le=10),
+    listing_type: str = Query("rent"),
+    limit: int = Query(12, ge=1, le=36)
+):
+    """
+    Returns multi-year monthly statistics and recent 30-day spike check for an area.
+    Zero personal data or raw listing URLs are exposed.
+    """
+    return get_area_trend(locality, bhk, listing_type, limit_months=limit, db_file=DB_PATH)
+
+# In-Memory Rate Limiting (Never logs or stores IP addresses)
+_ip_request_timestamps: Dict[str, List[float]] = {}
+
+def enforce_ip_rate_limit(request: Request, max_per_minute: int = 60):
+    client_ip = request.client.host if request.client else "unknown"
+    now = time.time()
+    cutoff = now - 60.0
+    timestamps = _ip_request_timestamps.get(client_ip, [])
+    valid_timestamps = [t for t in timestamps if t > cutoff]
+    if len(valid_timestamps) >= max_per_minute:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Rate limit exceeded (60 requests/minute). No personal data or IP is logged."
+        )
+    valid_timestamps.append(now)
+    _ip_request_timestamps[client_ip] = valid_timestamps
+
+def maybe_dispatch_discord_webhook(title: str, description: str, fields: Dict[str, Any]):
+    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
+    if not webhook_url:
+        return
+    try:
+        import urllib.request
+        import json as pyjson
+        payload = {
+            "embeds": [{
+                "title": title,
+                "description": description,
+                "color": 15158332 if "false_positive" in title.lower() else 3066993,
+                "fields": [{"name": k, "value": str(v), "inline": True} for k, v in fields.items()],
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }]
+        }
+        req = urllib.request.Request(
+            webhook_url,
+            data=pyjson.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json", "User-Agent": "FlatAudit-Webhook/1.0"}
+        )
+        urllib.request.urlopen(req, timeout=3.0)
+    except Exception:
+        pass
+
+@app.post("/v1/telemetry/observation", response_model=TelemetryObservationResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/api/v1/telemetry/observation", response_model=TelemetryObservationResponse, status_code=status.HTTP_201_CREATED)
+def ingest_telemetry_observation(payload: TelemetryObservationCreate, request: Request):
+    """
+    Ingests an anonymous listing feature observation from opted-in beta testers.
+    Guarantees: No raw URLs, no broker phone numbers, no IP address storage.
+    """
+    enforce_ip_rate_limit(request)
+    telem_id = record_telemetry_observation(
+        client_id=payload.client_id,
+        portal=payload.portal,
+        city=payload.city,
+        locality=payload.locality,
+        listing_fingerprint=payload.listing_fingerprint,
+        extracted_features=payload.extracted_features,
+        computed_signals=payload.computed_signals,
+        schema_version=payload.schema_version,
+        extension_version=payload.extension_version,
+        db_file=DB_PATH
+    )
+    return {
+        "status": "recorded",
+        "telemetry_id": telem_id,
+        "client_id": payload.client_id
+    }
+
+@app.post("/v1/telemetry/feedback", response_model=TelemetryFeedbackResponse, status_code=status.HTTP_201_CREATED)
+@app.post("/api/v1/telemetry/feedback", response_model=TelemetryFeedbackResponse, status_code=status.HTTP_201_CREATED)
+def ingest_telemetry_feedback(payload: TelemetryFeedbackCreate, request: Request):
+    """
+    Ingests ground-truth evaluation feedback from technical testers.
+    Dispatches instant notification to Discord/Slack webhook on false_positive or missed_scam.
+    """
+    enforce_ip_rate_limit(request)
+    feedback_id = record_telemetry_feedback(
+        client_id=payload.client_id,
+        listing_fingerprint=payload.listing_fingerprint,
+        verdict=payload.verdict,
+        reason_category=payload.reason_category,
+        user_note=payload.user_note,
+        extracted_features_snapshot=payload.extracted_features_snapshot,
+        db_file=DB_PATH
+    )
+
+    alert_sent = False
+    if payload.verdict in ("false_positive", "missed_scam"):
+        maybe_dispatch_discord_webhook(
+            title=f"⚠️ Beta Feedback: {payload.verdict.upper()}",
+            description=payload.user_note or "Tester flagged heuristic inaccuracy.",
+            fields={
+                "Reason Category": payload.reason_category or "Unspecified",
+                "Fingerprint": payload.listing_fingerprint[:12] + "...",
+                "Client ID": payload.client_id[:8] + "..."
+            }
+        )
+        alert_sent = True
+
+    return {
+        "status": "recorded",
+        "feedback_id": feedback_id,
+        "alert_dispatched": alert_sent
+    }
+
 

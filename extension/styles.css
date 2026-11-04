@@ -764,3 +764,184 @@
   border-color: #7cc4ff;
   color: #ffffff;
 }
+
+/* Mode Switcher Toggle */
+.flataudit-mode-switch-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #141c2b;
+  border: 1px solid #233148;
+  border-radius: 8px;
+  padding: 6px 10px;
+  margin-bottom: 12px;
+}
+
+.flataudit-mode-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #9aa8c2;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.flataudit-mode-btn {
+  flex: 1;
+  background: #1b263b;
+  border: 1px solid #2f405c;
+  color: #9aa8c2;
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.flataudit-mode-btn:hover {
+  background: #253654;
+  color: #e6ebf5;
+  border-color: #7cc4ff;
+}
+
+.flataudit-mode-btn.active {
+  background: #1665b8;
+  color: #ffffff;
+  border-color: #7cc4ff;
+  box-shadow: 0 0 8px rgba(124, 196, 255, 0.25);
+}
+
+/* Price History Empty & Active Tracking State */
+.flataudit-history-empty-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(18, 26, 40, 0.6);
+  border: 1px dashed rgba(124, 196, 255, 0.3);
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin: 6px 0 10px;
+}
+
+.flataudit-empty-icon {
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.flataudit-empty-body {
+  flex: 1;
+}
+
+.flataudit-empty-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7cc4ff;
+  margin-bottom: 2px;
+}
+
+.flataudit-empty-text {
+  font-size: 10.5px;
+  color: #9aa8c2;
+  line-height: 1.35;
+}
+
+/* Redesigned 2-Row Drawer Footer Card */
+.flataudit-drawer-footer {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #1f2a3c;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flataudit-footer-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.flataudit-footer-hash {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #141c2b;
+  border: 1px solid #233148;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 10.5px;
+  color: #9aa8c2;
+}
+
+.flataudit-hash-icon {
+  font-size: 12px;
+}
+
+.flataudit-hash-label {
+  font-weight: 600;
+  color: #7586a4;
+}
+
+.flataudit-hash-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #7cc4ff;
+  font-weight: 600;
+  background: rgba(124, 196, 255, 0.1);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.flataudit-feedback-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #192437;
+  border: 1px solid #2a3c5a;
+  color: #a0aec0;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 10.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.flataudit-feedback-btn:hover {
+  background: #23334e;
+  border-color: #f2b84b;
+  color: #f2b84b;
+}
+
+.flataudit-feedback-icon {
+  font-size: 11px;
+}
+
+.flataudit-footer-security {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 2px;
+}
+
+.flataudit-security-badge {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  letter-spacing: 0.01em;
+}
+
+.flataudit-shield-dot {
+  width: 5px;
+  height: 5px;
+  background: #6fd6a0;
+  border-radius: 50%;
+  display: inline-block;
+}

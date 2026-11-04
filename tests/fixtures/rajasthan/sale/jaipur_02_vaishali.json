@@ -1,0 +1,46 @@
+{
+  "$schema": "../../schemas/listing_fixture.schema.json",
+  "id": "RAJ-SALE-JAI-002",
+  "meta": {
+    "city": "jaipur",
+    "locality": "vaishali_nagar",
+    "portal": "nobroker",
+    "capture_date": "2026-10-14",
+    "is_synthetic_stress_test": false
+  },
+  "extracted_features": {
+    "listing_fingerprint": "b7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8",
+    "property_type": "apartment",
+    "transaction_type": "resale",
+    "agreed_price": 7500000,
+    "built_up_area_sq_m": 120.0,
+    "carpet_area_sq_m": 95.0,
+    "road_width_ft": 40,
+    "is_main_road": false,
+    "is_corner_plot": false,
+    "rera_registration_number": "RAJ/P/2021/1489",
+    "declared_promoter_name": "Ashiana Housing Limited",
+    "raj_rera_dossier": {
+      "physical_progress_pct": 74.5,
+      "funds_withdrawn_pct": 73.0,
+      "cost_incurred_pct": 72.8,
+      "qpr_filing_lag_days": 25,
+      "velocity_metrics": {
+        "runway_months_remaining": 15,
+        "historic_velocity_pct_per_quarter": 6.5
+      }
+    }
+  },
+  "ground_truth": {
+    "classification": "compliant",
+    "expected_flags": [],
+    "calculated_dlc_value": 5940000,
+    "underreported_tax_risk": false,
+    "reason": "Escrow withdrawals match certified work; QPR up to date; completion pace aligns with deadline."
+  },
+  "verification": {
+    "verified_by": "lead_researcher",
+    "verified_on": "2026-10-16",
+    "source_archive_path": "internal_cold_storage/2026_q4/raj_sale_002.pdf"
+  }
+}

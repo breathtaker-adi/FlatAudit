@@ -86,8 +86,8 @@ export function parseListingKey(portal, url, doc = null) {
     const match = cleanUrl.match(/pdpid-([a-z0-9]+)/i) || cleanUrl.match(/\/([0-9]{8,14})(?:\.html)?$/);
     if (match) return `magicbricks:${match[1]}`;
   } else if (p === '99acres') {
-    // Examples: ...-rpid-R12345678 or ...-npid-N12345678 or ...-id-12345
-    const match = cleanUrl.match(/(?:rpid-|npid-|id-)([a-z0-9]+)/i);
+    // Examples: ...-rpid-R12345678 or ...-npid-N12345678 or ...-npxid-r380406 or ...-spid-Y49932640 or ...-id-12345
+    const match = cleanUrl.match(/(?:rpid-|npid-|npxid-|spid-|id-)([a-z0-9]+)/i);
     if (match) return `99acres:${match[1]}`;
   } else if (p === 'housing') {
     // Examples: housing.com/rent/1234567-2-bhk-...
@@ -108,45 +108,78 @@ export function parseListingKey(portal, url, doc = null) {
 const _memStore = new Map();
 
 /**
- * Storage adapter that supports chrome.storage.local with localStorage and in-memory fallback.
+ * Storage adapter for isolated extension storage.
+ * 
+ * PRIVACY INVARIANT:
+ * NEVER uses window.localStorage as a fallback in content scripts.
+ * window.localStorage belongs to the host portal origin (e.g. nobroker.in, 99acres.com),
+ * so writing user notes, watchlists, or tracking data to localStorage exposes private user
+ * browsing data to portal scripts.
+ * 
+ * When running in the browser extension: Uses strictly isolated chrome.storage.local.
+ * When running in Node.js unit tests: Uses an isolated ephemeral in-memory Map (_memStore).
  */
+function isRuntimeAvailable() {
+  try {
+    return typeof chrome !== 'undefined' && Boolean(chrome?.runtime?.id && chrome?.storage?.local);
+  } catch (e) {
+    return false;
+  }
+}
+
 export const StorageAdapter = {
   async get(key) {
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      return new Promise((resolve) => {
-        chrome.storage.local.get([key], (res) => resolve(res[key] || null));
-      });
-    }
-    try {
-      if (typeof localStorage !== 'undefined' && localStorage.getItem) {
-        const val = localStorage.getItem(`flataudit_${key}`);
-        if (val) return JSON.parse(val);
+    if (isRuntimeAvailable()) {
+      try {
+        const res = await new Promise((resolve) => {
+          try {
+            chrome.storage.local.get([key], (data) => {
+              try {
+                if (chrome?.runtime?.lastError) {
+                  return resolve(null);
+                }
+                resolve(data ? data[key] || null : null);
+              } catch (innerErr) {
+                resolve(null);
+              }
+            });
+          } catch (e) {
+            resolve(null);
+          }
+        });
+        if (res !== null && res !== undefined) return res;
+      } catch (e) {
+        return null;
       }
-    } catch (e) {}
+    }
+    // Headless test environment fallback
     return _memStore.has(key) ? _memStore.get(key) : null;
   },
 
   async set(key, value) {
     _memStore.set(key, value);
-    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
-      return new Promise((resolve) => {
-        chrome.storage.local.set({ [key]: value }, resolve);
-      });
-    }
-    try {
-      if (typeof localStorage !== 'undefined' && localStorage.setItem) {
-        localStorage.setItem(`flataudit_${key}`, JSON.stringify(value));
+    if (isRuntimeAvailable()) {
+      try {
+        await new Promise((resolve) => {
+          try {
+            chrome.storage.local.set({ [key]: value }, () => {
+              try {
+                if (chrome?.runtime?.lastError) {}
+              } catch (innerErr) {}
+              resolve();
+            });
+          } catch (e) {
+            resolve();
+          }
+        });
+      } catch (e) {
+        // Context invalidated — ignore
       }
-    } catch (e) {}
+    }
   },
 
   clear() {
     _memStore.clear();
-    try {
-      if (typeof localStorage !== 'undefined' && localStorage.clear) {
-        localStorage.clear();
-      }
-    } catch (e) {}
   }
 };
 

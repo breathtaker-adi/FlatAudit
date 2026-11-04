@@ -106,6 +106,69 @@ async function checkMatches(payload) {
   return { match_count: 0, matches: [] };
 }
 
+// Telemetry In-Memory Buffer & Queue Management (Weeks 3-5 Pilot)
+let _telemetryQueue = [];
+let _flushTimer = null;
+
+async function queueTelemetryObservation(payload) {
+  _telemetryQueue.push(payload);
+  if (_telemetryQueue.length >= 10) {
+    flushTelemetryQueue();
+  } else if (!_flushTimer) {
+    _flushTimer = setTimeout(flushTelemetryQueue, 15000);
+  }
+}
+
+async function flushTelemetryQueue() {
+  if (_flushTimer) {
+    clearTimeout(_flushTimer);
+    _flushTimer = null;
+  }
+  if (_telemetryQueue.length === 0) return;
+
+  const batch = [..._telemetryQueue];
+  _telemetryQueue = [];
+
+  const backendUrl = await getBackendUrl();
+  for (const item of batch) {
+    try {
+      const res = await fetch(`${backendUrl}/telemetry/observation`, {
+        method: 'POST',
+        credentials: 'omit',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(item)
+      });
+      if (!res.ok) {
+        throw new Error(`Status ${res.status}`);
+      }
+    } catch (e) {
+      // Offline fallback: save to FIFO in chrome.storage.local capped at 100 entries
+      try {
+        const stored = await chrome.storage.local.get(['flataudit_telemetry_fifo']);
+        const fifo = stored.flataudit_telemetry_fifo || [];
+        fifo.push(item);
+        while (fifo.length > 100) fifo.shift();
+        await chrome.storage.local.set({ flataudit_telemetry_fifo: fifo });
+      } catch (err) {}
+    }
+  }
+}
+
+async function sendTelemetryFeedback(payload) {
+  const backendUrl = await getBackendUrl();
+  try {
+    const res = await fetch(`${backendUrl}/telemetry/feedback`, {
+      method: 'POST',
+      credentials: 'omit',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return res.ok ? await res.json() : { status: 'failed' };
+  } catch (e) {
+    return { status: 'network_error' };
+  }
+}
+
 // Extension message listener
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'COMPUTE_DHASH') {
@@ -125,6 +188,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request.type === 'CHECK_MATCHES') {
     checkMatches(request.payload).then(data => sendResponse(data));
+    return true;
+  }
+
+  if (request.type === 'INGEST_TELEMETRY_OBSERVATION') {
+    queueTelemetryObservation(request.payload).then(() => sendResponse({ status: 'queued' }));
+    return true;
+  }
+
+  if (request.type === 'INGEST_TELEMETRY_FEEDBACK') {
+    sendTelemetryFeedback(request.payload).then(data => sendResponse(data));
     return true;
   }
 

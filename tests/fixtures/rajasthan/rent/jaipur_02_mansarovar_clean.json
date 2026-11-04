@@ -1,0 +1,32 @@
+{
+  "$schema": "../../schemas/listing_fixture.schema.json",
+  "id": "RAJ-RENT-JAI-002",
+  "meta": {
+    "city": "jaipur",
+    "locality": "mansarovar",
+    "portal": "nobroker",
+    "capture_date": "2026-10-20",
+    "is_synthetic_stress_test": false
+  },
+  "extracted_features": {
+    "listing_fingerprint": "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b",
+    "monthly_rent": 18000,
+    "security_deposit": 36000,
+    "deposit_rent_ratio": 2.0,
+    "bedrooms": 2,
+    "description_raw": "Spacious 2BHK apartment in Mansarovar Sector 7. Semi-furnished with modular kitchen, lift, and covered parking. Family preferred.",
+    "regex_matches": [],
+    "image_dhashes": ["e1f2a3b4c5d6e7f8"],
+    "corpus_duplicate_count": 1
+  },
+  "ground_truth": {
+    "classification": "normal",
+    "expected_flags": [],
+    "reason": "Normal market rent, 2-month deposit, clean professional description, zero advance fee pretexts."
+  },
+  "verification": {
+    "verified_by": "lead_researcher",
+    "verified_on": "2026-10-21",
+    "source_archive_path": "internal_cold_storage/2026_q4/raj_rent_003.png"
+  }
+}

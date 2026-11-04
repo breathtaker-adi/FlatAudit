@@ -1,0 +1,29 @@
+{
+  "source": "Reserve Bank of India (RBI) All-India House Price Index (HPI)",
+  "sourceUrl": "https://dbie.rbi.org.in",
+  "baseYear": "2022-23=100",
+  "frequency": "Quarterly",
+  "methodology": "Transaction-level registration authority data from State Sub-Registrar Offices",
+  "verified_on": "2026-10-25",
+  "coveredCities": [
+    "Ahmedabad",
+    "Bengaluru",
+    "Chennai",
+    "Coimbatore",
+    "Delhi",
+    "Gandhinagar",
+    "Hyderabad",
+    "Jaipur",
+    "Kanpur",
+    "Kochi",
+    "Kolkata",
+    "Lucknow",
+    "Mumbai",
+    "Nagpur",
+    "Noida",
+    "Patna",
+    "Pune",
+    "Thane"
+  ],
+  "disclaimer": "The RBI House Price Index is a city-level macroeconomic transaction index based on registered deeds. It represents broad city movements and does not establish individual property valuations or micro-locality asking prices."
+}

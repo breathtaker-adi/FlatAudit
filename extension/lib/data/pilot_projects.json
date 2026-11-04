@@ -2,6 +2,9 @@
   "state": "Karnataka",
   "authority": "Karnataka Real Estate Regulatory Authority (K-RERA)",
   "official_search_url": "https://rera.karnataka.gov.in/viewAllProjects",
+  "audit_status": "provisional_seed_data",
+  "verified_by_hand": false,
+  "verification_ledger": "docs/verification_log.md",
   "disclaimer": "All facts transcribed directly from promoter declarations filed on the Karnataka RERA portal. RERA registration confirms disclosure compliance under RERA Act 2016; it does not constitute a title guarantee or structural certification.",
   "projects": {
     "PRM/KA/RERA/1251/310/PR/170915/000234": {

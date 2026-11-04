@@ -103,3 +103,35 @@ class AnalyzeResponse(BaseModel):
     safety_advice: Optional[List[str]] = Field(default_factory=list)
     signals: Dict[str, SignalDetail]
     cross_portal_matches: Optional[List[CrossPortalMatchItem]] = Field(default_factory=list)
+
+class TelemetryObservationCreate(BaseModel):
+    client_id: str = Field(..., max_length=100)
+    portal: str = Field(..., max_length=50)
+    city: str = Field(..., max_length=50)
+    locality: Optional[str] = Field(None, max_length=100)
+    listing_fingerprint: str = Field(..., min_length=16, max_length=128)
+    extracted_features: Dict[str, Any]
+    computed_signals: Optional[Dict[str, Any]] = None
+    schema_version: str = "1.1"
+    extension_version: str = "0.4.2"
+    timestamp: Optional[str] = None
+
+class TelemetryObservationResponse(BaseModel):
+    status: str
+    telemetry_id: int
+    client_id: str
+
+class TelemetryFeedbackCreate(BaseModel):
+    client_id: str = Field(..., max_length=100)
+    listing_fingerprint: str = Field(..., min_length=16, max_length=128)
+    verdict: str = Field(..., max_length=50)  # "false_positive", "missed_scam", "accurate"
+    reason_category: Optional[str] = Field(None, max_length=100)
+    user_note: Optional[str] = Field(None, max_length=1000)
+    extracted_features_snapshot: Optional[Dict[str, Any]] = None
+    timestamp: Optional[str] = None
+
+class TelemetryFeedbackResponse(BaseModel):
+    status: str
+    feedback_id: int
+    alert_dispatched: bool
+

@@ -1,0 +1,34 @@
+{
+  "$schema": "../../schemas/listing_fixture.schema.json",
+  "id": "RAJ-RENT-KOT-001",
+  "meta": {
+    "city": "kota",
+    "locality": "talwandi",
+    "portal": "housing",
+    "capture_date": "2026-10-19",
+    "is_synthetic_stress_test": false
+  },
+  "extracted_features": {
+    "listing_fingerprint": "f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2",
+    "monthly_rent": 6000,
+    "security_deposit": 6000,
+    "deposit_rent_ratio": 1.0,
+    "bedrooms": 1,
+    "description_raw": "Student 1BHK near Allen coaching. Pay 1500 gate pass visit token before seeing. 100% refundable upon gate entry.",
+    "regex_matches": ["RULE_ADVANCE_GATE_PASS_UPI"],
+    "image_dhashes": ["a1b2c3d4e5f6a7b8"],
+    "corpus_duplicate_count": 1
+  },
+  "ground_truth": {
+    "classification": "suspicious",
+    "expected_flags": [
+      "ADVANCE_FEE_REGEX_MATCH"
+    ],
+    "reason": "Advance gate token demanded prior to viewing flat."
+  },
+  "verification": {
+    "verified_by": "lead_researcher",
+    "verified_on": "2026-10-20",
+    "source_archive_path": "internal_cold_storage/2026_q4/raj_rent_002.png"
+  }
+}

@@ -132,6 +132,24 @@ describe('HTML Listing Fixture Parsers', () => {
     assert.match(listing.locality, /Powai/);
   });
 
+  it('parses 99acres VPD Jodhpur Pal Balaji detail page with JSON-LD and DOM fallback', () => {
+    const html = fs.readFileSync(path.join(fixturesDir, '99acres_vpd_jodhpur_2bhk.html'), 'utf-8');
+    const dom = new JSDOM(html);
+    const vpdUrl = 'https://www.99acres.com/2-bhk-bedroom-independent-builder-floor-for-rent-in-pal-balaji-jodhpur-165-sqft-r1-spid-Y49932640';
+    const listing = extractListing(dom.window.document, vpdUrl);
+
+    assert.equal(listing.portal, '99acres');
+    assert.equal(listing.listingKey, '99acres:Y49932640');
+    assert.equal(listing.listingType, 'rent');
+    assert.equal(listing.rent, 10000);
+    assert.equal(listing.deposit, 5000);
+    assert.equal(listing.bhk, 2);
+    assert.equal(listing.area_sqft, 165);
+    assert.match(listing.locality, /Pal Balaji/i);
+    assert.match(listing.locality, /Jodhpur/i);
+    assert.equal(listing.isValid, true);
+  });
+
   it('parses Housing.com duplicate photo zero-deposit fixture correctly', () => {
     const html = fs.readFileSync(path.join(fixturesDir, 'housing_duplicate_photos.html'), 'utf-8');
     const dom = new JSDOM(html);
@@ -164,6 +182,26 @@ describe('HTML Listing Fixture Parsers', () => {
     assert.match(listing.locality, /Electronic City/);
     assert.equal(listing.isValid, true);
   });
+
+  it('parses 99acres New Project Kiara Ville Jaipur fixture with price, area, and Raj-RERA ID', () => {
+    const html = fs.readFileSync(path.join(fixturesDir, '99acres_project_jaipur_kiara.html'), 'utf-8');
+    const dom = new JSDOM(html);
+    const projectUrl = 'https://www.99acres.com/kiara-ville-jagatpura-jagatpura-jaipur-npxid-r380406';
+    const listing = extractListing(dom.window.document, projectUrl);
+
+    assert.equal(listing.portal, '99acres');
+    assert.equal(listing.listingKey, '99acres:r380406');
+    assert.equal(listing.listingType, 'sale');
+    assert.equal(listing.isProject, true);
+    assert.equal(listing.price, 12000000); // ₹1.2 Cr from configuration cards
+    assert.equal(listing.area_sqft, 765);   // 765 sqft
+    assert.equal(listing.pricePerSqft, 15686);
+    assert.equal(listing.reraId, 'RAJ/P/2021/1639');
+    assert.equal(listing.projectName, 'Kiara Ville Jagatpura');
+    assert.equal(listing.builderName, 'Kiara Group');
+    assert.match(listing.locality, /Krishna Vihar Colony|Jagatpura/i);
+    assert.equal(listing.isValid, true);
+  });
 });
 
 describe('Parser Health & Field Integrity Checks', () => {
@@ -172,6 +210,7 @@ describe('Parser Health & Field Integrity Checks', () => {
     { file: 'nobroker_scam_army_token.html', url: 'https://www.nobroker.in/bangalore/hsr-layout' },
     { file: 'magicbricks_bait_price.html', url: 'https://www.magicbricks.com/property-details' },
     { file: '99acres_normal_1bhk.html', url: 'https://www.99acres.com/rent-in-powai' },
+    { file: '99acres_vpd_jodhpur_2bhk.html', url: 'https://www.99acres.com/2-bhk-bedroom-independent-builder-floor-for-rent-in-pal-balaji-jodhpur-165-sqft-r1-spid-Y49932640' },
     { file: 'housing_duplicate_photos.html', url: 'https://housing.com/rent/hinjawadi' }
   ];
 
@@ -200,6 +239,22 @@ describe('Parser Health & Field Integrity Checks', () => {
     assert.ok(typeof listing.area_sqft === 'number' && listing.area_sqft > 0, 'Empty or invalid area');
     assert.ok(typeof listing.bhk === 'number' && listing.bhk >= 1, 'Empty or invalid BHK');
     assert.ok(typeof listing.locality === 'string' && listing.locality.trim().length > 0, 'Empty locality');
+    assert.equal(listing.isValid, true);
+  });
+
+  it('health check: 99acres_project_jaipur_kiara.html produces non-empty sale price, area, bhk, and Raj-RERA ID', () => {
+    const html = fs.readFileSync(path.join(fixturesDir, '99acres_project_jaipur_kiara.html'), 'utf-8');
+    const dom = new JSDOM(html);
+    const listing = extractListing(dom.window.document, 'https://www.99acres.com/kiara-ville-jagatpura-jagatpura-jaipur-npxid-r380406');
+
+    assert.ok(listing);
+    assert.equal(listing.listingType, 'sale');
+    assert.equal(listing.isProject, true);
+    assert.ok(typeof listing.price === 'number' && listing.price > 0, 'Empty or invalid project price');
+    assert.ok(typeof listing.area_sqft === 'number' && listing.area_sqft > 0, 'Empty or invalid project area');
+    assert.ok(typeof listing.bhk === 'number' && listing.bhk >= 1, 'Empty or invalid BHK');
+    assert.ok(typeof listing.locality === 'string' && listing.locality.trim().length > 0, 'Empty locality');
+    assert.equal(listing.reraId, 'RAJ/P/2021/1639');
     assert.equal(listing.isValid, true);
   });
 

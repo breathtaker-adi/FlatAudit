@@ -1,0 +1,41 @@
+{
+  "$schema": "../../schemas/listing_fixture.schema.json",
+  "id": "RAJ-SALE-JOD-001",
+  "meta": {
+    "city": "jodhpur",
+    "locality": "shastri_nagar",
+    "portal": "magicbricks",
+    "capture_date": "2026-10-15",
+    "is_synthetic_stress_test": false
+  },
+  "extracted_features": {
+    "listing_fingerprint": "c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2",
+    "property_type": "apartment",
+    "transaction_type": "resale",
+    "agreed_price": 2000000,
+    "built_up_area_sq_m": 110.0,
+    "carpet_area_sq_m": 85.0,
+    "road_width_ft": 30,
+    "is_main_road": false,
+    "is_corner_plot": false,
+    "rera_registration_number": "RAJ/P/2022/1945",
+    "raj_rera_dossier": {
+      "physical_progress_pct": 50.0,
+      "funds_withdrawn_pct": 50.0,
+      "cost_incurred_pct": 50.0,
+      "qpr_filing_lag_days": 15
+    }
+  },
+  "ground_truth": {
+    "classification": "tax_risk",
+    "expected_flags": [],
+    "calculated_dlc_value": 2420000,
+    "underreported_tax_risk": true,
+    "reason": "Agreed consideration (₹20,00,000) is below statutory DLC valuation (₹24,20,000). Section 47-A floor applies."
+  },
+  "verification": {
+    "verified_by": "lead_researcher",
+    "verified_on": "2026-10-17",
+    "source_archive_path": "internal_cold_storage/2026_q4/raj_sale_003.pdf"
+  }
+}

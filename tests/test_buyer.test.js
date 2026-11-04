@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   normalizeReraId,
+  detectJurisdiction,
   lookupProjectFacts,
   evaluateFlatFacts,
   evaluateProjectFacts,
@@ -193,5 +194,77 @@ test('Buyer Mode Engine', async (t) => {
     assert.ok(html.includes('Statutory Government Levies'));
     assert.ok(html.includes('Mandatory Legal Disclaimer'));
     assert.ok(html.includes('window.print()'));
+  });
+
+  await t.test('detectJurisdiction: statutory detection across states', () => {
+    // Rajasthan
+    const raj1 = detectJurisdiction('Jagatpura', 'Jaipur', 'Rajasthan', 'RAJ/P/2021/1639');
+    assert.strictEqual(raj1.state, 'Rajasthan');
+    assert.strictEqual(raj1.authorityCode, 'Raj-RERA');
+    assert.strictEqual(raj1.effectiveStampDutyPct, 7.98);
+    assert.strictEqual(raj1.registrationFeePct, 1.0);
+
+    // Karnataka
+    const ka = detectJurisdiction('Indiranagar', 'Bengaluru', 'Karnataka', 'PRM/KA/RERA/1251/310/PR/170915/000234');
+    assert.strictEqual(ka.state, 'Karnataka');
+    assert.strictEqual(ka.authorityCode, 'K-RERA');
+    assert.strictEqual(ka.effectiveStampDutyPct, 5.6);
+
+    // Maharashtra
+    const mh = detectJurisdiction('Bandra', 'Mumbai', 'Maharashtra', 'P51800001234');
+    assert.strictEqual(mh.state, 'Maharashtra');
+    assert.strictEqual(mh.authorityCode, 'MahaRERA');
+
+    // Haryana
+    const hr = detectJurisdiction('Golf Course Road', 'Gurgaon', 'Haryana', 'HRERA-PKL-GGM-102');
+    assert.strictEqual(hr.state, 'Haryana');
+    assert.strictEqual(hr.authorityCode, 'HRERA');
+  });
+
+  await t.test('Rajasthan Project Evaluation: Kiara Ville Jagatpura on Raj-RERA', () => {
+    const kiaraListing = {
+      title: 'Kiara Ville Jagatpura, Jaipur',
+      price: 12000000,
+      area: 765,
+      areaType: 'carpet',
+      locality: 'Jagatpura',
+      city: 'Jaipur',
+      reraId: 'RAJ/P/2021/1639',
+      isProject: true
+    };
+
+    const report = generateBuyerReport(kiaraListing);
+    assert.strictEqual(report.meta.state, 'Rajasthan');
+    assert.strictEqual(report.meta.pilotAuthority, 'Rajasthan Real Estate Regulatory Authority (Raj-RERA)');
+    assert.strictEqual(report.costEstimate.state, 'Rajasthan');
+    assert.strictEqual(report.costEstimate.statutoryCharges.stampDutyPct, 7.98);
+    assert.strictEqual(report.costEstimate.statutoryCharges.registrationFeePct, 1.0);
+    assert.strictEqual(report.reportLines.project.indicator, '✓');
+    assert.ok(report.reportLines.project.summary.includes('without revision'));
+    assert.ok(report.reportLines.project.details.includes('ICICI Bank'));
+    assert.strictEqual(report.reportLines.builder.indicator, '✓');
+    assert.ok(report.reportLines.builder.summary.includes('Santusti Infrabuild'));
+    assert.ok(report.reportLines.builder.summary.includes('Kiara Group'));
+  });
+
+  await t.test('Individual Resale due diligence vs Developer Project due diligence', () => {
+    // Individual Resale (no project, no builder, no reraId)
+    const resaleListing = {
+      title: '2 BHK Apartment in Indiranagar',
+      price: 8500000,
+      area: 1100,
+      locality: 'Indiranagar',
+      city: 'Bengaluru',
+      isProject: false
+    };
+
+    const report = generateBuyerReport(resaleListing);
+    assert.strictEqual(report.meta.isProject, false);
+    // Line 2 must be 30-year title search, NOT developer RERA filings
+    assert.ok(report.reportLines.project.summary.includes('30-Year Title Search'));
+    assert.ok(report.reportLines.project.summary.includes('Nil Encumbrance Certificate'));
+    // Line 3 must be Society/RWA NOC, NOT promoter track record
+    assert.ok(report.reportLines.builder.summary.includes('Society / RWA NOC'));
+    assert.ok(report.reportLines.builder.summary.includes('Property Tax Clearance'));
   });
 });

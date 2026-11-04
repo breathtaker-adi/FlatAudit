@@ -1,0 +1,105 @@
+{
+  "metadata": {
+    "state": "Rajasthan",
+    "portal_source": "epanjiyan.rajasthan.gov.in",
+    "authority": "Registration & Stamps Department, Government of Rajasthan",
+    "effective_year": "2026",
+    "currency": "INR",
+    "area_unit_standard": "sq_meter",
+    "audit_status": "provisional_seed_data",
+    "verified_by_hand": false,
+    "verification_ledger": "tests/fixtures/verified_sources.log"
+  },
+  "dlc_guidance": {
+    "road_width_multipliers": [
+      { "min_width_ft": 0, "max_width_ft": 40, "multiplier": 1.0, "notes": "Standard DLC baseline" },
+      { "min_width_ft": 40.01, "max_width_ft": 60, "multiplier": 1.10, "notes": "+10% over 40 ft rate" },
+      { "min_width_ft": 60.01, "max_width_ft": 100, "multiplier": 1.15, "notes": "+15% over 40 ft rate" },
+      { "min_width_ft": 100.01, "max_width_ft": null, "multiplier": 1.20, "notes": "+20% for 100 ft or wider" }
+    ],
+    "corner_plot_premium_pct": 10.0,
+    "zones": {
+      "jaipur": {
+        "mansarovar": {
+          "residential": { "interior": 19800, "exterior_main_road": 24200 },
+          "commercial": { "interior": 28000, "exterior_main_road": 35000 }
+        },
+        "vaishali_nagar": {
+          "residential": { "interior": 49500, "exterior_main_road": 60500 },
+          "commercial": { "interior": 65000, "exterior_main_road": 80000 }
+        },
+        "jagatpura": {
+          "residential": { "interior": 26000, "exterior_main_road": 32000 },
+          "commercial": { "interior": 38000, "exterior_main_road": 48000 }
+        },
+        "malviya_nagar": {
+          "residential": { "interior": 42000, "exterior_main_road": 51000 },
+          "commercial": { "interior": 58000, "exterior_main_road": 72000 }
+        },
+        "c_scheme": {
+          "residential": { "interior": 68000, "exterior_main_road": 85000 },
+          "commercial": { "interior": 95000, "exterior_main_road": 125000 }
+        },
+        "ajmer_road": {
+          "residential": { "interior": 18500, "exterior_main_road": 23000 },
+          "commercial": { "interior": 25000, "exterior_main_road": 32000 }
+        }
+      },
+      "jodhpur": {
+        "shastri_nagar": {
+          "residential": { "interior": 22000, "exterior_main_road": 27500 },
+          "commercial": { "interior": 36000, "exterior_main_road": 45000 }
+        },
+        "ratanada": {
+          "residential": { "interior": 25000, "exterior_main_road": 31000 },
+          "commercial": { "interior": 40000, "exterior_main_road": 50000 }
+        },
+        "paota": {
+          "residential": { "interior": 19000, "exterior_main_road": 23500 },
+          "commercial": { "interior": 30000, "exterior_main_road": 38000 }
+        }
+      },
+      "kota": {
+        "talwandi": {
+          "residential": { "interior": 18000, "exterior_main_road": 22500 },
+          "commercial": { "interior": 28000, "exterior_main_road": 36000 }
+        },
+        "vigyan_nagar": {
+          "residential": { "interior": 16000, "exterior_main_road": 20000 },
+          "commercial": { "interior": 24000, "exterior_main_road": 30000 }
+        }
+      },
+      "udaipur": {
+        "hiran_magri": {
+          "residential": { "interior": 21000, "exterior_main_road": 26000 },
+          "commercial": { "interior": 32000, "exterior_main_road": 41000 }
+        },
+        "panchwati": {
+          "residential": { "interior": 28000, "exterior_main_road": 35000 },
+          "commercial": { "interior": 44000, "exterior_main_road": 55000 }
+        }
+      }
+    }
+  },
+  "closing_costs": {
+    "base_stamp_duty_pct": {
+      "male_or_joint": 0.06,
+      "sole_female": 0.05,
+      "sc_st_bpl_female": 0.04
+    },
+    "surcharges_on_duty": {
+      "cow_conservation_and_drought_relief_sec_3b": 0.20,
+      "infrastructure_and_local_bodies_sec_3a": 0.13,
+      "total_surcharge_multiplier": 0.33
+    },
+    "registration_fee": {
+      "rate_pct": 0.01,
+      "applied_to": "deemed_valuation"
+    },
+    "statutory_miscellaneous": {
+      "mutation_fee_indicative": 1500,
+      "ec_inspection_fee": 300,
+      "document_drafting_typical_range": [3000, 7000]
+    }
+  }
+}

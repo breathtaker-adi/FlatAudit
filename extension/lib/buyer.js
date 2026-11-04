@@ -14,6 +14,8 @@
 import pilotProjectsData from './data/pilot_projects.json' with { type: 'json' };
 import closingCostsData from './data/closing_costs.json' with { type: 'json' };
 import guidanceValuesData from './data/guidance_values.json' with { type: 'json' };
+import rajasthanCostsData from './data/rajasthan_costs.json' with { type: 'json' };
+import rajasthanPilotProjectsData from './data/rajasthan_pilot_projects.json' with { type: 'json' };
 import { getGuidanceValue, getReraPortalUrl } from './benchmarks.js';
 import { calculateEMI } from './tracker.js';
 
@@ -28,16 +30,116 @@ export function normalizeReraId(raw) {
 }
 
 /**
- * Looks up official promoter and project facts from the curated pilot registry.
+ * Detects statutory real estate jurisdiction based on listing geography and RERA format.
+ * 
+ * @param {string} [locality=''] 
+ * @param {string} [city=''] 
+ * @param {string} [state=''] 
+ * @param {string} [reraId=''] 
+ * @returns {object}
+ */
+export function detectJurisdiction(locality = '', city = '', state = '', reraId = '') {
+  const text = `${locality} ${city} ${state} ${reraId}`.toLowerCase();
+  const cleanRera = normalizeReraId(reraId);
+
+  // 1. Rajasthan
+  if (cleanRera.startsWith('RAJ') || /\b(?:rajasthan|jaipur|jodhpur|kota|udaipur|ajmer|bikaner|alwar|jagatpura|mansarovar|vaishali_nagar)\b/i.test(text)) {
+    return {
+      state: 'Rajasthan',
+      authorityName: 'Rajasthan Real Estate Regulatory Authority (Raj-RERA)',
+      authorityCode: 'Raj-RERA',
+      portalUrl: 'https://rajrera.rajasthan.gov.in',
+      searchUrl: 'https://rajrera.rajasthan.gov.in/Project_Summary.aspx',
+      costsDataset: 'rajasthan_costs',
+      pilotDataset: 'rajasthan_pilot_projects',
+      stampDutyRate: 0.06,
+      surchargeMultiplier: 0.33,
+      effectiveStampDutyPct: 7.98, // 6% * 1.33 = 7.98%
+      registrationFeePct: 1.0,
+      totalStatutoryPct: 8.98,
+      typicalConnectionCharges: 50000,
+      typicalLegalAndKhata: 20000,
+      currencyUnit: 'INR'
+    };
+  }
+
+  // 2. Maharashtra
+  if (/^P51\d|^P\d{11}/i.test(cleanRera) || /\b(?:maharashtra|mumbai|pune|nagpur|thane|navi\s*mumbai|nashik)\b/i.test(text)) {
+    return {
+      state: 'Maharashtra',
+      authorityName: 'Maharashtra Real Estate Regulatory Authority (MahaRERA)',
+      authorityCode: 'MahaRERA',
+      portalUrl: 'https://maharera.mahaonline.gov.in',
+      searchUrl: 'https://maharera.mahaonline.gov.in',
+      costsDataset: 'maharashtra_costs',
+      pilotDataset: 'maharashtra_pilot_projects',
+      stampDutyRate: 0.06,
+      surchargeMultiplier: 0,
+      effectiveStampDutyPct: 6.0,
+      registrationFeePct: 1.0,
+      totalStatutoryPct: 7.0,
+      typicalConnectionCharges: 150000,
+      typicalLegalAndKhata: 30000,
+      currencyUnit: 'INR'
+    };
+  }
+
+  // 3. Haryana
+  if (/^HRERA/i.test(cleanRera) || /\b(?:haryana|gurgaon|gurugram|faridabad|panipat|sonipat)\b/i.test(text)) {
+    return {
+      state: 'Haryana',
+      authorityName: 'Haryana Real Estate Regulatory Authority (HRERA)',
+      authorityCode: 'HRERA',
+      portalUrl: 'https://haryanarera.gov.in',
+      searchUrl: 'https://haryanarera.gov.in',
+      costsDataset: 'haryana_costs',
+      pilotDataset: 'haryana_pilot_projects',
+      stampDutyRate: 0.07,
+      surchargeMultiplier: 0,
+      effectiveStampDutyPct: 7.0,
+      registrationFeePct: 1.0,
+      totalStatutoryPct: 8.0,
+      typicalConnectionCharges: 120000,
+      typicalLegalAndKhata: 25000,
+      currencyUnit: 'INR'
+    };
+  }
+
+  // Default: Karnataka (Bengaluru)
+  return {
+    state: 'Karnataka',
+    authorityName: 'Karnataka Real Estate Regulatory Authority (K-RERA)',
+    authorityCode: 'K-RERA',
+    portalUrl: 'https://rera.karnataka.gov.in',
+    searchUrl: 'https://rera.karnataka.gov.in/projectViewDetails',
+    costsDataset: 'closing_costs',
+    pilotDataset: 'pilot_projects',
+    stampDutyRate: 0.056,
+    surchargeMultiplier: 0,
+    effectiveStampDutyPct: 5.6,
+    registrationFeePct: 1.0,
+    totalStatutoryPct: 6.6,
+    typicalConnectionCharges: 233000,
+    typicalLegalAndKhata: 35000,
+    currencyUnit: 'INR'
+  };
+}
+
+/**
+ * Looks up official promoter and project facts from curated pilot registries (Karnataka + Rajasthan).
  * Keyed strictly by RERA number first, with secondary fallback to normalized project name.
  * 
  * @param {string} reraId 
  * @param {string} [projectName] 
+ * @param {object} [jurisdiction=null]
  * @returns {{ found: boolean, matchMethod: 'rera_id'|'project_name'|null, facts: object|null }}
  */
-export function lookupProjectFacts(reraId, projectName = '') {
+export function lookupProjectFacts(reraId, projectName = '', jurisdiction = null) {
   const normId = normalizeReraId(reraId);
-  const projects = pilotProjectsData.projects || {};
+  const projects = {
+    ...(pilotProjectsData.projects || {}),
+    ...(rajasthanPilotProjectsData.projects || {})
+  };
 
   // 1. Primary Lookup: Exact RERA Registration ID
   if (normId && projects[normId]) {
@@ -114,10 +216,14 @@ export function evaluateFlatFacts(listing, context = {}) {
       };
     }
 
+    const deptName = guidance.state === 'Rajasthan'
+      ? 'Registration & Stamps Department (epanjiyan DLC rate)'
+      : 'Department of Stamps and Registration (Kaveri 2.0)';
+
     return {
       indicator: '✓',
       summary: `Price per sq ft (₹${pricePerSqft.toLocaleString('en-IN')}/sqft on ${areaType} basis) is +${deltaPct}% relative to government guidance floor (₹${guidance.guidancePerSqft.toLocaleString('en-IN')}/sqft).`,
-      details: `Evaluated against Department of Stamps and Registration (Kaveri 2.0) reference floor for ${locality}.`,
+      details: `Evaluated against ${deptName} reference floor for ${locality}.`,
       source: guidance.source,
       dataAsOf: guidance.effectiveDate
     };
@@ -142,15 +248,16 @@ export function evaluateFlatFacts(listing, context = {}) {
  * @param {string} [locality]
  * @returns {{ indicator: string, summary: string, details: string, sourceUrl: string, dataAsOf: string }}
  */
-export function evaluateProjectFacts(projectFacts, reraId = '', locality = '') {
-  const portalUrl = getReraPortalUrl(reraId, locality);
+export function evaluateProjectFacts(projectFacts, reraId = '', locality = '', jurisdiction = null) {
+  const portalUrl = jurisdiction ? jurisdiction.portalUrl : getReraPortalUrl(reraId, locality).url;
+  const auth = jurisdiction ? jurisdiction.authorityCode : 'K-RERA';
 
   if (!projectFacts) {
     if (reraId) {
       return {
         indicator: '?',
-        summary: `RERA ID ${reraId} extracted. Check official K-RERA portal to inspect Form B completion filings.`,
-        details: 'Project filings are not in the local pilot dataset. Inspect original declaration documents on the official state portal.',
+        summary: `RERA ID ${reraId} extracted. Check official ${auth} portal to inspect Form B completion filings.`,
+        details: `Project filings are not in the local pilot dataset. Inspect original declaration documents on the official ${auth} portal.`,
         sourceUrl: portalUrl,
         dataAsOf: new Date().toISOString().split('T')[0]
       };
@@ -158,7 +265,7 @@ export function evaluateProjectFacts(projectFacts, reraId = '', locality = '') {
     return {
       indicator: '?',
       summary: 'No RERA registration ID displayed on listing. Mandatory for projects >500 sqm or >8 units under RERA Act 2016.',
-      details: 'Ask seller/builder for the official RERA registration certificate before paying any token amount.',
+      details: `Ask seller/builder for the official ${auth} registration certificate before paying any token amount.`,
       sourceUrl: portalUrl,
       dataAsOf: new Date().toISOString().split('T')[0]
     };
@@ -188,7 +295,7 @@ export function evaluateProjectFacts(projectFacts, reraId = '', locality = '') {
   return {
     indicator: '⚠',
     summary: `Completion date was revised ${dates_revised_count} time(s), from ${original_completion_date} to ${revised_completion_date} (+${revision_length_months} months); see official page.`,
-    details: `Project Status: ${status}. Designated Escrow Bank: ${escrow_bank}. Review latest quarterly progress report (QPR) on K-RERA.`,
+    details: `Project Status: ${status}. Designated Escrow Bank: ${escrow_bank}. Review latest quarterly progress report (QPR) on ${auth}.`,
     sourceUrl: official_source_url || portalUrl,
     dataAsOf: data_as_of || '2024-09-01'
   };
@@ -199,15 +306,19 @@ export function evaluateProjectFacts(projectFacts, reraId = '', locality = '') {
  * Discloses promoter past projects track record, completion revisions denominator, and litigation fields.
  * 
  * @param {object|null} projectFacts 
+ * @param {object} [jurisdiction=null]
  * @returns {{ indicator: string, summary: string, details: string, sourceUrl: string, dataAsOf: string }}
  */
-export function evaluateBuilderFacts(projectFacts) {
+export function evaluateBuilderFacts(projectFacts, jurisdiction = null) {
+  const auth = jurisdiction ? jurisdiction.authorityCode : 'K-RERA';
+  const searchUrl = jurisdiction ? jurisdiction.searchUrl : pilotProjectsData.official_search_url;
+
   if (!projectFacts) {
     return {
       indicator: '?',
-      summary: 'Promoter disclosed track record: not available in local pilot dataset. Inspect promoter past filings on K-RERA.',
-      details: 'Builders often register projects via separate LLPs or subsidiary SPVs. Search the registered promoter entity name on K-RERA.',
-      sourceUrl: pilotProjectsData.official_search_url,
+      summary: `Promoter disclosed track record: not available in local pilot dataset. Inspect promoter past filings on ${auth}.`,
+      details: `Builders often register projects via separate LLPs or subsidiary SPVs. Search the registered promoter entity name on ${auth}.`,
+      sourceUrl: searchUrl,
       dataAsOf: new Date().toISOString().split('T')[0]
     };
   }
@@ -227,12 +338,54 @@ export function evaluateBuilderFacts(projectFacts) {
   const hasLitigation = litigation_declared && !litigation_declared.toLowerCase().includes('none declared');
   const indicator = hasLitigation ? '⚠' : (promoter_projects_revised_count > 0 ? '⚠' : '✓');
 
+  let revisionStr = '';
+  if (typeof promoter_projects_revised_count === 'number' && typeof promoter_projects_total_evaluated === 'number') {
+    revisionStr = `Dates revised in ${promoter_projects_revised_count} of ${promoter_projects_total_evaluated} projects with both dates available.`;
+  } else if (typeof projectFacts.dates_revised_count === 'number') {
+    revisionStr = projectFacts.dates_revised_count === 0 ? 'Project completion on schedule (0 revisions).' : `Completion revised ${projectFacts.dates_revised_count} time(s).`;
+  } else {
+    revisionStr = 'Promoter disclosures filed under RERA statutory framework.';
+  }
+
+  const pastStr = typeof disclosed_past_projects_count === 'number' ? `Disclosed past projects: ${disclosed_past_projects_count}. ` : '';
+  const compStr = data_completeness ? `Data completeness: ${data_completeness}. ` : '';
+
   return {
     indicator,
-    summary: `Promoter: ${promoter_entity} (${promoter_group}). Dates revised in ${promoter_projects_revised_count} of ${promoter_projects_total_evaluated} projects with both dates available.`,
-    details: `Disclosed past projects: ${disclosed_past_projects_count}. Litigation field: "${litigation_declared}". Data completeness: ${data_completeness}. Note: LLP/company entity registration — not legally confirmed to represent parent brand in all liabilities.`,
-    sourceUrl: official_source_url || pilotProjectsData.official_search_url,
+    summary: `Promoter: ${promoter_entity || 'Entity on record'} (${promoter_group || 'Registered Group'}). ${revisionStr}`,
+    details: `${pastStr}Litigation field: "${litigation_declared || 'None declared in filing'}". ${compStr}Note: LLP/company entity registration — not legally confirmed to represent parent brand in all liabilities.`,
+    sourceUrl: official_source_url || searchUrl,
     dataAsOf: data_as_of || '2024-09-01'
+  };
+}
+
+/**
+ * Evaluates Line 2 for Individual Resale Properties: 30-Year Title Search & Nil Encumbrance Certificate
+ * @param {object} listing 
+ * @returns {{ indicator: string, summary: string, details: string, source: string, dataAsOf: string }}
+ */
+export function evaluateResaleTitleFacts(listing) {
+  return {
+    indicator: '?',
+    summary: '30-Year Title Search & Nil Encumbrance Certificate (Form 15) required from Sub-Registrar.',
+    details: 'For individual resale, inspect continuous chain of title deeds back 30 years and verify that prior bank mortgages/charges are fully released via registered discharge deeds.',
+    source: 'Independent Legal Due Diligence',
+    dataAsOf: new Date().toISOString().split('T')[0]
+  };
+}
+
+/**
+ * Evaluates Line 3 for Individual Resale Properties: Society / RWA Clearances & Property Tax
+ * @param {object} listing 
+ * @returns {{ indicator: string, summary: string, details: string, source: string, dataAsOf: string }}
+ */
+export function evaluateResaleSocietyFacts(listing) {
+  return {
+    indicator: '?',
+    summary: 'Society / RWA NOC & Municipal Property Tax Clearance: verify zero outstanding arrears.',
+    details: 'Obtain formal NOC and Share Certificate from Apartment Owners Association (AOA/RWA) confirming no unpaid maintenance dues or transfer liabilities, plus latest municipal tax assessment receipts.',
+    source: 'Society Management & Municipal Records',
+    dataAsOf: new Date().toISOString().split('T')[0]
   };
 }
 
@@ -254,12 +407,13 @@ export function evaluatePaperworkFacts(scenario = 'resale') {
 }
 
 /**
- * Estimates All-In Total Cost of Ownership including Karnataka stamp duty, registration, GST, and maintenance.
+ * Estimates All-In Total Cost of Ownership including state-specific stamp duty, registration, GST, and maintenance.
  * 
  * @param {object} options 
+ * @param {object} [jurisdiction=null]
  * @returns {object}
  */
-export function estimateTotalCost(options = {}) {
+export function estimateTotalCost(options = {}, jurisdiction = null) {
   const price = options.price || 0;
   const areaSqft = options.areaSqft || options.area || 1000;
   const possessionStatus = (options.possessionStatus || 'ready_to_move').toLowerCase();
@@ -268,28 +422,40 @@ export function estimateTotalCost(options = {}) {
   const loanRatePct = typeof options.loanRatePct === 'number' ? options.loanRatePct : 8.5;
   const loanTenureYears = typeof options.loanTenureYears === 'number' ? options.loanTenureYears : 20;
 
-  const rates = closingCostsData.rates;
+  const defaultRates = closingCostsData.rates;
+  const state = jurisdiction ? jurisdiction.state : 'Karnataka';
 
-  // 1. Stamp Duty & Registration
-  const stampDutyPct = rates.effective_stamp_duty_pct; // 5.6%
-  const registrationFeePct = rates.registration_fee_pct; // 1.0%
+  // 1. Stamp Duty & Registration by State
+  let stampDutyPct = defaultRates.effective_stamp_duty_pct; // 5.6%
+  let registrationFeePct = defaultRates.registration_fee_pct; // 1.0%
+  let maintenanceAdvance = Math.round(areaSqft * defaultRates.fixed_estimates.maintenance_advance_per_sqft_month * defaultRates.fixed_estimates.maintenance_advance_months);
+  let connectionCharges = defaultRates.fixed_estimates.bescom_bwssb_connection_charge;
+  let legalAndKhata = defaultRates.fixed_estimates.legal_vetting_and_khata_transfer;
+
+  if (jurisdiction) {
+    stampDutyPct = jurisdiction.effectiveStampDutyPct;
+    registrationFeePct = jurisdiction.registrationFeePct;
+    connectionCharges = jurisdiction.typicalConnectionCharges || 50000;
+    legalAndKhata = jurisdiction.typicalLegalAndKhata || 25000;
+    if (jurisdiction.state === 'Rajasthan') {
+      // 12 months at ₹2.5/sqft indicative maintenance
+      maintenanceAdvance = Math.round(areaSqft * 2.5 * 12);
+    }
+  }
+
   const stampDutyAmount = Math.round(price * (stampDutyPct / 100));
   const registrationAmount = Math.round(price * (registrationFeePct / 100));
 
   // 2. GST
   let gstPct = 0;
   if (possessionStatus.includes('under_construction')) {
-    gstPct = isAffordable ? rates.gst_rates.under_construction_affordable : rates.gst_rates.under_construction_standard;
+    gstPct = isAffordable ? defaultRates.gst_rates.under_construction_affordable : defaultRates.gst_rates.under_construction_standard;
   } else {
-    gstPct = rates.gst_rates.ready_to_move_with_oc; // 0.0%
+    gstPct = defaultRates.gst_rates.ready_to_move_with_oc; // 0.0%
   }
   const gstAmount = Math.round(price * (gstPct / 100));
 
-  // 3. One-Time & Maintenance Deposits
-  const maintenanceAdvance = Math.round(areaSqft * rates.fixed_estimates.maintenance_advance_per_sqft_month * rates.fixed_estimates.maintenance_advance_months);
-  const connectionCharges = rates.fixed_estimates.bescom_bwssb_connection_charge;
-  const legalAndKhata = rates.fixed_estimates.legal_vetting_and_khata_transfer;
-
+  // 3. Totals
   const statutoryTotal = stampDutyAmount + registrationAmount + gstAmount;
   const otherChargesTotal = maintenanceAdvance + connectionCharges + legalAndKhata;
   const totalCost = price + statutoryTotal + otherChargesTotal;
@@ -301,6 +467,7 @@ export function estimateTotalCost(options = {}) {
   const emiStats = calculateEMI(loanPrincipal, loanRatePct, loanTenureYears);
 
   return {
+    state,
     basePrice: price,
     areaSqft,
     possessionStatus,
@@ -331,7 +498,7 @@ export function estimateTotalCost(options = {}) {
       totalInterest: emiStats.totalInterest,
       totalRepayment: emiStats.totalPayment
     },
-    disclaimer: closingCostsData.disclaimer
+    disclaimer: `Statutory charges calculated based on ${state} rates (Stamp duty ${stampDutyPct}%, Registration ${registrationFeePct}%). Actual registration depends on deemed circle rate valuation.`
   };
 }
 
@@ -491,17 +658,34 @@ export function generateBuyerReport(listing, options = {}) {
   const projectName = listing.projectName || options.projectName || '';
   const scenario = options.scenario || (listing.possessionStatus === 'under_construction' ? 'under_construction' : 'resale');
 
-  // Lookup project facts
-  const lookup = lookupProjectFacts(reraId, projectName);
+  // Detect statutory jurisdiction (Rajasthan, Karnataka, Maharashtra, Haryana)
+  const jurisdiction = detectJurisdiction(listing.locality, listing.city, listing.state, reraId);
+
+  // Lookup project facts from multi-state pilot registry
+  const lookup = lookupProjectFacts(reraId, projectName, jurisdiction);
   const projectFacts = lookup.facts;
+
+  // Distinguish between developer project / new launch vs individual resale listing
+  const isProject = Boolean(listing.isProject || listing.projectName || reraId || options.projectName || options.isProject);
 
   // Evaluate the 4 lines
   const flatLine = evaluateFlatFacts(listing, options);
-  const projectLine = evaluateProjectFacts(projectFacts, reraId, listing.locality);
-  const builderLine = evaluateBuilderFacts(projectFacts);
+  let projectLine;
+  let builderLine;
+
+  if (!isProject) {
+    // Individual Resale Property: Evaluate Title and Society Clearances directly
+    projectLine = evaluateResaleTitleFacts(listing);
+    builderLine = evaluateResaleSocietyFacts(listing);
+  } else {
+    // Developer Project / New Launch: Evaluate Project Completion and Builder Track Record
+    projectLine = evaluateProjectFacts(projectFacts, reraId, listing.locality, jurisdiction);
+    builderLine = evaluateBuilderFacts(projectFacts, jurisdiction);
+  }
+
   const paperworkLine = evaluatePaperworkFacts(scenario);
 
-  // Closing cost and loan estimation
+  // Closing cost and loan estimation based on detected state
   const costEstimate = estimateTotalCost({
     price: listing.price || listing.salePrice || 0,
     areaSqft: listing.area || listing.area_sqft || 1000,
@@ -510,15 +694,17 @@ export function generateBuyerReport(listing, options = {}) {
     downPaymentPct: options.downPaymentPct || 20,
     loanRatePct: options.loanRatePct || 8.5,
     loanTenureYears: options.loanTenureYears || 20
-  });
+  }, jurisdiction);
 
   const paperworkChecklist = getPaperworkChecklist(scenario);
 
   return {
     meta: {
       generatedAt: new Date().toISOString(),
-      jurisdiction: 'Karnataka (Bengaluru)',
-      pilotAuthority: 'Karnataka Real Estate Regulatory Authority (K-RERA)',
+      state: jurisdiction.state,
+      jurisdiction: `${jurisdiction.state} (${jurisdiction.authorityCode})`,
+      pilotAuthority: jurisdiction.authorityName,
+      isProject,
       scenario,
       matchMethod: lookup.matchMethod,
       disclaimer: 'This report summarizes visible listing data and official public filings as of the indicated dates. It does not constitute legal or financial advice and does not verify property title. Consult an independent advocate before paying any deposit.'

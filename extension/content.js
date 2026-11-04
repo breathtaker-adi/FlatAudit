@@ -43,26 +43,158 @@
     let isDrawerOpen = false;
     let crossPortalMatches = [];
 
-    async function evaluatePage() {
-      // 1. Harvest peer listing cards if on search page or similar carousel
-      const pagePeers = parsePeerListingsFromPage(document, window.location.href);
-      if (pagePeers && pagePeers.length >= 5) {
-        try {
-          await chrome.storage.local.set({
+    function isExtensionValid() {
+      try {
+        return typeof chrome !== 'undefined' && Boolean(chrome?.runtime?.id && chrome?.storage?.local);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function safeStorageGet(keys, fallback = {}) {
+      if (!isExtensionValid()) return fallback;
+      try {
+        return await new Promise((resolve) => {
+          try {
+            chrome.storage.local.get(keys, (res) => {
+              try {
+                if (chrome?.runtime?.lastError) return resolve(fallback);
+                resolve(res || fallback);
+              } catch (err) {
+                resolve(fallback);
+              }
+            });
+          } catch (e) {
+            resolve(fallback);
+          }
+        });
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    async function safeStorageSet(obj) {
+      if (!isExtensionValid()) return;
+      try {
+        await new Promise((resolve) => {
+          try {
+            chrome.storage.local.set(obj, () => {
+              try {
+                if (chrome?.runtime?.lastError) {}
+              } catch (err) {}
+              resolve();
+            });
+          } catch (e) {
+            resolve();
+          }
+        });
+      } catch (e) {}
+    }
+
+    async function safeSendMessage(msg, fallback = null) {
+      if (!isExtensionValid() || !chrome?.runtime?.sendMessage) return fallback;
+      try {
+        return await new Promise((resolve) => {
+          try {
+            chrome.runtime.sendMessage(msg, (res) => {
+              try {
+                if (chrome?.runtime?.lastError) return resolve(fallback);
+                resolve(res || fallback);
+              } catch (err) {
+                resolve(fallback);
+              }
+            });
+          } catch (e) {
+            resolve(fallback);
+          }
+        });
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    function showUpdateNotice() {
+      if (document.getElementById('flataudit-update-notice')) return;
+      const notice = document.createElement('div');
+      notice.id = 'flataudit-update-notice';
+      notice.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#172030;color:#e6ebf5;border:1px solid #7cc4ff;border-radius:8px;padding:10px 14px;font-size:12px;font-family:sans-serif;z-index:2147483647;box-shadow:0 8px 24px rgba(0,0,0,0.5);display:flex;align-items:center;gap:10px;';
+      const text = document.createElement('span');
+      text.textContent = '🔄 FlatAudit was updated. Please refresh this page.';
+      const refreshBtn = document.createElement('button');
+      refreshBtn.textContent = 'Refresh';
+      refreshBtn.style.cssText = 'background:#1665b8;color:#fff;border:none;border-radius:4px;padding:4px 8px;cursor:pointer;font-weight:600;font-size:11px;';
+      refreshBtn.addEventListener('click', () => window.location.reload());
+      notice.appendChild(text);
+      notice.appendChild(refreshBtn);
+      document.body.appendChild(notice);
+    }
+
+    let lastEvaluatedUrl = null;
+    let lastEvaluatedKey = null;
+    let lastEvaluatedPrice = null;
+    let isEvaluating = false;
+
+    async function evaluatePage(force = false) {
+      if (!isExtensionValid()) {
+        showUpdateNotice();
+        return;
+      }
+
+      if (isEvaluating) return;
+      isEvaluating = true;
+
+      try {
+        const currentUrl = window.location.href;
+
+        // 1. Harvest peer listing cards if on search page or similar carousel
+        const pagePeers = parsePeerListingsFromPage(document, currentUrl);
+        if (pagePeers && pagePeers.length >= 5) {
+          await safeStorageSet({
             flataudit_cached_peers: {
               timestamp: Date.now(),
-              url: window.location.href,
+              url: currentUrl,
               peers: pagePeers
             }
           });
-        } catch (e) {}
-      }
+        }
 
-      const listing = extractListing(document, window.location.href);
+        const listing = extractListing(document, currentUrl);
 
-      // Require at least a title or rent to consider this a listing page
-      if (!listing.title && !listing.rent) {
-        return;
+        // Require at least a title, rent, price, or rawPrice to consider this a listing page
+        if (!listing.title && !listing.rent && !listing.price && !listing.rawPrice) {
+          return;
+        }
+
+        const effectivePrice = listing.price || listing.salePrice || listing.rent || listing.rawPrice || 0;
+
+        // Deduplication guard against rapid SPA DOM mutation loops
+        if (!force && currentUrl === lastEvaluatedUrl && listing.listingKey === lastEvaluatedKey && effectivePrice === lastEvaluatedPrice) {
+          return;
+        }
+
+        lastEvaluatedUrl = currentUrl;
+        lastEvaluatedKey = listing.listingKey;
+        lastEvaluatedPrice = effectivePrice;
+
+      // Check if user set a manual mode override for this listing
+      const storedOverrides = await safeStorageGet(['flataudit_mode_overrides']);
+      const overrides = storedOverrides.flataudit_mode_overrides || {};
+      const userMode = overrides[listing.listingKey];
+      if (userMode === 'rent' || userMode === 'sale') {
+        listing.listingType = userMode;
+        const amt = listing.rawPrice || listing.price || listing.rent;
+        if (userMode === 'sale') {
+          listing.price = listing.price || amt;
+          listing.salePrice = listing.price;
+          listing.rent = null;
+          if (listing.price && listing.area_sqft && !listing.pricePerSqft) {
+            listing.pricePerSqft = Math.round(listing.price / listing.area_sqft);
+          }
+        } else {
+          listing.rent = listing.rent || amt;
+          listing.price = null;
+          listing.salePrice = null;
+        }
       }
 
       // Hash first image via background service worker
@@ -70,37 +202,31 @@
       let seenCount = 1;
 
       if (listing.images && listing.images.length > 0) {
-        try {
-          const firstImg = listing.images[0];
-          const hashResponse = await chrome.runtime.sendMessage({
-            type: 'COMPUTE_DHASH',
-            imageUrl: firstImg
-          });
+        const firstImg = listing.images[0];
+        const hashResponse = await safeSendMessage({
+          type: 'COMPUTE_DHASH',
+          imageUrl: firstImg
+        });
 
-          if (hashResponse && hashResponse.hash) {
-            topHash = hashResponse.hash;
-            const seenResponse = await chrome.runtime.sendMessage({
-              type: 'CHECK_SEEN',
-              hash: topHash
-            });
-            if (seenResponse && seenResponse.seenCount) {
-              seenCount = seenResponse.seenCount;
-            }
+        if (hashResponse && hashResponse.hash) {
+          topHash = hashResponse.hash;
+          const seenResponse = await safeSendMessage({
+            type: 'CHECK_SEEN',
+            hash: topHash
+          });
+          if (seenResponse && seenResponse.seenCount) {
+            seenCount = seenResponse.seenCount;
           }
-        } catch (e) {
-          // Offline fallback
         }
       }
 
       // Retrieve cached peer listings if current detail page has fewer than 5 cards
       let peerListings = (pagePeers && pagePeers.length >= 5) ? pagePeers : [];
       if (peerListings.length < 5) {
-        try {
-          const stored = await chrome.storage.local.get(['flataudit_cached_peers']);
-          if (stored.flataudit_cached_peers && (Date.now() - stored.flataudit_cached_peers.timestamp < 24 * 3600 * 1000)) {
-            peerListings = stored.flataudit_cached_peers.peers || [];
-          }
-        } catch (e) {}
+        const stored = await safeStorageGet(['flataudit_cached_peers']);
+        if (stored.flataudit_cached_peers && (Date.now() - stored.flataudit_cached_peers.timestamp < 24 * 3600 * 1000)) {
+          peerListings = stored.flataudit_cached_peers.peers || [];
+        }
       }
 
       // Analyze signals with dynamic benchmark fallback ladder
@@ -108,24 +234,22 @@
 
       // Check cross-portal matches asynchronously
       if (listing.rent && listing.portal) {
-        try {
-          const matchRes = await chrome.runtime.sendMessage({
-            type: 'CHECK_MATCHES',
-            payload: {
-              portal: listing.portal,
-              listing_key: listing.listingKey,
-              locality: listing.locality,
-              bhk: listing.bhk,
-              rent: listing.rent,
-              area_sqft: listing.area_sqft,
-              floor: listing.floor,
-              image_hash: topHash
-            }
-          });
-          if (matchRes && matchRes.matches) {
-            crossPortalMatches = matchRes.matches;
+        const matchRes = await safeSendMessage({
+          type: 'CHECK_MATCHES',
+          payload: {
+            portal: listing.portal,
+            listing_key: listing.listingKey,
+            locality: listing.locality,
+            bhk: listing.bhk,
+            rent: listing.rent,
+            area_sqft: listing.area_sqft,
+            floor: listing.floor,
+            image_hash: topHash
           }
-        } catch (e) {}
+        });
+        if (matchRes && matchRes.matches) {
+          crossPortalMatches = matchRes.matches;
+        }
       }
 
       currentAnalysis = {
@@ -138,33 +262,32 @@
       };
 
       // Store last analysis for extension popup
-      try {
-        chrome.storage.local.set({ lastAnalysis: currentAnalysis });
-      } catch (e) {}
+      await safeStorageSet({ lastAnalysis: currentAnalysis });
 
       // Inform backend anonymously
       if (listing.rent && (topHash || listing.locality)) {
-        try {
-          chrome.runtime.sendMessage({
-            type: 'OBSERVE_LISTING',
-            payload: {
-              url: window.location.href,
-              portal: listing.portal,
-              listing_key: listing.listingKey,
-              locality: listing.locality,
-              bhk: listing.bhk,
-              rent: listing.rent,
-              deposit: listing.deposit,
-              area_sqft: listing.area_sqft,
-              floor: listing.floor,
-              image_hash: topHash,
-              geohash: listing.geohash
-            }
-          });
-        } catch (e) {}
+        await safeSendMessage({
+          type: 'OBSERVE_LISTING',
+          payload: {
+            url: window.location.href,
+            portal: listing.portal,
+            listing_key: listing.listingKey,
+            locality: listing.locality,
+            bhk: listing.bhk,
+            rent: listing.rent,
+            deposit: listing.deposit,
+            area_sqft: listing.area_sqft,
+            floor: listing.floor,
+            image_hash: topHash,
+            geohash: listing.geohash
+          }
+        });
       }
 
-      await renderTrustBadge(currentAnalysis);
+        await renderTrustBadge(currentAnalysis);
+      } finally {
+        isEvaluating = false;
+      }
     }
 
     /**
@@ -257,6 +380,48 @@
       header.appendChild(headerActions);
       drawer.appendChild(header);
 
+      // Section: Mode Selector Toggle (Rent vs Buy/Sale)
+      const currentMode = data.listing?.listingType || 'unknown';
+      const modeSwitchRow = document.createElement('div');
+      modeSwitchRow.className = 'flataudit-mode-switch-row';
+
+      const modeLabel = document.createElement('span');
+      modeLabel.className = 'flataudit-mode-label';
+      modeLabel.textContent = 'Mode:';
+
+      const rentBtn = document.createElement('button');
+      rentBtn.type = 'button';
+      rentBtn.className = `flataudit-mode-btn ${currentMode === 'rent' ? 'active' : ''}`;
+      rentBtn.textContent = '🔑 Rent';
+      rentBtn.title = 'Switch to Rental evaluation mode';
+      rentBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const stored = await safeStorageGet(['flataudit_mode_overrides']);
+        const overrides = stored.flataudit_mode_overrides || {};
+        overrides[listingKey] = 'rent';
+        await safeStorageSet({ flataudit_mode_overrides: overrides });
+        await evaluatePage();
+      });
+
+      const saleBtn = document.createElement('button');
+      saleBtn.type = 'button';
+      saleBtn.className = `flataudit-mode-btn ${currentMode === 'sale' ? 'active' : ''}`;
+      saleBtn.textContent = '🏡 Buy / Sale';
+      saleBtn.title = 'Switch to Property Buying evaluation mode';
+      saleBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const stored = await safeStorageGet(['flataudit_mode_overrides']);
+        const overrides = stored.flataudit_mode_overrides || {};
+        overrides[listingKey] = 'sale';
+        await safeStorageSet({ flataudit_mode_overrides: overrides });
+        await evaluatePage();
+      });
+
+      modeSwitchRow.appendChild(modeLabel);
+      modeSwitchRow.appendChild(rentBtn);
+      modeSwitchRow.appendChild(saleBtn);
+      drawer.appendChild(modeSwitchRow);
+
       // Section: Buyhatke Price History & Watchlist Card
       const historyCard = document.createElement('div');
       historyCard.className = 'flataudit-history-card';
@@ -291,37 +456,73 @@
         rentStat.textContent = `₹${(data.listing?.rent || 0).toLocaleString('en-IN')}/mo`;
       }
 
-      const deltaBadge = document.createElement('span');
-      const snapPrices = isSale ? [{ price: data.listing?.price }] : [{ rent: data.listing?.rent }];
-      const stats = computePriceHistoryStats(trackedItem ? trackedItem.snapshots : snapPrices);
+      const hasPriceHistory = Boolean(trackedItem && trackedItem.snapshots && trackedItem.snapshots.length >= 2);
 
-      if (stats.delta < 0) {
-        deltaBadge.className = 'flataudit-delta-badge drop';
-        deltaBadge.textContent = `↓ ₹${Math.abs(stats.delta).toLocaleString('en-IN')} (${stats.pctChange}%)`;
-      } else if (stats.delta > 0) {
-        deltaBadge.className = 'flataudit-delta-badge rise';
-        deltaBadge.textContent = `↑ ₹${stats.delta.toLocaleString('en-IN')} (+${stats.pctChange}%)`;
+      if (hasPriceHistory) {
+        const deltaBadge = document.createElement('span');
+        const snapPrices = isSale ? [{ price: data.listing?.price }] : [{ rent: data.listing?.rent }];
+        const stats = computePriceHistoryStats(trackedItem ? trackedItem.snapshots : snapPrices);
+
+        if (stats.delta < 0) {
+          deltaBadge.className = 'flataudit-delta-badge drop';
+          deltaBadge.textContent = `↓ ₹${Math.abs(stats.delta).toLocaleString('en-IN')} (${stats.pctChange}%)`;
+        } else if (stats.delta > 0) {
+          deltaBadge.className = 'flataudit-delta-badge rise';
+          deltaBadge.textContent = `↑ ₹${stats.delta.toLocaleString('en-IN')} (+${stats.pctChange}%)`;
+        } else {
+          deltaBadge.className = 'flataudit-delta-badge stable';
+          deltaBadge.textContent = isSale ? 'Price unchanged' : 'Rent unchanged';
+        }
+
+        historyStatsRow.appendChild(rentStat);
+        historyStatsRow.appendChild(deltaBadge);
+        historyCard.appendChild(historyStatsRow);
+
+        // Inline SVG Sparkline Container
+        const sparkWrap = document.createElement('div');
+        sparkWrap.className = 'flataudit-sparkline-wrap';
+
+        const snapshots = trackedItem.snapshots;
+        const sparkSvgString = generateSparklineSVG(snapshots, { width: 370, height: 50 });
+        const svgParser = new DOMParser();
+        const svgDoc = svgParser.parseFromString(sparkSvgString, 'image/svg+xml');
+        const svgElement = svgDoc.documentElement;
+        sparkWrap.appendChild(document.importNode(svgElement, true));
+        historyCard.appendChild(sparkWrap);
       } else {
-        deltaBadge.className = 'flataudit-delta-badge stable';
-        deltaBadge.textContent = isSale ? 'Price unchanged' : 'Rent unchanged';
+        // First observation: Show current rate and active tracking confirmation
+        const activeBadge = document.createElement('span');
+        activeBadge.className = 'flataudit-delta-badge stable';
+        activeBadge.textContent = trackedItem ? 'Tracking In Watchlist' : 'Tracker Active';
+
+        historyStatsRow.appendChild(rentStat);
+        historyStatsRow.appendChild(activeBadge);
+        historyCard.appendChild(historyStatsRow);
+
+        const emptyNote = document.createElement('div');
+        emptyNote.className = 'flataudit-history-empty-note';
+
+        const noteIcon = document.createElement('span');
+        noteIcon.className = 'flataudit-empty-icon';
+        noteIcon.textContent = '⏳';
+
+        const noteBody = document.createElement('div');
+        noteBody.className = 'flataudit-empty-body';
+
+        const noteTitle = document.createElement('div');
+        noteTitle.className = 'flataudit-empty-title';
+        noteTitle.textContent = 'Price Trend Tracking Active';
+
+        const noteText = document.createElement('div');
+        noteText.className = 'flataudit-empty-text';
+        noteText.textContent = `First price snapshot recorded today. As you revisit this property or browse similar listings, historical price changes and drops will chart automatically here.`;
+
+        noteBody.appendChild(noteTitle);
+        noteBody.appendChild(noteText);
+        emptyNote.appendChild(noteIcon);
+        emptyNote.appendChild(noteBody);
+        historyCard.appendChild(emptyNote);
       }
-
-      historyStatsRow.appendChild(rentStat);
-      historyStatsRow.appendChild(deltaBadge);
-      historyCard.appendChild(historyStatsRow);
-
-      // Inline SVG Sparkline Container
-      const sparkWrap = document.createElement('div');
-      sparkWrap.className = 'flataudit-sparkline-wrap';
-
-      const snapshots = trackedItem ? trackedItem.snapshots : [{ t: Date.now(), rent: data.listing.rent }];
-      const sparkSvgString = generateSparklineSVG(snapshots, { width: 370, height: 50 });
-      // Safely parse SVG string into DOM element
-      const svgParser = new DOMParser();
-      const svgDoc = svgParser.parseFromString(sparkSvgString, 'image/svg+xml');
-      const svgElement = svgDoc.documentElement;
-      sparkWrap.appendChild(document.importNode(svgElement, true));
-      historyCard.appendChild(sparkWrap);
 
       // Status selector and private note (when tracked)
       const controlsRow = document.createElement('div');
@@ -421,7 +622,8 @@
         costBox.className = 'flataudit-buyer-cost-box';
         const costHead = document.createElement('div');
         costHead.className = 'flataudit-buyer-cost-head';
-        costHead.textContent = '💰 Estimated All-In Acquisition Cost (Karnataka)';
+        const costState = buyerReport.costEstimate?.state || buyerReport.meta?.state || 'Karnataka';
+        costHead.textContent = `💰 Estimated All-In Acquisition Cost (${costState})`;
         costBox.appendChild(costHead);
 
         const costRows = document.createElement('div');
@@ -660,43 +862,79 @@
 
       drawer.appendChild(safetyBox);
 
-      // Meta Footer
-      // Feedback button: "This looks wrong"
+      // Meta Footer (Redesigned 2-Row Clean Card)
+      const metaRow = document.createElement('div');
+      metaRow.className = 'flataudit-drawer-footer';
+
+      const footerActions = document.createElement('div');
+      footerActions.className = 'flataudit-footer-actions';
+
+      const hashInfo = document.createElement('div');
+      hashInfo.className = 'flataudit-footer-hash';
+      hashInfo.title = 'Perceptual photo hash (dHash) used locally to detect cross-portal reposts without uploading images.';
+
+      const hashIcon = document.createElement('span');
+      hashIcon.className = 'flataudit-hash-icon';
+      hashIcon.textContent = '📸';
+
+      const hashLabel = document.createElement('span');
+      hashLabel.className = 'flataudit-hash-label';
+      hashLabel.textContent = 'Photo Hash:';
+
+      const hashCode = document.createElement('code');
+      hashCode.className = 'flataudit-hash-code';
+      const displayHash = (data && data.topHash) ? data.topHash : null;
+      hashCode.textContent = displayHash ? `${displayHash.slice(0, 10)}...` : 'None';
+
+      hashInfo.appendChild(hashIcon);
+      hashInfo.appendChild(hashLabel);
+      hashInfo.appendChild(hashCode);
+
+      // Feedback button: "Report Issue"
       const feedbackBtn = document.createElement('button');
       feedbackBtn.type = 'button';
-      feedbackBtn.className = 'flataudit-feedback-link';
-      feedbackBtn.textContent = '🚩 This looks wrong?';
-      feedbackBtn.title = 'Send anonymous feedback on this analysis';
+      feedbackBtn.className = 'flataudit-feedback-btn';
+      feedbackBtn.innerHTML = '<span class="flataudit-feedback-icon">🚩</span> Report Issue';
+      feedbackBtn.title = 'Send anonymous feedback or report false flag';
 
       feedbackBtn.addEventListener('click', async (e) => {
         e.preventDefault();
         e.stopPropagation();
         const reason = prompt('What looks wrong with this analysis? (e.g. rent benchmark seems off, phrasing falsely flagged)\n\nNote: We collect only non-personal listing attributes (bhk, locality, rent). Zero contact or personal info is sent.');
         if (reason && reason.trim()) {
-          try {
-            const report = {
-              timestamp: Date.now(),
-              portal: data.listing?.portal || 'unknown',
-              bhk: data.listing?.bhk || 2,
-              locality: data.listing?.locality || '',
-              rent: data.listing?.rent || 0,
-              benchmarkLevel: data.benchmark?.level || 'none',
-              firedCount: data.firedCount || 0,
-              userFeedback: reason.trim()
-            };
-            const stored = await chrome.storage.local.get(['flataudit_user_feedback']);
-            const feedbackList = stored.flataudit_user_feedback || [];
-            feedbackList.push(report);
-            await chrome.storage.local.set({ flataudit_user_feedback: feedbackList });
-            feedbackBtn.textContent = '✓ Feedback saved';
-            feedbackBtn.disabled = true;
-          } catch (err) {}
+          const report = {
+            timestamp: Date.now(),
+            portal: data.listing?.portal || 'unknown',
+            bhk: data.listing?.bhk || 2,
+            locality: data.listing?.locality || '',
+            rent: data.listing?.rent || data.listing?.price || 0,
+            benchmarkLevel: data.benchmark?.level || 'none',
+            firedCount: data.firedCount || 0,
+            userFeedback: reason.trim()
+          };
+          const stored = await safeStorageGet(['flataudit_user_feedback']);
+          const feedbackList = stored.flataudit_user_feedback || [];
+          feedbackList.push(report);
+          await safeStorageSet({ flataudit_user_feedback: feedbackList });
+          feedbackBtn.innerHTML = '<span class="flataudit-feedback-icon">✓</span> Saved';
+          feedbackBtn.disabled = true;
         }
       });
 
-      metaRow.appendChild(hashInfo);
-      metaRow.appendChild(feedbackBtn);
-      metaRow.appendChild(privacyNote);
+      footerActions.appendChild(hashInfo);
+      footerActions.appendChild(feedbackBtn);
+
+      const securityRow = document.createElement('div');
+      securityRow.className = 'flataudit-footer-security';
+
+      const privacyNote = document.createElement('span');
+      privacyNote.className = 'flataudit-security-badge';
+      privacyNote.textContent = '🔒 Zero personal data transmitted • Local-first evaluation';
+
+      securityRow.appendChild(privacyNote);
+
+      metaRow.appendChild(footerActions);
+      metaRow.appendChild(securityRow);
       drawer.appendChild(metaRow);
 
       // Event Listeners
@@ -781,17 +1019,29 @@
     evaluatePage();
 
     // Re-check on dynamic SPA DOM mutations outside our own root
-    let timeoutId;
+    let mutationTimeoutId;
     const observer = new MutationObserver((mutations) => {
       const isSelfMutation = Array.from(mutations).every(m => {
         return m.target && (m.target.id === 'flataudit-root' || (m.target.closest && m.target.closest('#flataudit-root')));
       });
       if (isSelfMutation) return;
 
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(() => {
+      // Real navigation occurred on SPA (e.g. clicked to next property)
+      if (window.location.href !== lastEvaluatedUrl) {
+        clearTimeout(mutationTimeoutId);
+        mutationTimeoutId = setTimeout(() => {
+          evaluatePage();
+        }, 300);
+        return;
+      }
+
+      // If drawer is currently open or page is already evaluated, avoid disruptive re-render
+      if (isDrawerOpen) return;
+
+      clearTimeout(mutationTimeoutId);
+      mutationTimeoutId = setTimeout(() => {
         evaluatePage();
-      }, 1000);
+      }, 2000);
     });
 
     observer.observe(document.body, { childList: true, subtree: true });

@@ -424,10 +424,10 @@ export function evaluateSalePriceSignal(listing, context = {}) {
       return {
         fired: true,
         severity: 'high',
-        reason: `Asking rate of ₹${psf.toLocaleString('en-IN')}/sq.ft is ${discount}% below government guidance rate (₹${guidanceRate.toLocaleString('en-IN')}/sq.ft) [${guidance.source}]`,
-        point: `Asking rate is ${discount}% below government circle rate.`,
-        humanReason: `Official government guidance value for ${guidance.localityKey} is ₹${guidanceRate.toLocaleString('en-IN')}/sq.ft (${guidance.source}, effective ${guidance.effectiveDate}). Listings significantly below circle rate may indicate undocumented cash demands or unapproved construction.`,
-        details: { price, psf, guidanceRate, discount, source: guidance.source }
+        reason: `Asking rate of ₹${psf.toLocaleString('en-IN')}/sq.ft is ${discount}% below government guidance rate (₹${guidanceRate.toLocaleString('en-IN')}/sq.ft) [${guidance.source}, effective ${guidance.effectiveDate}]`,
+        point: `Asking rate is ${discount}% below state guidance value.`,
+        humanReason: `Asking price per sq ft is ${discount}% below the official state guidance value of ₹${guidanceRate.toLocaleString('en-IN')}/sq.ft (${guidance.source}, effective ${guidance.effectiveDate}). Lower rates can occur in older properties, distressed sales, or unrenovated units; buyers typically verify property title, encumbrances, and approved building plans with a legal professional before payment.`,
+        details: { price, psf, guidanceRate, discount, source: guidance.source, effectiveDate: guidance.effectiveDate }
       };
     }
 
@@ -494,6 +494,30 @@ export function evaluateReraSignal(listing) {
 export function analyzeListing(listing, options = {}) {
   const seenCount = options.seenCount || 1;
   const fullText = `${listing.title || ''} ${listing.description || ''}`;
+
+  // Handle explicit unknown mode: prompt user for mode toggle
+  if (listing.listingType === 'unknown') {
+    return {
+      listingType: 'unknown',
+      badgeLabel: 'Select Mode',
+      badgeTone: 'warn',
+      headlineSummary: 'Listing intent uncertain. Select whether you are buying or renting to evaluate benchmarks.',
+      firedCount: 0,
+      observableFacts: ['Listing type (buying vs renting) could not be verified automatically with >= 2 independent signals.'],
+      humanReadablePoints: [
+        {
+          category: 'Listing Intent',
+          icon: '❓',
+          fired: false,
+          point: 'Intent could not be determined automatically.',
+          reason: 'Both rental and purchase signals are ambiguous or insufficient. Please choose whether this listing is for Rent or Sale using the switch in the companion drawer.'
+        }
+      ],
+      safetyAdvice: ['Select Rent or Sale to activate verified locality benchmarks.'],
+      signals: {}
+    };
+  }
+
   const isSale = listing.listingType === 'sale' || Boolean(listing.price && !listing.rent);
 
   if (isSale) {

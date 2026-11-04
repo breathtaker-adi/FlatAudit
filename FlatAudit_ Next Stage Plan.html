@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FlatAudit: Next Stage Plan</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#0f1520;--surf:#172030;--line:#26334a;--text:#e6ebf5;--muted:#9aa8c2;--acc:#7cc4ff;--warn:#f2b84b;--bad:#ff8a80;--ok:#6fd6a0;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.6 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:840px;margin:0 auto;padding:32px 20px 72px}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.5rem;font-weight:700;margin:50px 0 14px}
+h3{font-size:1.1rem;font-weight:700;margin-bottom:6px}
+p{margin:0 0 12px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:62ch;margin-top:14px}
+ul{margin:6px 0;padding-left:20px}
+li{margin:4px 0}
+.box{background:var(--surf);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:8px;padding:14px 16px;margin:16px 0}
+.box.warn{border-left-color:var(--warn)}
+.box.ok{border-left-color:var(--ok)}
+.box.bad{border-left-color:var(--bad)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cols .box{margin:0}
+.tw{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted)}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--surf);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.st{display:inline-block;font-size:.78rem;padding:2px 9px;border-radius:99px;border:1px solid;white-space:nowrap}
+.st.d{color:var(--ok);border-color:var(--ok)}
+.st.p{color:var(--warn);border-color:var(--warn)}
+.st.n{color:var(--bad);border-color:var(--bad)}
+.wk{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:16px 0}
+.wk header{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.wk .t{font-size:.82rem;color:var(--muted)}
+.done{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);color:var(--ok)}
+.ck{list-style:none;padding:0}
+.ck li{display:flex;gap:9px;align-items:flex-start}
+.ck input{margin-top:6px;accent-color:var(--acc);width:16px;height:16px;flex:none}
+.ck input:checked+span{color:var(--muted);text-decoration:line-through}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:18px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .25s}
+.note{font-size:.88rem;color:var(--muted)}
+@media (max-width:640px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<h1>FlatAudit: the next stage</h1>
+<p class="lead">Rent/sale detection, spike checks and yearly memory are now built. The next job is to prove they hold up on real pages, run them reliably, put real users on them, and then add states one at a time.</p>
+<div class="bar" aria-hidden="true"><i id="fill"></i></div>
+<p class="note" id="pct">0% complete</p>
+
+<h2>Where things stand</h2>
+<div class="tw"><table>
+<tr><th>Area</th><th>Status</th><th>What’s still unproven</th></tr>
+<tr><td>Rent/sale classifier with manual switch</td><td><span class="st p">Built</span></td><td>8 unit tests; needs 100+ real pages per portal</td></tr>
+<tr><td>30-day vs 90-day spike check</td><td><span class="st p">Built</span></td><td>Thresholds untuned; never back-tested</td></tr>
+<tr><td>Monthly rollups and pack archive</td><td><span class="st p">Built</span></td><td>No real multi-month data yet</td></tr>
+<tr><td>PriceSource and RBI context</td><td><span class="st p">Built</span></td><td>Check what the code actually fetches</td></tr>
+<tr><td>Pilot data verification</td><td><span class="st n">Unconfirmed</span></td><td>Your report doesn’t say it was done</td></tr>
+<tr><td>Rajasthan and other states</td><td><span class="st n">Not started</span></td><td>All of it</td></tr>
+<tr><td>Real users and live data</td><td><span class="st n">Not started</span></td><td>Crowd benchmarks are empty without users</td></tr>
+</table></div>
+
+<h2>Things to correct or tighten</h2>
+<div class="box warn"><ul>
+<li><b>Spike thresholds are too loose.</b> With only 5 observations per window, a median swings widely. Instead of a fixed “+12% with n ≥ 5”, test whether the recent and baseline medians differ beyond random noise, for example with a bootstrap interval, and require a larger minimum sample. Tune on simulated spikes before trusting it.</li>
+<li><b>RBI coverage is out of date in the text.</b> The latest index covers 18 cities with 2022-23 as the base year, not 10. Pull the city list and the figures from the published series, and never hard-code an example like “+4.2% YoY”.</li>
+<li><b>Unverified claims in docs:</b> provider pricing (“thousands of dollars per month”), the 5 MB storage figure, and “no free API exists” should be worded as “I found none” and checked before they go in the README.</li>
+<li><b>Pilot data:</b> confirm every project, guidance value and cost rule has a source URL and a verified date, or hide it.</li>
+<li><b>Name the sources of “aggressively block scrapers”.</b> Keep claims about portals factual and limited to what you tested.</li>
+</ul></div>
+
+<h2>Plan (about 12–14 weeks)</h2>
+
+<section class="wk"><header><h3>Stage 1: Prove what you just built</h3><span class="t">about 2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Run the classifier on 100+ real saved pages per portal (rent and sale, several cities, PG and plots included); report % correct, % unknown, % wrong</span></li>
+<li><input type="checkbox"><span>Log every wrong-mode case as a new fixture and fix the rule behind it</span></li>
+<li><input type="checkbox"><span>Spike check: simulate areas with known hikes and flat periods; count missed spikes and false alarms; set minimum samples from the results</span></li>
+<li><input type="checkbox"><span>Test the full flow in a real Chrome profile on live pages: classify, benchmark, track, compare, report</span></li>
+<li><input type="checkbox"><span>Finish the pilot-data audit; remove unverified records</span></li>
+<li><input type="checkbox"><span>Fix doc claims listed above</span></li></ul>
+<div class="done">Gate: wrong-mode rate under 2%, spike check tested on simulated data, pilot data fully sourced.</div></section>
+
+<section class="wk"><header><h3>Stage 2: Run it like a service</h3><span class="t">about 1–2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Scheduled jobs: nightly pack build, monthly rollup, 90-day pruning; log each run and its row counts</span></li>
+<li><input type="checkbox"><span>Backups of the database and restore test; schema migration scripts with version numbers</span></li>
+<li><input type="checkbox"><span>Health endpoint, error logging and an alert when a job fails or packs go stale</span></li>
+<li><input type="checkbox"><span>Rate limits and input validation; per-contributor weight caps against fake data</span></li>
+<li><input type="checkbox"><span>Deploy to a free tier and host packs as static files</span></li>
+<li><input type="checkbox"><span>Release as v1.2-beta, unlisted</span></li></ul>
+<div class="done">Gate: jobs run unattended for 2 weeks without manual fixes.</div></section>
+
+<section class="wk"><header><h3>Stage 3: Real users and seed data</h3><span class="t">runs alongside stages 2–4</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Recruit 10–20 testers in at least 4 cities, including friends and classmates looking for rentals or homes</span></li>
+<li><input type="checkbox"><span>Explain what is collected (aggregates only) and keep reporting opt-in</span></li>
+<li><input type="checkbox"><span>Weekly coverage report: cells with enough data, share of verdicts with “not enough data”</span></li>
+<li><input type="checkbox"><span>Collect “this looks wrong” feedback and review each item weekly</span></li>
+<li><input type="checkbox"><span>Record how many real contributors each cell has; publish only above your minimum</span></li></ul>
+<div class="done">Gate: at least a few cells reach publishable sample sizes from real contributors.</div></section>
+
+<section class="wk"><header><h3>Stage 4: Rajasthan</h3><span class="t">about 3 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Fixtures from the official Rajasthan RERA project and promoter pages</span></li>
+<li><input type="checkbox"><span>Adapter: ID pattern, link-out, user-opened page reader, health check</span></li>
+<li><input type="checkbox"><span>Verified pilot file for about 20 projects in Jaipur and one tier-2 city</span></li>
+<li><input type="checkbox"><span>Rajasthan cost and guidance data with source, effective date and verified date</span></li>
+<li><input type="checkbox"><span>Label 50 sale and 50 rent listings; report mode detection and field accuracy</span></li></ul>
+<div class="done">Gate: field accuracy of at least 95% on the pilot projects; mode detection at the Stage 1 standard.</div></section>
+
+<section class="wk"><header><h3>Stage 5: One more state, then decide</h3><span class="t">about 3 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Pick Maharashtra or Telangana; reuse the adapter template</span></li>
+<li><input type="checkbox"><span>Repeat the fixture, pilot-file and labeling steps with the same gates</span></li>
+<li><input type="checkbox"><span>If it took under 3 weeks, continue with the next state; if over 4, stop and document why</span></li></ul>
+<div class="done">Gate: a second state meets the same accuracy gates in a similar time as Rajasthan.</div></section>
+
+<section class="wk"><header><h3>Stage 6: Release and write-up</h3><span class="t">about 1–2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Coverage map and per-state metrics table in the README</span></li>
+<li><input type="checkbox"><span>Update threat model, privacy policy and store listing</span></li>
+<li><input type="checkbox"><span>Blog post on what failed: wrong-mode cases, spike tuning, stale official data, cold start</span></li>
+<li><input type="checkbox"><span>Tag v1.2 and publish; record a short demo of rent, buy and a market-moved banner</span></li></ul>
+<div class="done">Gate: every number in the docs has a source, a sample size and a date.</div></section>
+
+<h2>Spike check: a better test</h2>
+<div class="cols">
+<div class="box"><h3>Do</h3><ul>
+<li>Compare recent and baseline medians with an interval, not a fixed percentage</li>
+<li>Require a minimum sample in both windows, set from simulation</li>
+<li>Confirm with repeat-listing changes</li>
+<li>Stratify by BHK and area type</li>
+<li>Report a range and sample sizes in plain words</li></ul></div>
+<div class="box"><h3>Avoid</h3><ul>
+<li>Announcing a spike from a handful of listings</li>
+<li>Letting one contributor or one new building move the median</li>
+<li>Flagging listings more often during a market move</li>
+<li>Mixing index values and listing prices</li></ul></div>
+</div>
+
+<h2>Scope guard</h2>
+<div class="box ok"><p>You’re building a portfolio project with real depth already. If time gets tight, stop after Rajasthan plus one more state, finish Stage 6, and move extra states, Firefox, a text model and a mobile path to a v1.3 list. A smaller product with measured accuracy beats a wide one with unverified data.</p></div>
+
+<h2>Next 7 days</h2>
+<div class="box ok"><ul>
+<li>Save 30 rent and 30 sale pages from two portals and run the classifier; list every miss.</li>
+<li>Write a small simulation: 20 fake areas, 5 with a real +15% jump; see what the spike check catches.</li>
+<li>Check the pilot-data audit status and list the records still missing a source.</li></ul></div>
+</main>
+<script>
+(function(){
+var K="flataudit-next-stage-v1",boxes=[].slice.call(document.querySelectorAll('.ck input')),saved=[];
+try{saved=JSON.parse(localStorage.getItem(K)||"[]")}catch(e){}
+boxes.forEach(function(b,i){b.checked=!!saved[i];b.addEventListener('change',upd)});
+function upd(){
+var s=boxes.map(function(b){return b.checked?1:0}),n=s.reduce(function(a,c){return a+c},0),p=boxes.length?Math.round(n*100/boxes.length):0;
+document.getElementById('fill').style.width=p+'%';
+document.getElementById('pct').textContent=p+'% complete ('+n+' of '+boxes.length+' tasks)';
+try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}
+}
+upd();
+})();
+</script>
+</body>
+</html>

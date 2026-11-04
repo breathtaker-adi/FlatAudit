@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FlatAudit: Every-City Benchmarks Without Hardcoding</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#0f1520;--surf:#172030;--line:#26334a;--text:#e6ebf5;--muted:#9aa8c2;--acc:#7cc4ff;--warn:#f2b84b;--bad:#ff8a80;--ok:#6fd6a0;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.6 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:840px;margin:0 auto;padding:32px 20px 72px}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.5rem;font-weight:700;margin:50px 0 14px}
+h3{font-size:1.1rem;font-weight:700}
+p{margin:0 0 12px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:62ch;margin-top:14px}
+ul{margin:6px 0;padding-left:20px}
+li{margin:4px 0}
+.box{background:var(--surf);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:8px;padding:14px 16px;margin:16px 0}
+.box.warn{border-left-color:var(--warn)}
+.box.ok{border-left-color:var(--ok)}
+.box.bad{border-left-color:var(--bad)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tw{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted)}
+pre{background:var(--surf);border:1px solid var(--line);border-radius:8px;padding:14px;overflow-x:auto;font:.85rem/1.5 ui-monospace,Menlo,Consolas,monospace;margin:12px 0}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--surf);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.wk{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:16px 0}
+.wk header{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.wk .t{font-size:.82rem;color:var(--muted)}
+.done{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);color:var(--ok)}
+.ck{list-style:none;padding:0}
+.ck li{display:flex;gap:9px;align-items:flex-start}
+.ck input{margin-top:6px;accent-color:var(--acc);width:16px;height:16px;flex:none}
+.ck input:checked+span{color:var(--muted);text-decoration:line-through}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:18px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .25s}
+.note{font-size:.88rem;color:var(--muted)}
+@media (max-width:640px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<h1>Every-city benchmarks without hardcoding</h1>
+<p class="lead">How FlatAudit can judge rent and deposit fairly in any Indian city: learn from data, say how sure you are, and stay silent when you don’t know.</p>
+<div class="bar" aria-hidden="true"><i id="fill"></i></div>
+<p class="note" id="pct">0% complete</p>
+
+<div class="box warn"><b>Still open from Phase 0:</b> the 97.3% accuracy and 95.1% precision are measured on the synthetic dataset, so they show the rules behave as designed, not that they work on real listings. Hand-label real listings from several cities before quoting any metric.</div>
+
+<h2>The short answer</h2>
+<div class="box ok"><ul>
+<li><b>Stop storing absolute numbers per city.</b> Replace <code>LOCALITY_BENCHMARKS</code> with a function that returns <code>{median, n, level, confidence}</code> from data, and judge listings relative to their peers.</li>
+<li><b>Use the page itself as the first data source.</b> On a search-results page the extension already sees dozens of comparable listings for that locality. Computing a median from them locally works in every city on day one, with no server.</li>
+<li><b>Key places by coordinates, not by names.</b> A geohash prefix gives an automatic hierarchy (area → district → city) and ignores spelling differences like “Indiranagar” vs “Indira Nagar”.</li>
+<li><b>Fall back step by step</b> (local → area → city → tier) and show which level was used. If there isn’t enough data, show “not enough local data” instead of a verdict.</li>
+<li><b>Ship data, not code.</b> The backend publishes small, static “market packs” of aggregates; the extension caches them. Chrome allows remote data, not remote code.</li>
+</ul></div>
+
+<h2>Fallback ladder</h2>
+<div class="tw"><table>
+<tr><th>Level</th><th>Source</th><th>Use when</th><th>Shown to user</th></tr>
+<tr><td>1. Peer page</td><td>Cards on the results or “similar” section the user is viewing</td><td>n ≥ 8 same-BHK peers</td><td>“vs 14 listings on this page”</td></tr>
+<tr><td>2. Area cell</td><td>Crowd aggregates for a fine geohash cell (about 1–5 km)</td><td>n ≥ 10 in the last 90 days</td><td>“vs 23 listings nearby”</td></tr>
+<tr><td>3. District</td><td>Parent geohash prefix, wider cell</td><td>Area cell too thin</td><td>“vs 61 listings in the wider area”</td></tr>
+<tr><td>4. City</td><td>City-level aggregate by BHK</td><td>District too thin</td><td>“vs city-wide median (low confidence)”</td></tr>
+<tr><td>5. None</td><td>No trustworthy data</td><td>Everything above is thin</td><td>“Not enough local data”; only non-price signals run</td></tr>
+</table></div>
+<p class="note">Optional smoothing: blend a thin local median with its parent, <code>(n·local + k·parent) / (n + k)</code>, so small samples lean on the larger area instead of swinging wildly.</p>
+
+<h2>How the pieces fit</h2>
+<pre>Listing / results page
+   │  parse: rent, BHK, area, furnishing, type, lat/lng or locality text
+   ▼
+Extension
+   ├─ peer benchmark (local, from cards on the page)
+   ├─ market-pack cache (chrome.storage, refreshed by ETag, 24h TTL)
+   └─ getBenchmark(listing) → { level, n, median, mad, confidence }
+   ▼
+signals.js uses ratios and robust z-scores, never fixed rupee limits
+
+Backend (nightly job)
+   observations → drop suspicious ones → group by geohash + BHK
+   → trimmed stats → static JSON packs (CDN or static hosting)</pre>
+
+<h2>Market pack format (illustrative)</h2>
+<pre>{
+  "v": 1, "cell": "tsv6", "level": "g4", "updated": "2026-10-25",
+  "window_days": 90,
+  "bhk": {
+    "2": { "n": 31, "p25": 0, "median": 0, "p75": 0, "mad": 0, "psf_median": 0 }
+  },
+  "deposit_multiple": { "n": 31, "p10": 0, "median": 0, "p90": 0 }
+}</pre>
+<p class="note">Numbers are placeholders. Publish a pack only when the cell has at least k contributing listings, with no raw listings, links, photos or contacts inside.</p>
+
+<h2>Data quality rules</h2>
+<div class="cols">
+<div class="box"><h3>Keep the benchmark clean</h3><ul>
+<li>Exclude listings that fired price or advance-fee signals; bait prices would drag the median down</li>
+<li>Use median and MAD, with trimming; a robust z-score is (x − median) / (1.4826 × MAD)</li>
+<li>Compare rent per sq ft when area is known</li>
+<li>Separate furnished, semi- and unfurnished</li>
+<li>Separate flats, independent houses, PG and shared rooms</li>
+<li>Use a rolling 60–90 day window and warn when a pack is stale</li></ul></div>
+<div class="box"><h3>Keep it fair</h3><ul>
+<li>Judge by ratio to peers (for example, under 0.6× the median), tuned per tier, not by fixed rupees</li>
+<li>Learn deposit norms per city from data; use a broad default range when unknown</li>
+<li>Never show a verdict without its sample size</li>
+<li>Treat weak data as “unknown”, not “normal”</li>
+<li>Count a listing once per day, so refreshes don’t skew medians</li></ul></div>
+</div>
+
+<h2>Expansion plan</h2>
+
+<section class="wk"><header><h3>A. Remove the hardcoding</h3><span class="t">about 1 week</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Define a <code>getBenchmark(listing)</code> interface returning level, n, median, MAD and confidence</span></li>
+<li><input type="checkbox"><span>Add a small geohash helper and parse lat/lng from page data (structured data or map links) when present</span></li>
+<li><input type="checkbox"><span>Fallback key when coordinates are missing: normalized city + locality text, with aliases learned from data</span></li>
+<li><input type="checkbox"><span>Convert price and deposit rules to ratios and robust z-scores</span></li>
+<li><input type="checkbox"><span>Move any remaining city tables into data files with a schema and tests</span></li></ul>
+<div class="done">Done when: deleting the city table changes nothing in code, only in data.</div></section>
+
+<section class="wk"><header><h3>B. Peer-page benchmark</h3><span class="t">1–2 weeks · works in every city immediately</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Parse all visible cards on results pages with the existing portal parsers</span></li>
+<li><input type="checkbox"><span>Compute local aggregates per BHK and store only the aggregates, not the listings</span></li>
+<li><input type="checkbox"><span>Use them to benchmark detail pages opened later, with an expiry</span></li>
+<li><input type="checkbox"><span>Note the bias: search filters change the sample; label it “this search”</span></li>
+<li><input type="checkbox"><span>Test with fixtures from at least 5 different cities</span></li></ul>
+<div class="done">Done when: a listing in a city you never configured still gets a labeled, sample-sized verdict.</div></section>
+
+<section class="wk"><header><h3>C. Backend aggregation and packs</h3><span class="t">about 2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Nightly job: filter suspicious rows, trim outliers, group by geohash prefix and BHK</span></li>
+<li><input type="checkbox"><span>Write static pack files per prefix plus an <code>index.json</code> listing available cells</span></li>
+<li><input type="checkbox"><span>Enforce minimum contributors per cell before publishing</span></li>
+<li><input type="checkbox"><span>Serve packs as static files with ETag and caching so traffic doesn’t hit the API</span></li>
+<li><input type="checkbox"><span>Add a test that scans every pack for raw listing fields</span></li></ul>
+<div class="done">Done when: packs regenerate from a clean database with one command.</div></section>
+
+<section class="wk"><header><h3>D. Pack loader in the extension</h3><span class="t">about 1 week</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Fetch the right pack on demand; cache with TTL and a schema version check</span></li>
+<li><input type="checkbox"><span>Walk the fallback ladder: peer page, area, district, city, none</span></li>
+<li><input type="checkbox"><span>Work offline with cached data; show pack age when stale</span></li>
+<li><input type="checkbox"><span>Update the threat model for the new host permission and data fetch</span></li></ul>
+<div class="done">Done when: airplane mode still shows verdicts from cache with the right confidence.</div></section>
+
+<section class="wk"><header><h3>E. Multi-city evaluation</h3><span class="t">about 2 weeks · where credibility comes from</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Hand-label real listings from at least 6 cities across metro, tier-2 and tier-3, including one you can verify personally</span></li>
+<li><input type="checkbox"><span>Ask friends in other cities to help label with the written guide; keep the data private</span></li>
+<li><input type="checkbox"><span>Report precision and recall per city, plus leave-one-city-out results</span></li>
+<li><input type="checkbox"><span>Check calibration: do “many signals” listings turn out suspicious more often than “some signals”?</span></li>
+<li><input type="checkbox"><span>Tune ratio thresholds per city tier, not per city</span></li></ul>
+<div class="done">Done when: a table shows how accuracy changes with city and data level.</div></section>
+
+<section class="wk"><header><h3>F. Grow coverage</h3><span class="t">ongoing</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Coverage dashboard: which cells have enough data, and how many listings get a verdict</span></li>
+<li><input type="checkbox"><span>“This looks wrong” button that shares only anonymized aggregate fields</span></li>
+<li><input type="checkbox"><span>Recruit beta users city by city, starting where coverage is thinnest</span></li>
+<li><input type="checkbox"><span>Handle units and formats (sq ft vs sq m, Lakh notation, studio and RK layouts)</span></li>
+<li><input type="checkbox"><span>Move SQLite to Postgres only when you need multiple servers or heavy aggregation</span></li></ul>
+<div class="done">Done when: coverage grows without code changes.</div></section>
+
+<h2>Where seed data can come from</h2>
+<ul>
+<li><b>Your own users and testers:</b> the safest and most relevant source, but slow at first.</li>
+<li><b>Peer-page data:</b> immediate and local, as described above.</li>
+<li><b>Public datasets:</b> government housing price indices cover sale prices in a limited set of cities, and open rental datasets are patchy. I haven’t verified current options, so check each source’s license and coverage before using it.</li>
+<li><b>Avoid:</b> bulk scraping portals to fill a database, which carries the same Terms of Service and blocking risks as before.</li>
+</ul>
+
+<h2>Risks</h2>
+<div class="box warn"><b>Thin data in small cities:</b> the ladder will often end at “not enough data”. That is correct behavior; say so honestly rather than guessing.</div>
+<div class="box warn"><b>Biased samples:</b> peer pages reflect the search filters and crowd data reflects who installed the extension. Show sample size and level every time.</div>
+<div class="box warn"><b>Poisoned data:</b> someone could submit fake observations. Dedupe per listing per day, cap each contributor’s weight, and use robust statistics.</div>
+<div class="box warn"><b>Parser coverage:</b> portals mostly use one layout across cities, but local sections and units vary. Test fixtures per city.</div>
+
+<h2>Next 7 days</h2>
+<div class="box ok"><ul>
+<li>Write the <code>getBenchmark</code> interface and a geohash helper with tests.</li>
+<li>Save results-page fixtures from 5 cities (personal details removed) and compute a peer median from each.</li>
+<li>Start the real, multi-city label sheet with 10 listings per city.</li></ul></div>
+</main>
+<script>
+(function(){
+var K="flataudit-multicity-v1",boxes=[].slice.call(document.querySelectorAll('.ck input')),saved=[];
+try{saved=JSON.parse(localStorage.getItem(K)||"[]")}catch(e){}
+boxes.forEach(function(b,i){b.checked=!!saved[i];b.addEventListener('change',upd)});
+function upd(){
+var s=boxes.map(function(b){return b.checked?1:0}),n=s.reduce(function(a,c){return a+c},0),p=boxes.length?Math.round(n*100/boxes.length):0;
+document.getElementById('fill').style.width=p+'%';
+document.getElementById('pct').textContent=p+'% complete ('+n+' of '+boxes.length+' tasks)';
+try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}
+}
+upd();
+})();
+</script>
+</body>
+</html>

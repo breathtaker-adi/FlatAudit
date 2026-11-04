@@ -145,6 +145,71 @@
         "3": { "n": 140, "median": 42000, "mad": 5500, "psf_median": 25.0 }
       },
       "deposit_multiple": { "n": 220, "median": 2.5, "min": 1.5, "max": 4.0 }
+    },
+    {
+      "cell": "tsk0v",
+      "name": "Pal Balaji & Shastri Nagar",
+      "city": "Jodhpur",
+      "level": "area_cell",
+      "aliases": ["pal balaji", "pal road", "shastri nagar", "khema ka kuwa", "mertiya garden"],
+      "bhk": {
+        "1": { "n": 18, "median": 7500, "mad": 1000, "psf_median": 16.0 },
+        "2": { "n": 32, "median": 11000, "mad": 1800, "psf_median": 18.0 },
+        "3": { "n": 24, "median": 17000, "mad": 2200, "psf_median": 17.5 }
+      },
+      "deposit_multiple": { "n": 32, "median": 1.5, "min": 0.5, "max": 2.5 }
+    },
+    {
+      "cell": "tsk0",
+      "name": "Jodhpur City",
+      "city": "Jodhpur",
+      "level": "city",
+      "aliases": ["jodhpur", "marwar", "ratanada", "pal", "paota"],
+      "bhk": {
+        "1": { "n": 85, "median": 8000, "mad": 1200, "psf_median": 16.5 },
+        "2": { "n": 140, "median": 12000, "mad": 2000, "psf_median": 18.5 },
+        "3": { "n": 95, "median": 18000, "mad": 2500, "psf_median": 18.0 }
+      },
+      "deposit_multiple": { "n": 140, "median": 1.8, "min": 0.5, "max": 3.0 }
+    },
+    {
+      "cell": "tsvg",
+      "name": "Jaipur City",
+      "city": "Jaipur",
+      "level": "city",
+      "aliases": ["jaipur", "pink city", "vaishali nagar", "malviya nagar", "mansarovar", "jagatpura"],
+      "bhk": {
+        "1": { "n": 120, "median": 9500, "mad": 1500, "psf_median": 19.0 },
+        "2": { "n": 210, "median": 15000, "mad": 2500, "psf_median": 20.0 },
+        "3": { "n": 150, "median": 24000, "mad": 3500, "psf_median": 21.0 }
+      },
+      "deposit_multiple": { "n": 210, "median": 2.0, "min": 1.0, "max": 3.5 }
+    },
+    {
+      "cell": "tsw5",
+      "name": "Kota City",
+      "city": "Kota",
+      "level": "city",
+      "aliases": ["kota", "talwandi", "vigyan nagar", "mahaveer nagar", "landmark city"],
+      "bhk": {
+        "1": { "n": 75, "median": 7000, "mad": 1000, "psf_median": 15.0 },
+        "2": { "n": 130, "median": 11000, "mad": 1500, "psf_median": 16.0 },
+        "3": { "n": 80, "median": 16000, "mad": 2000, "psf_median": 16.5 }
+      },
+      "deposit_multiple": { "n": 130, "median": 1.8, "min": 0.5, "max": 3.0 }
+    },
+    {
+      "cell": "tsk8",
+      "name": "Udaipur City",
+      "city": "Udaipur",
+      "level": "city",
+      "aliases": ["udaipur", "fateh sagar", "shobhagpura", "hiran magri", "sukhadia circle"],
+      "bhk": {
+        "1": { "n": 65, "median": 8500, "mad": 1200, "psf_median": 17.0 },
+        "2": { "n": 110, "median": 13500, "mad": 2000, "psf_median": 18.0 },
+        "3": { "n": 75, "median": 21000, "mad": 3000, "psf_median": 19.0 }
+      },
+      "deposit_multiple": { "n": 110, "median": 2.0, "min": 0.5, "max": 3.5 }
     }
   ]
 }

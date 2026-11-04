@@ -14,6 +14,7 @@
 
 import marketPacksData from './data/market_packs.json' with { type: 'json' };
 import guidanceValuesData from './data/guidance_values.json' with { type: 'json' };
+import rajasthanCostsData from './data/rajasthan_costs.json' with { type: 'json' };
 
 /**
  * Computes median of numeric array.
@@ -278,8 +279,10 @@ export function getBenchmark(listing = {}, context = {}) {
 export function getGuidanceValue(locality, city = 'bengaluru') {
   if (!locality || typeof locality !== 'string') return null;
   const cleanLoc = locality.toLowerCase().replace(/[^a-z0-9]/g, '_');
+  const cleanCity = (city || '').toLowerCase();
   
-  if (city.toLowerCase().includes('bengaluru') || city.toLowerCase().includes('bangalore') || cleanLoc.includes('bangalore') || cleanLoc.includes('bengaluru')) {
+  // 1. Karnataka (Bengaluru)
+  if (cleanCity.includes('bengaluru') || cleanCity.includes('bangalore') || cleanLoc.includes('bangalore') || cleanLoc.includes('bengaluru')) {
     const localities = guidanceValuesData.localities || {};
     for (const [key, val] of Object.entries(localities)) {
       if (cleanLoc.includes(key) || key.includes(cleanLoc)) {
@@ -296,6 +299,33 @@ export function getGuidanceValue(locality, city = 'bengaluru') {
       }
     }
   }
+
+  // 2. Rajasthan (Jaipur, Jodhpur, Kota, Udaipur)
+  if (cleanCity.includes('jaipur') || cleanCity.includes('jodhpur') || cleanCity.includes('kota') || cleanCity.includes('udaipur') ||
+      cleanLoc.includes('jaipur') || cleanLoc.includes('jodhpur') || cleanLoc.includes('kota') || cleanLoc.includes('udaipur') ||
+      cleanLoc.includes('jagatpura') || cleanLoc.includes('mansarovar') || cleanLoc.includes('vaishali_nagar')) {
+    const zones = rajasthanCostsData.dlc_guidance?.zones || {};
+    for (const [zoneCity, cityLocs] of Object.entries(zones)) {
+      for (const [locKey, rates] of Object.entries(cityLocs)) {
+        if (cleanLoc.includes(locKey) || locKey.includes(cleanLoc)) {
+          // DLC rates are in INR per sq meter. Standard conversion: 1 sq meter = 10.764 sq ft
+          const sqmRate = rates.residential?.interior || rates.residential?.exterior_main_road || 25000;
+          const sqftRate = Math.round(sqmRate / 10.764);
+          return {
+            state: 'Rajasthan',
+            city: zoneCity.charAt(0).toUpperCase() + zoneCity.slice(1),
+            localityKey: locKey,
+            guidancePerSqft: sqftRate,
+            zone: 'DLC Zone',
+            effectiveDate: rajasthanCostsData.metadata?.effective_year ? `${rajasthanCostsData.metadata.effective_year}-01-01` : '2026-01-01',
+            source: `${rajasthanCostsData.metadata?.portal_source || 'epanjiyan.rajasthan.gov.in'} (DLC Rates)`,
+            disclaimer: 'DLC rate converted from ₹/sqm to ₹/sqft (1 sqm = 10.764 sqft).'
+          };
+        }
+      }
+    }
+  }
+
   return null;
 }
 
@@ -309,6 +339,16 @@ export function getGuidanceValue(locality, city = 'bengaluru') {
 export function getReraPortalUrl(reraId = '', locality = '') {
   const cleanRera = (reraId || '').trim();
   const cleanLoc = (locality || '').toLowerCase();
+
+  if (/RAJ/i.test(cleanRera) || /jaipur|jodhpur|kota|udaipur|rajasthan/i.test(cleanLoc)) {
+    return {
+      state: 'Rajasthan',
+      url: 'https://rajrera.rajasthan.gov.in/Project_Summary.aspx',
+      label: 'Rajasthan RERA (Raj-RERA) Portal',
+      reraId: cleanRera || null,
+      searchAdvice: 'Verify project completion Form B filings and escrow bank disclosures directly on Raj-RERA.'
+    };
+  }
 
   if (/KA\/RERA/i.test(cleanRera) || /bangalore|bengaluru|mysore|karnataka/i.test(cleanLoc)) {
     return {

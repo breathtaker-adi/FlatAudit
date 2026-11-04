@@ -4,11 +4,13 @@ import { parse99acres } from './ninety_nine_acres.js';
 import { parseHousing } from './housing.js';
 import { parseGeneric } from './generic.js';
 import { parseIndianCurrency, parseBHK, parseArea } from './currency.js';
+import { classifyListingType } from './classifier.js';
 import { parseCoordinatesFromPage } from '../geohash.js';
 
 /**
  * Identifies the portal and parses listing attributes from a Document object.
  * Also parses geographic coordinates and geohash if present.
+ * Reconciles sale vs rent via multi-signal classification.
  * @param {Document} document
  * @param {string} [url]
  * @returns {object} Extracted listing details
@@ -38,7 +40,36 @@ export function extractListing(document, url = '') {
     listing.geohash = geo.geohash;
   }
 
-  listing.listingType = listing.listingType || (listing.price ? 'sale' : 'rent');
+  // Multi-signal Intent Classifier evaluation
+  const bodyText = document.body ? (document.body.innerText || document.body.textContent || '') : '';
+  const classification = classifyListingType(document, bodyText, currentUrl);
+  listing.classification = classification;
+
+  // Reconcile listingType: favor explicit parser classification if confident, otherwise use classifier
+  if (!listing.listingType || listing.listingType === 'unknown') {
+    listing.listingType = classification.mode;
+  }
+
+  // Route monetary amount to appropriate fields based on verified mode
+  const rawAmount = listing.price || listing.salePrice || listing.rent || null;
+  listing.rawPrice = rawAmount;
+
+  if (listing.listingType === 'sale') {
+    listing.price = listing.price || rawAmount;
+    listing.salePrice = listing.salePrice || rawAmount;
+    listing.rent = null;
+    if (listing.price && listing.area_sqft && !listing.pricePerSqft) {
+      listing.pricePerSqft = Math.round(listing.price / listing.area_sqft);
+    }
+  } else if (listing.listingType === 'rent') {
+    listing.rent = listing.rent || rawAmount;
+    listing.price = null;
+    listing.salePrice = null;
+  } else {
+    // Mode is 'unknown'
+    listing.listingType = 'unknown';
+  }
+
   listing.isValid = isListingValid(listing);
   return listing;
 }
@@ -47,6 +78,7 @@ export function extractListing(document, url = '') {
  * Validates that a parsed listing contains essential non-empty fields:
  * - For Rent: rent (>0), bhk (>=1), locality.
  * - For Sale: price (>0), bhk (>=1), locality, area (>0).
+ * - For Unknown: bhk (>=1), locality, rawPrice (>0).
  * @param {object} listing 
  * @returns {boolean}
  */
@@ -64,6 +96,11 @@ export function isListingValid(listing) {
       typeof price === 'number' && price > 0 &&
       typeof area === 'number' && area > 0
     );
+  }
+
+  if (listing.listingType === 'unknown') {
+    const amount = listing.rawPrice || listing.price || listing.rent;
+    return Boolean(typeof amount === 'number' && amount > 0);
   }
 
   // Default: rent listing

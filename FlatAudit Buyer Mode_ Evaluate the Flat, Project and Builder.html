@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FlatAudit Buyer Mode: Evaluate the Flat, Project and Builder</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#0f1520;--surf:#172030;--line:#26334a;--text:#e6ebf5;--muted:#9aa8c2;--acc:#7cc4ff;--warn:#f2b84b;--bad:#ff8a80;--ok:#6fd6a0;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.6 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:840px;margin:0 auto;padding:32px 20px 72px}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.5rem;font-weight:700;margin:50px 0 14px}
+h3{font-size:1.1rem;font-weight:700;margin-bottom:6px}
+p{margin:0 0 12px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:62ch;margin-top:14px}
+ul{margin:6px 0;padding-left:20px}
+li{margin:4px 0}
+.box{background:var(--surf);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:8px;padding:14px 16px;margin:16px 0}
+.box.warn{border-left-color:var(--warn)}
+.box.ok{border-left-color:var(--ok)}
+.box.bad{border-left-color:var(--bad)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cols .box{margin:0}
+.tw{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted)}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--surf);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.wk{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:16px 0}
+.wk header{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.wk .t{font-size:.82rem;color:var(--muted)}
+.done{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);color:var(--ok)}
+.ck{list-style:none;padding:0}
+.ck li{display:flex;gap:9px;align-items:flex-start}
+.ck input{margin-top:6px;accent-color:var(--acc);width:16px;height:16px;flex:none}
+.ck input:checked+span{color:var(--muted);text-decoration:line-through}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:18px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .25s}
+.note{font-size:.88rem;color:var(--muted)}
+.rep{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:6px 16px;margin:14px 0}
+.rep div{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);align-items:baseline}
+.rep div:last-child{border-bottom:0}
+.rep b{min-width:92px}
+.g{color:var(--ok)}.y{color:var(--warn)}.u{color:var(--muted)}
+@media (max-width:640px){.cols{grid-template-columns:1fr}.rep div{flex-direction:column;gap:2px}}
+</style>
+</head>
+<body>
+<main>
+<h1>Buyer mode: evaluate the flat, the project and the builder</h1>
+<p class="lead">Extend FlatAudit from “is this listing suspicious?” to “what do the official records say about this home and who is building it?”. Facts with sources, never a verdict.</p>
+<div class="bar" aria-hidden="true"><i id="fill"></i></div>
+<p class="note" id="pct">0% complete</p>
+
+<h2>What buyer mode evaluates</h2>
+<div class="cols">
+<div class="box"><h3>1. The flat</h3><ul>
+<li>Price and price per sq ft vs peers, same area type only</li>
+<li>Carpet vs super built-up, floor, age, possession status</li>
+<li>Duplicate photos, token-to-hold phrasing</li>
+<li>Total cost of ownership</li></ul></div>
+<div class="box"><h3>2. The project</h3><ul>
+<li>RERA registration number shown or missing</li>
+<li>Declared vs revised completion date</li>
+<li>Progress updates, declared litigation, escrow bank</li>
+<li>Status: new launch, under construction, completed</li></ul></div>
+<div class="box"><h3>3. The builder</h3><ul>
+<li>Past projects the promoter disclosed</li>
+<li>How often dates were revised</li>
+<li>Complaints or litigation fields where the portal shows them</li>
+<li>Data completeness for each fact</li></ul></div>
+<div class="box"><h3>4. Paperwork and cost</h3><ul>
+<li>Documents to ask for, by scenario (resale or new)</li>
+<li>Stamp duty and registration estimate</li>
+<li>Hidden costs and EMI with the user’s own inputs</li>
+<li>A “verify with a lawyer” handoff</li></ul></div>
+</div>
+
+<h2>What the output looks like</h2>
+<div class="rep" aria-label="Example buyer report layout">
+<div><b>Flat</b><span class="g">✓ Price per sq ft is near the typical range for 18 similar listings (carpet area basis)</span></div>
+<div><b>Project</b><span class="y">⚠ Completion date was revised once, from the original date; see the official page</span></div>
+<div><b>Builder</b><span class="u">? Disclosed past projects found: 6. Complaint data: not shown by this portal</span></div>
+<div><b>Paperwork</b><span class="u">? Not verified by this tool: title, encumbrance, approvals. Checklist below</span></div>
+</div>
+<p class="note">Illustrative only. Every line carries a source link, a “data as of” date, and a note on what is not covered. There is no overall score or “safe / unsafe” label.</p>
+
+<h2>What official sources can give you</h2>
+<ul>
+<li>State RERA portals generally publish project registration details, promoter information including past projects, declared completion dates, progress updates and, in some states, litigation and complaint information.</li>
+<li><b>Fields, coverage and layout differ by state</b> and change over time, so each state needs its own reader and its own fixtures.</li>
+<li>RERA does not cover every property, and a registration number is not a guarantee of quality or legality.</li>
+<li>Third-party sites mirror RERA data. Prefer the official portal as the source and link to it.</li>
+</ul>
+
+<h2>How to get builder data without bulk scraping</h2>
+<div class="tw"><table>
+<tr><th>Tier</th><th>How</th><th>Effort</th><th>Risk</th></tr>
+<tr><td>A. Link-out</td><td>Show the RERA ID from the listing and a button to the state’s official search</td><td>Low</td><td>Lowest; works from day one</td></tr>
+<tr><td>B. User-opened reader</td><td>A content script on the official portal reads the project page the user opened and saves facts locally</td><td>Medium</td><td>Same as listing pages: user-driven, no bulk crawling, no CAPTCHA bypass</td></tr>
+<tr><td>C. Curated pilot file</td><td>Hand-built data file for about 20 projects in your pilot city, each fact with a source URL and a date</td><td>Medium</td><td>Staleness; label “as of” dates</td></tr>
+</table></div>
+<div class="box warn"><b>Key by RERA number, not by builder name.</b> Builders often register projects through separate companies or LLPs, and names are spelled many ways. Use the RERA number as the join key; offer name matches only as suggestions with a confidence note.</div>
+
+<h2>Builder fact sheet (facts only)</h2>
+<div class="cols">
+<div class="box ok"><h3>Show</h3><ul>
+<li>Projects the promoter disclosed, with status</li>
+<li>“Dates revised in 3 of 8 projects with both dates available”</li>
+<li>Average revision length, when both dates exist</li>
+<li>Litigation field as declared, and complaint counts if the portal shows them</li>
+<li>Data completeness: how many fields were found</li></ul></div>
+<div class="box bad"><h3>Avoid</h3><ul>
+<li>“Reliable”, “risky”, “bad builder”, or any score</li>
+<li>Treating “nothing found” as “no problems”</li>
+<li>Guessing links between companies</li>
+<li>Using wording that isn’t on the official page</li>
+<li>Mixing different states’ fields as if identical</li></ul></div>
+</div>
+
+<h2>Plan (about 10–12 weeks)</h2>
+
+<section class="wk"><header><h3>0. Decisions and wording</h3><span class="t">2–3 days</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Pick one pilot state and city, and read its RERA portal terms and project page layout</span></li>
+<li><input type="checkbox"><span>Write a wording guide: allowed phrases, banned phrases, mandatory caveats</span></li>
+<li><input type="checkbox"><span>Define the rule: no overall verdict, every fact has a source and date</span></li></ul>
+<div class="done">Done when: the pilot and the wording rules are written down.</div></section>
+
+<section class="wk"><header><h3>1. Link listing to project</h3><span class="t">about 1 week</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Parse RERA ID, builder and project name from sale listings; handle “not shown”</span></li>
+<li><input type="checkbox"><span>Add a manual field where the user can paste a RERA ID</span></li>
+<li><input type="checkbox"><span>Button to the official state search with the ID pre-filled where possible</span></li>
+<li><input type="checkbox"><span>Basic format sanity check only; never claim an ID is valid from format alone</span></li></ul>
+<div class="done">Done when: a buyer reaches the official project page in one click.</div></section>
+
+<section class="wk"><header><h3>2. RERA project reader (one state)</h3><span class="t">about 2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Save 10 official project pages from your pilot state as sanitized fixtures</span></li>
+<li><input type="checkbox"><span>Define <code>ProjectFacts</code>: registration number, status, promoter, original and revised completion, litigation field, progress, escrow bank</span></li>
+<li><input type="checkbox"><span>Content script reads the page the user opened and stores facts locally</span></li>
+<li><input type="checkbox"><span>Health test: report which fields were found; flag layout changes</span></li>
+<li><input type="checkbox"><span>Measure field-level accuracy against the page, checked by hand</span></li></ul>
+<div class="done">Done when: at least 95% of key fields match the official page across your fixtures.</div></section>
+
+<section class="wk"><header><h3>3. Builder fact sheet</h3><span class="t">1–2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Parse the promoter’s disclosed past-project list when the user opens it</span></li>
+<li><input type="checkbox"><span>Compute revision statistics only where both dates exist; show the denominator</span></li>
+<li><input type="checkbox"><span>Handle multiple entities with a “not confirmed to be the same builder” note</span></li>
+<li><input type="checkbox"><span>Pilot data file for about 20 projects with source URL and date</span></li></ul>
+<div class="done">Done when: the sheet shows counts, denominators and sources, and never a judgment.</div></section>
+
+<section class="wk"><header><h3>4. Flat evaluation and cost</h3><span class="t">about 2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Sale benchmarks per BHK, property type, status and area type, using the existing ladder</span></li>
+<li><input type="checkbox"><span>Cost estimator: base price, stamp duty and registration, GST where applicable, maintenance, parking, other charges</span></li>
+<li><input type="checkbox"><span>Put state rates in an editable data file with source and date; label results indicative</span></li>
+<li><input type="checkbox"><span>EMI calculator with the user’s own rate, tenure and down payment</span></li></ul>
+<div class="done">Done when: the user sees an all-in cost range and can change every assumption.</div></section>
+
+<section class="wk"><header><h3>5. Paperwork checklist and report</h3><span class="t">1–2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Scenario checklists: resale, under construction, ready from builder</span></li>
+<li><input type="checkbox"><span>Items to ask for, such as registration certificate, approved plans, completion or occupancy documents, encumbrance record, tax receipts and society documents; mark state-specific items</span></li>
+<li><input type="checkbox"><span>One-page buyer report with ✓ / ⚠ / ? lines, sources and dates; print or save locally</span></li>
+<li><input type="checkbox"><span>Clear notice: not legal or financial advice; does not verify title</span></li></ul>
+<div class="done">Done when: a buyer can print one page and take it to a lawyer.</div></section>
+
+<section class="wk"><header><h3>6. Validate</h3><span class="t">about 2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Check 10–15 real projects by hand against the official portal; report field accuracy and link success rate</span></li>
+<li><input type="checkbox"><span>Test with 3–5 people researching a purchase; ask what they understood and what they would do next</span></li>
+<li><input type="checkbox"><span>Ask someone knowledgeable in real estate or law to review the wording and checklist</span></li>
+<li><input type="checkbox"><span>Update the threat model and privacy policy, then publish a new version</span></li></ul>
+<div class="done">Done when: you can state measured accuracy and show what real users did with the report.</div></section>
+
+<h2>How you’ll measure it</h2>
+<ul>
+<li><b>Extraction accuracy:</b> share of key fields that match the official page.</li>
+<li><b>Linking success:</b> share of listings that reach the correct project.</li>
+<li><b>Coverage honesty:</b> share of facts shown with a source and date, and how often “not found” is reported correctly.</li>
+<li><b>Usefulness:</b> whether testers can say what to verify next after reading the report.</li>
+</ul>
+
+<h2>Risks</h2>
+<div class="box warn"><b>Defamation and over-trust:</b> builder information is sensitive. Show only what the official page says, link to it, and avoid evaluative words.</div>
+<div class="box warn"><b>State differences:</b> each state portal has its own layout and fields. Expect one reader per state and regular breakage.</div>
+<div class="box warn"><b>Wrong entity:</b> linking a listing to the wrong project or builder is worse than showing nothing. Prefer the RERA number and ask the user to confirm.</div>
+<div class="box warn"><b>Portal terms and blocking:</b> keep reads user-driven, avoid automation against CAPTCHAs, and check each portal’s terms.</div>
+
+<h2>Next 7 days</h2>
+<div class="box ok"><ul>
+<li>Choose the pilot state and city; save 10 official project pages as sanitized fixtures.</li>
+<li>List the fields on each page and mark which are present in every case.</li>
+<li>Write the wording guide with 10 allowed and 10 banned phrases.</li></ul></div>
+</main>
+<script>
+(function(){
+var K="flataudit-buyer-diligence-v1",boxes=[].slice.call(document.querySelectorAll('.ck input')),saved=[];
+try{saved=JSON.parse(localStorage.getItem(K)||"[]")}catch(e){}
+boxes.forEach(function(b,i){b.checked=!!saved[i];b.addEventListener('change',upd)});
+function upd(){
+var s=boxes.map(function(b){return b.checked?1:0}),n=s.reduce(function(a,c){return a+c},0),p=boxes.length?Math.round(n*100/boxes.length):0;
+document.getElementById('fill').style.width=p+'%';
+document.getElementById('pct').textContent=p+'% complete ('+n+' of '+boxes.length+' tasks)';
+try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}
+}
+upd();
+})();
+</script>
+</body>
+</html>

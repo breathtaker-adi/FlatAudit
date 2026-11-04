@@ -2,7 +2,10 @@
   "state": "Karnataka",
   "city": "Bengaluru",
   "effectiveDate": "2024-04-01",
+  "verification_status": "provisional_statutory_schedule",
+  "verified_by_hand": false,
   "source": "Department of Stamps and Registration, Government of Karnataka; Central Board of Indirect Taxes and Customs (CBIC)",
+  "sourceUrl": "https://kaveri.karnataka.gov.in",
   "rates": {
     "stamp_duty_base_pct": 5.0,
     "urban_surcharge_pct_of_duty": 10.0,

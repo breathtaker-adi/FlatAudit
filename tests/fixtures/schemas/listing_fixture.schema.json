@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ListingFixture",
+  "description": "Validation schema for ground-truth listing fixtures in FlatAudit",
+  "type": "object",
+  "required": ["id", "meta", "extracted_features", "ground_truth", "verification"],
+  "properties": {
+    "id": { "type": "string" },
+    "meta": {
+      "type": "object",
+      "required": ["city", "portal", "capture_date"],
+      "properties": {
+        "city": { "type": "string" },
+        "locality": { "type": "string" },
+        "portal": { "type": "string" },
+        "capture_date": { "type": "string" },
+        "is_synthetic_stress_test": { "type": "boolean" }
+      }
+    },
+    "extracted_features": {
+      "type": "object",
+      "required": ["listing_fingerprint"],
+      "properties": {
+        "listing_fingerprint": { "type": "string" },
+        "agreed_price": { "type": "number" },
+        "monthly_rent": { "type": "number" },
+        "security_deposit": { "type": "number" },
+        "built_up_area_sq_m": { "type": "number" }
+      }
+    },
+    "ground_truth": {
+      "type": "object",
+      "required": ["classification"],
+      "properties": {
+        "classification": { "type": "string" },
+        "expected_flags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "reason": { "type": "string" }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["verified_by", "verified_on"],
+      "properties": {
+        "verified_by": { "type": "string" },
+        "verified_on": { "type": "string" },
+        "source_archive_path": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FlatAudit: Adding Property Buying and Price History</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700&family=Instrument+Sans:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#0f1520;--surf:#172030;--line:#26334a;--text:#e6ebf5;--muted:#9aa8c2;--acc:#7cc4ff;--warn:#f2b84b;--bad:#ff8a80;--ok:#6fd6a0;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f6f8fc;--surf:#ffffff;--line:#d9e0ee;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.6 "Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:840px;margin:0 auto;padding:32px 20px 72px}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;line-height:1.15;margin:0}
+h1{font-size:clamp(2rem,6vw,3rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.5rem;font-weight:700;margin:50px 0 14px}
+h3{font-size:1.1rem;font-weight:700}
+p{margin:0 0 12px}
+.lead{color:var(--muted);font-size:1.08rem;max-width:62ch;margin-top:14px}
+ul{margin:6px 0;padding-left:20px}
+li{margin:4px 0}
+.box{background:var(--surf);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:8px;padding:14px 16px;margin:16px 0}
+.box.warn{border-left-color:var(--warn)}
+.box.ok{border-left-color:var(--ok)}
+.box.bad{border-left-color:var(--bad)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.tw{overflow-x:auto;margin:12px 0}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:.92rem}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted)}
+code{font:.88em ui-monospace,Menlo,Consolas,monospace;background:var(--surf);border:1px solid var(--line);border-radius:4px;padding:1px 5px}
+.wk{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:16px 0}
+.wk header{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:8px}
+.wk .t{font-size:.82rem;color:var(--muted)}
+.done{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);color:var(--ok)}
+.ck{list-style:none;padding:0}
+.ck li{display:flex;gap:9px;align-items:flex-start}
+.ck input{margin-top:6px;accent-color:var(--acc);width:16px;height:16px;flex:none}
+.ck input:checked+span{color:var(--muted);text-decoration:line-through}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:18px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .25s}
+.note{font-size:.88rem;color:var(--muted)}
+@media (max-width:640px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<h1>Adding property buying and price history</h1>
+<p class="lead">Why history is missing today, what you can realistically build instead, and a staged plan to extend FlatAudit from rentals to resale and new homes.</p>
+<div class="bar" aria-hidden="true"><i id="fill"></i></div>
+<p class="note" id="pct">0% complete</p>
+
+<h2>Where v1.0 really stands</h2>
+<div class="box warn"><ul>
+<li><b>30 listings is a smoke test, not a metric.</b> Even a perfect 30 out of 30 is statistically consistent with a true error rate of up to about 10% (the “rule of three”). Keep the figure, but describe it as an early check and keep growing the set toward 150+ across more cities.</li>
+<li><b>“People test it” isn’t done yet.</b> Feedback buttons are built, but no one has used it for a week. Until then, treat the tag as a release candidate in your own mind, and in the README if you like.</li>
+<li><b>Not yet confirmed:</b> behavior on live, current portal pages, and the deployed backend. Check both before adding a whole new product area.</li>
+</ul></div>
+
+<h2>Why you can’t extract a property’s price history</h2>
+<ul>
+<li><b>A page shows only today.</b> The extension reads the current price. Portals rarely publish a per-listing price timeline.</li>
+<li><b>Your tracker starts at first sight.</b> It records snapshots from the moment a user views or tracks a listing, so the past is empty by design.</li>
+<li><b>Past data lives elsewhere or nowhere.</b> It is held by the portal, in government records, or in archives, and each has access limits.</li>
+<li><b>Crowd data needs time and users.</b> Aggregates only become useful after many people have contributed.</li>
+</ul>
+<div class="box ok"><b>Reframe:</b> “price history” for buying can mean five different things. Build the ones you can get honestly, label each by source, and never fabricate a past.</div>
+
+<div class="tw"><table>
+<tr><th>What it gives</th><th>Source</th><th>Effort</th><th>Caveat</th></tr>
+<tr><td>Price and drops since first seen</td><td>Your local tracker</td><td>Low</td><td>Starts when the user starts; label it “since you first saw it”</td></tr>
+<tr><td>Trend widgets the portal already shows</td><td>Parse visible page elements, when present</td><td>Low–medium</td><td>Locality-level, layout changes often</td></tr>
+<tr><td>Locality price-per-sq-ft trend</td><td>Your crowd aggregates over time</td><td>Medium</td><td>Needs weeks of data; show sample size</td></tr>
+<tr><td>Time on market and reposts</td><td>Your observations</td><td>Medium</td><td>Only as seen by your users</td></tr>
+<tr><td>Earlier snapshots of the page</td><td>Internet Archive, occasionally</td><td>Medium</td><td>Sparse and irregular; treat as an experiment</td></tr>
+<tr><td>Actual sale prices</td><td>State registration records</td><td>High</td><td>Access, terms and formats vary by state; I haven’t verified current options</td></tr>
+<tr><td>Government reference value vs asking price</td><td>Circle rate, ready reckoner or guidance value, by state</td><td>Medium</td><td>Per-state data file with source and date; not a market price</td></tr>
+</table></div>
+
+<h2>Scope the buying pilot</h2>
+<div class="box"><b>One city, one portal, one type first:</b> resale, ready-to-move apartments. Add under-construction projects and other cities only after that works. Buying is high stakes and infrequent, so a narrow, correct slice beats a broad, shaky one.</div>
+
+<h2>What changes from rent to buy</h2>
+<div class="tw"><table>
+<tr><th>Topic</th><th>Rent today</th><th>Buying adds</th></tr>
+<tr><td>Price fields</td><td>Rent, deposit</td><td>Total price, price per sq ft, Cr and Lakh formats, maintenance</td></tr>
+<tr><td>Area</td><td>Single area</td><td>Carpet vs built-up vs super built-up; never compare across types</td></tr>
+<tr><td>Status</td><td>Available</td><td>Ready-to-move vs under construction, possession date, age of building</td></tr>
+<tr><td>Listing type</td><td>Flat, house</td><td>Resale vs new project, builder, project name</td></tr>
+<tr><td>Trust signals</td><td>Advance-fee phrases, duplicate photos</td><td>Token-to-hold phrasing, RERA number shown or missing, price vs benchmark and vs reference value</td></tr>
+<tr><td>Benchmarks</td><td>By BHK and area</td><td>By BHK, property type and status; separate packs for sale</td></tr>
+</table></div>
+
+<h2>Plan (about 8–10 weeks)</h2>
+
+<section class="wk"><header><h3>0. Close v1 gaps first</h3><span class="t">about 1 week</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Grow real labels toward 150+ across at least 5 cities; report per-city results with counts</span></li>
+<li><input type="checkbox"><span>Run the extension on live pages from each portal and fix failures</span></li>
+<li><input type="checkbox"><span>Get 5 real people using it for a week and record what they say</span></li>
+<li><input type="checkbox"><span>Confirm the deployed backend and the configurable API URL work from a fresh browser</span></li></ul>
+<div class="done">Done when: the README’s numbers have counts and cities, and real users have tried it.</div></section>
+
+<section class="wk"><header><h3>1. Sale-listing foundation</h3><span class="t">about 1 week</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Add <code>listingType: "rent" | "sale"</code> across parsers, tracker, API and packs</span></li>
+<li><input type="checkbox"><span>Parse sale price in ₹, Lakh and Cr; price per sq ft; area type; possession status; RERA ID if shown; builder and project</span></li>
+<li><input type="checkbox"><span>Pick one portal and save sanitized sale-listing fixtures from your pilot city</span></li>
+<li><input type="checkbox"><span>Extend the health check: fail on empty price, area or locality for sale pages</span></li></ul>
+<div class="done">Done when: sale pages on the pilot portal parse correctly and rent behavior is unchanged.</div></section>
+
+<section class="wk"><header><h3>2. The price history you can actually build</h3><span class="t">about 2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Generalize the tracker to sale prices; show change since first seen and time on market</span></li>
+<li><input type="checkbox"><span>Parse any trend or price-drop elements the portal shows, labeled as “shown by the portal”</span></li>
+<li><input type="checkbox"><span>Backend: store daily sale observations and detect reposts by photo hashes and area</span></li>
+<li><input type="checkbox"><span>Experiment: check whether the Internet Archive has useful earlier snapshots; keep it only if coverage is decent</span></li>
+<li><input type="checkbox"><span>Label every history item with its source and start date in the UI</span></li></ul>
+<div class="done">Done when: a tracked sale listing shows a clear, honestly labeled timeline with no invented data.</div></section>
+
+<section class="wk"><header><h3>3. Sale benchmarks</h3><span class="t">about 2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Reuse the fallback ladder with packs keyed by cell, BHK, property type and status</span></li>
+<li><input type="checkbox"><span>Compare price per sq ft using the same area type only</span></li>
+<li><input type="checkbox"><span>Raise minimum sample sizes for sale; show “not enough local data” more readily</span></li>
+<li><input type="checkbox"><span>Add a monthly trend per cell once you have weeks of data</span></li></ul>
+<div class="done">Done when: every price verdict shows its level, sample size and area type.</div></section>
+
+<section class="wk"><header><h3>4. Buying-specific checks</h3><span class="t">about 2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>RERA: show whether an ID appears; link out to the state’s official RERA search rather than scraping it</span></li>
+<li><input type="checkbox"><span>Add a per-state reference-value data file with source and date for your pilot state, kept separate from market prices</span></li>
+<li><input type="checkbox"><span>Sale-specific phrase rules, such as paying a token to “hold” a flat or unusual owner stories</span></li>
+<li><input type="checkbox"><span>Keep duplicate-photo logic softened for builder renderings, as you already do</span></li>
+<li><input type="checkbox"><span>Use neutral wording for builders and projects: show public facts, never reputational labels</span></li></ul>
+<div class="done">Done when: each check states what it found, where it came from, and what it cannot tell you.</div></section>
+
+<section class="wk"><header><h3>5. Buyer experience</h3><span class="t">about 1–2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Sale compare view: price, price per sq ft, possession, RERA shown, maintenance, floor, age</span></li>
+<li><input type="checkbox"><span>A short “before you pay” checklist that points users to a lawyer and official records</span></li>
+<li><input type="checkbox"><span>Optional: a simple EMI calculator using the user’s own inputs</span></li>
+<li><input type="checkbox"><span>A visible note: this is not legal or financial advice and does not verify title</span></li></ul>
+<div class="done">Done when: a test buyer can shortlist three homes and knows what to verify next.</div></section>
+
+<section class="wk"><header><h3>6. Validate before you announce</h3><span class="t">about 2 weeks</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Label 100+ real sale listings across at least 3 cities; report precision, recall and false positives</span></li>
+<li><input type="checkbox"><span>Test with people actually house-hunting; ask whether verdicts matched their judgment</span></li>
+<li><input type="checkbox"><span>Update threat model and privacy policy for sale data and the new data files</span></li>
+<li><input type="checkbox"><span>Tag a new release only after these checks</span></li></ul>
+<div class="done">Done when: sale features have their own measured results and real-user feedback.</div></section>
+
+<h2>Guardrails for high-stakes buying</h2>
+<div class="cols">
+<div class="box ok"><h3>Do</h3><ul>
+<li>Show source, date and sample size on every number</li>
+<li>Say “not enough data” when that’s true</li>
+<li>Link to official records instead of copying them</li>
+<li>Tell users what the tool does not check</li></ul></div>
+<div class="box bad"><h3>Don’t</h3><ul>
+<li>Say a home is “safe”, “legal” or “a good investment”</li>
+<li>Label a builder or seller as untrustworthy</li>
+<li>Present reference values as market prices</li>
+<li>Backfill history you can’t source</li></ul></div>
+</div>
+
+<h2>Risks</h2>
+<div class="box warn"><b>Over-trust:</b> a “fair price” badge may be treated as financial advice. Use ranges and plain caveats, not a single approval.</div>
+<div class="box warn"><b>Thin data:</b> sales listings are fewer and more varied than rentals. Expect many “not enough data” results at first.</div>
+<div class="box warn"><b>Scope creep:</b> title checks, loan eligibility and legal review are different products. Link out instead.</div>
+<div class="box warn"><b>Data terms:</b> read each data source’s terms before using it, especially government and archive data.</div>
+
+<h2>Next 7 days</h2>
+<div class="box ok"><ul>
+<li>Run the extension on live rent pages from three cities and fix what fails.</li>
+<li>Save five sanitized sale-listing pages from one portal in your pilot city.</li>
+<li>Write down, for each, the price, area type, status and RERA field as you see them, to drive the parser.</li></ul></div>
+</main>
+<script>
+(function(){
+var K="flataudit-buying-v1",boxes=[].slice.call(document.querySelectorAll('.ck input')),saved=[];
+try{saved=JSON.parse(localStorage.getItem(K)||"[]")}catch(e){}
+boxes.forEach(function(b,i){b.checked=!!saved[i];b.addEventListener('change',upd)});
+function upd(){
+var s=boxes.map(function(b){return b.checked?1:0}),n=s.reduce(function(a,c){return a+c},0),p=boxes.length?Math.round(n*100/boxes.length):0;
+document.getElementById('fill').style.width=p+'%';
+document.getElementById('pct').textContent=p+'% complete ('+n+' of '+boxes.length+' tasks)';
+try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}
+}
+upd();
+})();
+</script>
+</body>
+</html>
