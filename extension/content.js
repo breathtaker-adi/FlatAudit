@@ -558,7 +558,10 @@
           investBox.className = 'flataudit-invest-drawer-box';
           investBox.innerHTML = `
             <div class="flataudit-invest-head">
-              <span class="flataudit-invest-title">Capital Appreciation (Normal Conditions)</span>
+              <div class="flataudit-invest-title-block">
+                <span class="flataudit-invest-title">Capital Appreciation</span>
+                <span class="flataudit-invest-subtitle">Normal conditions</span>
+              </div>
               <span class="flataudit-invest-rate">+7.5% p.a.</span>
             </div>
             <div class="flataudit-invest-grid">
@@ -578,7 +581,10 @@
                 <span class="m-gain">+106%</span>
               </div>
             </div>
-            <div class="flataudit-invest-yield">Rental Yield Potential: ~${forecast.monthlyRentalFormatted}/mo</div>
+            <div class="flataudit-invest-yield">
+              <span class="flataudit-yield-lbl">Rental Yield Potential</span>
+              <strong class="flataudit-yield-num">~${forecast.monthlyRentalFormatted}/mo (${forecast.grossRentalYieldFormatted})</strong>
+            </div>
           `;
           historyCard.appendChild(investBox);
         }

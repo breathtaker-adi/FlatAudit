@@ -44,3 +44,4 @@ svg_content = f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 310 335" 
 with open(r'C:/Users/adity/FlatAudit/shield_traced.svg', 'w') as f:
     f.write(svg_content)
 print('Wrote shield_traced.svg successfully. Size:', len(svg_content))
+

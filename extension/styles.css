@@ -620,25 +620,42 @@
 }
 
 .flataudit-invest-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.flataudit-invest-title-block {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  min-width: 0 !important;
 }
 
 .flataudit-invest-title {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #f5f5f7;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  white-space: nowrap !important;
+}
+
+.flataudit-invest-subtitle {
+  font-size: 10px !important;
+  color: #7d8fa9 !important;
+  white-space: nowrap !important;
 }
 
 .flataudit-invest-rate {
-  font-size: 10px;
-  font-weight: 600;
-  background: rgba(48, 209, 88, 0.14);
-  color: #30d158;
-  border: 1px solid rgba(48, 209, 88, 0.3);
-  padding: 1px 6px;
-  border-radius: 9999px;
+  font-size: 10.5px !important;
+  font-weight: 600 !important;
+  background: rgba(48, 209, 88, 0.14) !important;
+  color: #30d158 !important;
+  border: 1px solid rgba(48, 209, 88, 0.35) !important;
+  padding: 2.5px 7px !important;
+  border-radius: 9999px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
 }
 
 .flataudit-invest-grid {
@@ -683,11 +700,24 @@
 }
 
 .flataudit-invest-yield {
-  font-size: 11px;
-  color: #86868b;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
-  padding-top: 6px;
-  font-variant-numeric: tabular-nums;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  font-size: 11px !important;
+  color: #b0bed4 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding-top: 6px !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.flataudit-yield-lbl {
+  color: #7d8fa9 !important;
+  font-size: 10.5px !important;
+}
+
+.flataudit-yield-num {
+  color: #ffffff !important;
+  font-weight: 600 !important;
 }
 
 .flataudit-watchlist-controls {

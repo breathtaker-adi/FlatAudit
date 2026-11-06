@@ -170,7 +170,7 @@ function updateTrustUI(analysis) {
         
         const yieldLabel = document.getElementById('invest-yield-label');
         if (yieldLabel) {
-          yieldLabel.textContent = `Rental Yield: ~${forecast.monthlyRentalFormatted}/mo`;
+          yieldLabel.textContent = `~${forecast.monthlyRentalFormatted}/mo (${forecast.grossRentalYieldFormatted} yield)`;
         }
       }
     } else {
