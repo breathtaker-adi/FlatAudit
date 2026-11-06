@@ -39,8 +39,8 @@
   display: flex !important;
   align-items: center !important;
   gap: 10px !important;
-  background: #0d1017 !important;
-  background-color: #0d1017 !important;
+  background: #141c28 !important;
+  background-color: #141c28 !important;
   backdrop-filter: blur(28px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
   border: 1px solid rgba(255, 255, 255, 0.18) !important;
@@ -57,8 +57,8 @@
 #flataudit-root .flataudit-badge-btn:hover,
 .flataudit-badge-btn:hover {
   transform: translateY(-2px) !important;
-  background: #151a24 !important;
-  background-color: #151a24 !important;
+  background: #1a2332 !important;
+  background-color: #1a2332 !important;
   border-color: rgba(255, 255, 255, 0.28) !important;
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.8), 0 0.5px 0 rgba(255, 255, 255, 0.25) inset !important;
 }
@@ -70,7 +70,7 @@
 
 #flataudit-root .flataudit-badge-btn:focus-visible,
 .flataudit-badge-btn:focus-visible {
-  outline: 2px solid #0a84ff !important;
+  outline: 2px solid #0b36fe !important;
   outline-offset: 2px !important;
 }
 
@@ -79,7 +79,7 @@
   font-size: 15px !important;
   display: flex !important;
   align-items: center !important;
-  color: #0a84ff !important;
+  color: #0b36fe !important;
   flex-shrink: 0 !important;
 }
 
@@ -141,8 +141,8 @@
   width: 420px;
   max-width: calc(100vw - 32px);
   max-height: min(640px, calc(100vh - 120px));
-  background: #0d1017 !important;
-  background-color: #0d1017 !important;
+  background: #141c28 !important;
+  background-color: #141c28 !important;
   backdrop-filter: blur(36px) saturate(190%) !important;
   -webkit-backdrop-filter: blur(36px) saturate(190%) !important;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
@@ -193,7 +193,7 @@
 
 .flataudit-drawer-shield {
   font-size: 16px;
-  color: #0a84ff;
+  color: #0b36fe;
 }
 
 .flataudit-drawer-title {
@@ -210,9 +210,9 @@
 }
 
 .flataudit-track-btn {
-  background: rgba(10, 132, 255, 0.12);
-  border: 1px solid rgba(10, 132, 255, 0.3);
-  color: #0a84ff;
+  background: rgba(11, 54, 254, 0.12);
+  border: 1px solid rgba(11, 54, 254, 0.3);
+  color: #0b36fe;
   border-radius: 9999px;
   padding: 4px 10px;
   font-family: inherit;
@@ -227,7 +227,7 @@
 }
 
 .flataudit-track-btn:hover {
-  background: rgba(10, 132, 255, 0.22);
+  background: rgba(11, 54, 254, 0.22);
 }
 
 .flataudit-track-btn.is-tracked {
@@ -263,7 +263,7 @@
 .flataudit-mode-switch-row {
   display: flex;
   align-items: center;
-  background: #141720;
+  background: #212c3d;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   padding: 3px;
@@ -304,7 +304,7 @@
 }
 
 .flataudit-mode-btn.active {
-  background: #242938;
+  background: #2e3d54;
   color: #f5f5f7;
   font-weight: 600;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3), 0 0.5px 0 rgba(255, 255, 255, 0.1) inset;
@@ -321,23 +321,23 @@
   border-radius: 12px;
   margin-bottom: 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: #141720;
+  background: #212c3d;
   position: relative;
   overflow: hidden;
 }
 
 .flataudit-summary-banner.tone-ok {
-  background: linear-gradient(180deg, rgba(48, 209, 88, 0.08) 0%, #141720 100%);
+  background: linear-gradient(180deg, rgba(48, 209, 88, 0.08) 0%, #212c3d 100%);
   border-color: rgba(48, 209, 88, 0.28);
 }
 
 .flataudit-summary-banner.tone-warn {
-  background: linear-gradient(180deg, rgba(255, 159, 10, 0.08) 0%, #141720 100%);
+  background: linear-gradient(180deg, rgba(255, 159, 10, 0.08) 0%, #212c3d 100%);
   border-color: rgba(255, 159, 10, 0.28);
 }
 
 .flataudit-summary-banner.tone-bad {
-  background: linear-gradient(180deg, rgba(255, 69, 58, 0.08) 0%, #141720 100%);
+  background: linear-gradient(180deg, rgba(255, 69, 58, 0.08) 0%, #212c3d 100%);
   border-color: rgba(255, 69, 58, 0.28);
 }
 
@@ -386,7 +386,7 @@
 }
 
 .flataudit-point-card {
-  background: #141720;
+  background: #212c3d;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   padding: 10px 12px;
@@ -397,7 +397,7 @@
 
 .flataudit-point-card.flagged {
   border-color: rgba(255, 159, 10, 0.3);
-  background: linear-gradient(180deg, rgba(255, 159, 10, 0.04) 0%, #141720 100%);
+  background: linear-gradient(180deg, rgba(255, 159, 10, 0.04) 0%, #212c3d 100%);
 }
 
 .flataudit-point-card.normal {
@@ -454,7 +454,7 @@
    Dynamic Benchmark Ladder Box
    -------------------------------------------------------------------------- */
 .flataudit-bench-box {
-  background: #141720;
+  background: #212c3d;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   padding: 10px 12px;
@@ -491,9 +491,9 @@
 }
 
 .flataudit-bench-conf.conf-medium {
-  background: rgba(10, 132, 255, 0.14);
-  color: #0a84ff;
-  border: 1px solid rgba(10, 132, 255, 0.3);
+  background: rgba(11, 54, 254, 0.14);
+  color: #0b36fe;
+  border: 1px solid rgba(11, 54, 254, 0.3);
 }
 
 .flataudit-bench-conf.conf-low {
@@ -518,7 +518,7 @@
    Price History & Sparkline Card
    -------------------------------------------------------------------------- */
 .flataudit-history-card {
-  background: #141720;
+  background: #212c3d;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 12px;
@@ -660,8 +660,8 @@
 }
 
 .flataudit-milestone-pill.highlight {
-  border-color: rgba(10, 132, 255, 0.35);
-  background: rgba(10, 132, 255, 0.08);
+  border-color: rgba(11, 54, 254, 0.35);
+  background: rgba(11, 54, 254, 0.08);
 }
 
 .flataudit-milestone-pill .m-lbl {
@@ -699,7 +699,7 @@
 
 .flataudit-status-select,
 .flataudit-note-input {
-  background: #1c202c;
+  background: #273448;
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #f5f5f7;
   border-radius: 7px;
@@ -712,7 +712,7 @@
 .flataudit-status-select:focus,
 .flataudit-note-input:focus {
   outline: none;
-  border-color: #0a84ff;
+  border-color: #0b36fe;
 }
 
 .flataudit-note-input {
@@ -727,8 +727,8 @@
    Cross-Portal Match Banner
    -------------------------------------------------------------------------- */
 .flataudit-cross-portal-box {
-  background: #141720;
-  border: 1px solid rgba(10, 132, 255, 0.3);
+  background: #212c3d;
+  border: 1px solid rgba(11, 54, 254, 0.3);
   border-radius: 10px;
   padding: 10px 12px;
   margin-bottom: 12px;
@@ -739,7 +739,7 @@
   justify-content: space-between;
   font-size: 12px;
   font-weight: 600;
-  color: #0a84ff;
+  color: #0b36fe;
   margin-bottom: 4px;
 }
 
@@ -753,7 +753,7 @@
    Buyer Mode Due Diligence Card
    -------------------------------------------------------------------------- */
 .flataudit-buyer-card {
-  background: #141720;
+  background: #212c3d;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 12px 14px;
@@ -778,9 +778,9 @@
 .flataudit-scenario-badge {
   font-size: 10px;
   font-weight: 600;
-  background: rgba(10, 132, 255, 0.14);
-  color: #0a84ff;
-  border: 1px solid rgba(10, 132, 255, 0.3);
+  background: rgba(11, 54, 254, 0.14);
+  color: #0b36fe;
+  border: 1px solid rgba(11, 54, 254, 0.3);
   padding: 2px 7px;
   border-radius: 9999px;
   letter-spacing: 0.02em;
@@ -848,7 +848,7 @@
 }
 
 .flataudit-buyer-cost-box {
-  background: #1c202c;
+  background: #273448;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
   padding: 10px 12px;
@@ -858,7 +858,7 @@
 
 .flataudit-buyer-cost-head {
   font-weight: 600;
-  color: #0a84ff;
+  color: #0b36fe;
   margin-bottom: 8px;
   font-size: 11px;
 }
@@ -882,13 +882,13 @@
 }
 
 .flataudit-buyer-total-row small {
-  color: #0a84ff;
+  color: #0b36fe;
   font-weight: 600;
 }
 
 .flataudit-print-report-btn {
   width: 100%;
-  background: #1c202c;
+  background: #273448;
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #f5f5f7;
   border-radius: 8px;
@@ -907,18 +907,18 @@
 }
 
 .flataudit-print-report-btn:hover {
-  background: #242a3a;
-  border-color: #0a84ff;
-  color: #0a84ff;
+  background: #2e3d54;
+  border-color: #0b36fe;
+  color: #0b36fe;
 }
 
 .flataudit-rera-link-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(10, 132, 255, 0.12);
-  border: 1px solid rgba(10, 132, 255, 0.3);
-  color: #0a84ff;
+  background: rgba(11, 54, 254, 0.12);
+  border: 1px solid rgba(11, 54, 254, 0.3);
+  color: #0b36fe;
   border-radius: 6px;
   padding: 5px 10px;
   font-size: 11.5px;
@@ -929,14 +929,14 @@
 }
 
 .flataudit-rera-link-btn:hover {
-  background: rgba(10, 132, 255, 0.22);
+  background: rgba(11, 54, 254, 0.22);
 }
 
 /* --------------------------------------------------------------------------
    Safety Box
    -------------------------------------------------------------------------- */
 .flataudit-safety-box {
-  background: #141720;
+  background: #212c3d;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   padding: 12px 14px;
@@ -946,7 +946,7 @@
 .flataudit-safety-header {
   font-size: 12px;
   font-weight: 600;
-  color: #0a84ff;
+  color: #0b36fe;
   margin-bottom: 6px;
 }
 
@@ -989,7 +989,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: #141720;
+  background: #212c3d;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 6px;
   padding: 3px 8px;
@@ -999,7 +999,7 @@
 
 .flataudit-hash-code {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  color: #0a84ff;
+  color: #0b36fe;
   font-weight: 500;
 }
 
@@ -1065,7 +1065,7 @@
 @media (prefers-reduced-transparency: reduce) {
   .flataudit-badge-btn,
   .flataudit-drawer {
-    background: #141720 !important;
+    background: #212c3d !important;
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }

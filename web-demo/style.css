@@ -3,36 +3,37 @@
    ========================================================================== */
 
 :root {
-  --system-bg: #000000;
-  --system-grouped-bg: #0c0e14;
-  --surface-card: #141720;
-  --surface-secondary: #1a1e28;
-  --surface-tertiary: #242938;
-  --surface-pill: rgba(255, 255, 255, 0.06);
+  --system-bg: #141c28;
+  --system-grouped-bg: #1a2332;
+  --surface-card: #212c3d;
+  --surface-secondary: #273448;
+  --surface-tertiary: #2e3d54;
+  --surface-pill: rgba(255, 255, 255, 0.08);
 
-  --separator: rgba(255, 255, 255, 0.08);
-  --separator-strong: rgba(255, 255, 255, 0.14);
-  --specular: rgba(255, 255, 255, 0.06);
+  --separator: rgba(255, 255, 255, 0.09);
+  --separator-strong: rgba(11, 54, 254, 0.32);
+  --specular: rgba(255, 255, 255, 0.08);
 
-  --text-primary: #f5f5f7;
-  --text-secondary: #98989d;
-  --text-tertiary: #68686d;
+  --text-primary: #ffffff;
+  --text-secondary: #b0bed4;
+  --text-tertiary: #7d8fa9;
 
-  --tint: #0a84ff;
-  --tint-hover: #409cff;
-  --tint-surface: rgba(10, 132, 255, 0.12);
+  --tint: #0b36fe;
+  --tint-hover: #335dff;
+  --tint-surface: rgba(11, 54, 254, 0.16);
+  --tint-glow: 0 4px 18px rgba(11, 54, 254, 0.35);
 
   --status-ok: #30d158;
-  --status-ok-bg: rgba(48, 209, 88, 0.12);
-  --status-ok-border: rgba(48, 209, 88, 0.28);
+  --status-ok-bg: rgba(48, 209, 88, 0.14);
+  --status-ok-border: rgba(48, 209, 88, 0.32);
 
   --status-warn: #ff9f0a;
-  --status-warn-bg: rgba(255, 159, 10, 0.12);
-  --status-warn-border: rgba(255, 159, 10, 0.28);
+  --status-warn-bg: rgba(255, 159, 10, 0.14);
+  --status-warn-border: rgba(255, 159, 10, 0.32);
 
   --status-bad: #ff453a;
-  --status-bad-bg: rgba(255, 69, 58, 0.12);
-  --status-bad-border: rgba(255, 69, 58, 0.28);
+  --status-bad-bg: rgba(255, 69, 58, 0.14);
+  --status-bad-border: rgba(255, 69, 58, 0.32);
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -423,7 +424,7 @@ body {
 .preset-btn.active {
   background: var(--tint-surface);
   color: var(--tint);
-  border-color: rgba(10, 132, 255, 0.4);
+  border-color: rgba(11, 54, 254, 0.4);
   font-weight: 600;
 }
 
@@ -481,7 +482,7 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--tint);
-  box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.25);
+  box-shadow: 0 0 0 3px rgba(11, 54, 254, 0.25);
 }
 
 .code-input {
@@ -519,7 +520,7 @@ textarea:focus {
 .btn-primary {
   background: var(--tint);
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(10, 132, 255, 0.35);
+  box-shadow: 0 2px 8px rgba(11, 54, 254, 0.35);
 }
 
 .btn-primary:hover {
@@ -600,7 +601,7 @@ textarea:focus {
 .bm-conf-pill.conf-medium {
   background: var(--tint-surface);
   color: var(--tint);
-  border: 1px solid rgba(10, 132, 255, 0.3);
+  border: 1px solid rgba(11, 54, 254, 0.3);
 }
 
 .bm-conf-pill.conf-low {
@@ -1003,7 +1004,7 @@ textarea:focus {
   font-weight: 600;
   background: var(--tint-surface);
   color: var(--tint);
-  border: 1px solid rgba(10, 132, 255, 0.3);
+  border: 1px solid rgba(11, 54, 254, 0.3);
   padding: 2px 7px;
   border-radius: var(--radius-pill);
 }
@@ -1297,7 +1298,7 @@ textarea:focus {
 .metric-badge.diff {
   background: var(--tint-surface);
   color: var(--tint);
-  border: 1px solid rgba(10, 132, 255, 0.3);
+  border: 1px solid rgba(11, 54, 254, 0.3);
 }
 
 .eval-metrics-grid {
@@ -1406,7 +1407,7 @@ textarea:focus {
 
 .compare-card-section {
   background: var(--surface-secondary);
-  border: 1px solid rgba(10, 132, 255, 0.4);
+  border: 1px solid rgba(11, 54, 254, 0.4);
   border-radius: var(--radius-md);
   padding: 12px 14px;
 }
@@ -1844,9 +1845,9 @@ textarea:focus {
 }
 
 .invest-card-step.featured {
-  background: linear-gradient(180deg, rgba(10, 132, 255, 0.08) 0%, rgba(26, 30, 40, 1) 100%);
-  border-color: rgba(10, 132, 255, 0.3);
-  box-shadow: 0 4px 14px rgba(10, 132, 255, 0.1);
+  background: linear-gradient(180deg, rgba(11, 54, 254, 0.08) 0%, rgba(33, 44, 61, 1) 100%);
+  border-color: rgba(11, 54, 254, 0.3);
+  box-shadow: 0 4px 14px rgba(11, 54, 254, 0.1);
 }
 
 .invest-step-time {
@@ -1904,7 +1905,7 @@ textarea:focus {
   font-weight: 500;
   color: var(--tint);
   background: var(--tint-surface);
-  border: 1px solid rgba(10, 132, 255, 0.25);
+  border: 1px solid rgba(11, 54, 254, 0.25);
   padding: 2px 8px;
   border-radius: var(--radius-pill);
 }

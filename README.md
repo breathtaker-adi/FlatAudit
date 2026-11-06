@@ -1,13 +1,19 @@
 # FlatAudit: Listing Trust Analyzer & Buyhatke-Style Property Companion
 
-[![Tests](https://img.shields.io/badge/Unit%20Tests-111%2F111%20Passing-brightgreen.svg)](tests/)
-[![Pytest](https://img.shields.io/badge/API%20Tests-30%2F30%20Passing-brightgreen.svg)](backend/tests/)
-[![Classifier](https://img.shields.io/badge/Intent%20Classifier-120%2F120%20(100%25)-brightgreen.svg)](tests/test_classifier_bulk.test.js)
-[![Synthetic Eval](https://img.shields.io/badge/Synthetic%20Baseline-97.3%25-blue.svg)](eval/evaluation_results.md)
-[![Real-World Eval](https://img.shields.io/badge/Real--World%20Eval-100%25%20(5%20Cities)-brightgreen.svg)](eval/evaluation_real_results.md)
-[![Design](https://img.shields.io/badge/UI%2FUX-Apple%20HIG%20%7C%20Liquid%20Glass-007AFF.svg)](extension/styles.css)
-[![Manifest](https://img.shields.io/badge/Chrome%20Extension-Manifest%20V3-orange.svg)](extension/manifest.json)
-[![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+<p align="center">
+  <img src="docs/flataudit-banner.png" alt="FlatAudit Official Brand Identity" width="720" style="border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,0.4);" />
+</p>
+
+<p align="center">
+  <a href="tests/"><img src="https://img.shields.io/badge/Unit%20Tests-111%2F111%20Passing-brightgreen.svg" alt="Tests" /></a>
+  <a href="backend/tests/"><img src="https://img.shields.io/badge/API%20Tests-30%2F30%20Passing-brightgreen.svg" alt="Pytest" /></a>
+  <a href="tests/test_classifier_bulk.test.js"><img src="https://img.shields.io/badge/Intent%20Classifier-120%2F120%20(100%25)-brightgreen.svg" alt="Classifier" /></a>
+  <a href="eval/evaluation_results.md"><img src="https://img.shields.io/badge/Synthetic%20Baseline-97.3%25-blue.svg" alt="Synthetic Eval" /></a>
+  <a href="eval/evaluation_real_results.md"><img src="https://img.shields.io/badge/Real--World%20Eval-100%25%20(5%20Cities)-brightgreen.svg" alt="Real-World Eval" /></a>
+  <a href="extension/icons/logo.svg"><img src="https://img.shields.io/badge/Design-Apple%20HIG%20%7C%20Verified%20Shield-0B36FE.svg" alt="Design" /></a>
+  <a href="extension/manifest.json"><img src="https://img.shields.io/badge/Chrome%20Extension-Manifest%20V3-orange.svg" alt="Manifest" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-purple.svg" alt="License" /></a>
+</p>
 
 > **A privacy-preserving browser extension and explainable API that flags advance-fee scam signals on Indian rentals, features comprehensive Buyer Mode to evaluate the flat, project, and builder from official RERA records (Karnataka & Rajasthan pilots), projects 3Y/5Y/10Y capital appreciation, and acts as a "Buyhatke for property" — tracking price history sparklines, price-drop alerts, all-in closing costs, side-by-side comparisons, and printable advocate reports.**  
 > Built as an advanced cybersecurity & consumer utility portfolio project, threat-modeled with STRIDE, and evaluated on benchmark listings with zero rule drift.
@@ -45,7 +51,7 @@ FastAPI Backend (Port 8000 / Configurable) ──▶ SQLite Registry (flataudit.
    │  (Zero photos, zero names, zero phone numbers stored)
    ▼
 Apple HIG Interface (Companion Drawer & Toolbar Popup)
-   ├─ Keystone Prism Branding & Frosted Glassmorphism (backdrop-filter: blur(28px))
+   ├─ Verified Shield & Skyline Identity (Ultramarine #0B36FE, Crisp White, Dark Slate Navy)
    ├─ Tabular figures & non-clipping fluid flexbox (overflow-wrap: anywhere)
    ├─ Tab 1: Trust Signals (Observable facts only; positive verification points; safety tips)
    ├─ Buyer Mode: Guidance value reference, official RERA link-outs, Buyer Due Diligence checklist
@@ -185,7 +191,7 @@ FlatAudit/
 │   ├── background.js          # Service worker: OffscreenCanvas dHash & API proxy
 │   ├── content.js             # Content script: safe DOM injection (0 innerHTML)
 │   ├── styles.css             # Apple HIG glassmorphism drawer, buyer card & sparklines
-│   ├── icons/                 # Official extension icons & vector Keystone Prism logo
+│   ├── icons/                 # Official extension icons & vector Verified Shield logo
 │   ├── popup/                 # Toolbar popup (Trust + Watchlist tabs)
 │   └── lib/
 │       ├── dhash.js           # 64-bit dHash & bitwise Hamming distance

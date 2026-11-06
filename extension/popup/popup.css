@@ -3,36 +3,37 @@
    ========================================================================== */
 
 :root {
-  --system-bg: #000000;
-  --system-grouped-bg: #0c0e14;
-  --surface-card: #141720;
-  --surface-secondary: #1c202c;
-  --surface-tertiary: #262b3a;
-  --surface-pill: rgba(255, 255, 255, 0.06);
+  --system-bg: #141c28;
+  --system-grouped-bg: #1a2332;
+  --surface-card: #212c3d;
+  --surface-secondary: #273448;
+  --surface-tertiary: #2e3d54;
+  --surface-pill: rgba(255, 255, 255, 0.08);
 
-  --separator: rgba(255, 255, 255, 0.08);
-  --separator-strong: rgba(255, 255, 255, 0.14);
-  --specular: rgba(255, 255, 255, 0.06);
+  --separator: rgba(255, 255, 255, 0.09);
+  --separator-strong: rgba(11, 54, 254, 0.32);
+  --specular: rgba(255, 255, 255, 0.08);
 
-  --text-primary: #f5f5f7;
-  --text-secondary: #98989d;
-  --text-tertiary: #68686d;
+  --text-primary: #ffffff;
+  --text-secondary: #b0bed4;
+  --text-tertiary: #7d8fa9;
 
-  --tint: #0a84ff;
-  --tint-hover: #409cff;
-  --tint-surface: rgba(10, 132, 255, 0.12);
+  --tint: #0b36fe;
+  --tint-hover: #335dff;
+  --tint-surface: rgba(11, 54, 254, 0.16);
+  --tint-glow: 0 4px 18px rgba(11, 54, 254, 0.35);
 
   --status-ok: #30d158;
-  --status-ok-bg: rgba(48, 209, 88, 0.12);
-  --status-ok-border: rgba(48, 209, 88, 0.28);
+  --status-ok-bg: rgba(48, 209, 88, 0.14);
+  --status-ok-border: rgba(48, 209, 88, 0.32);
 
   --status-warn: #ff9f0a;
-  --status-warn-bg: rgba(255, 159, 10, 0.12);
-  --status-warn-border: rgba(255, 159, 10, 0.28);
+  --status-warn-bg: rgba(255, 159, 10, 0.14);
+  --status-warn-border: rgba(255, 159, 10, 0.32);
 
   --status-bad: #ff453a;
-  --status-bad-bg: rgba(255, 69, 58, 0.12);
-  --status-bad-border: rgba(255, 69, 58, 0.28);
+  --status-bad-bg: rgba(255, 69, 58, 0.14);
+  --status-bad-border: rgba(255, 69, 58, 0.32);
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -316,7 +317,7 @@ body {
 
 .btn-track-quick {
   background: var(--tint-surface);
-  border: 1px solid rgba(10, 132, 255, 0.3);
+  border: 1px solid rgba(11, 54, 254, 0.3);
   color: var(--tint);
   padding: 4px 10px;
   border-radius: var(--radius-pill);
@@ -333,7 +334,7 @@ body {
 }
 
 .btn-track-quick:hover {
-  background: rgba(10, 132, 255, 0.2);
+  background: rgba(11, 54, 254, 0.2);
   border-color: var(--tint);
 }
 
@@ -406,7 +407,7 @@ body {
 .bm-conf-tag.conf-medium {
   background: var(--tint-surface);
   color: var(--tint);
-  border: 1px solid rgba(10, 132, 255, 0.3);
+  border: 1px solid rgba(11, 54, 254, 0.3);
 }
 
 .bm-conf-tag.conf-low {
@@ -487,8 +488,8 @@ body {
 }
 
 .invest-milestone.highlight {
-  border-color: rgba(10, 132, 255, 0.4);
-  background: linear-gradient(180deg, rgba(10, 132, 255, 0.08) 0%, var(--surface-secondary) 100%);
+  border-color: rgba(11, 54, 254, 0.4);
+  background: linear-gradient(180deg, rgba(11, 54, 254, 0.08) 0%, var(--surface-secondary) 100%);
 }
 
 .invest-milestone .m-time {
@@ -617,7 +618,7 @@ body {
    -------------------------------------------------------------------------- */
 .cross-portal-strip {
   background: var(--surface-card);
-  border: 1px solid rgba(10, 132, 255, 0.3);
+  border: 1px solid rgba(11, 54, 254, 0.3);
   border-radius: var(--radius-sm);
   padding: 10px 12px;
 }
@@ -893,7 +894,7 @@ body {
    -------------------------------------------------------------------------- */
 .compare-tray {
   background: var(--surface-card);
-  border: 1px solid rgba(10, 132, 255, 0.4);
+  border: 1px solid rgba(11, 54, 254, 0.4);
   border-radius: var(--radius-md);
   padding: 10px 12px;
 }
