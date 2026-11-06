@@ -15,36 +15,38 @@
 export function parseIndianCurrency(raw) {
   if (!raw || typeof raw !== 'string') return null;
 
-  const cleaned = raw.replace(/[,\s]/g, '').toLowerCase();
-
-  // Check for Crore / Cr
-  const croreMatch = cleaned.match(/(\d+(?:\.\d+)?)\s*(?:crore|crores|cr)/);
+  // 1. Check for Crore / Cr
+  const croreMatch = raw.match(/(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)\s*(?:crore|crores|cr\b)/i);
   if (croreMatch) {
     const val = parseFloat(croreMatch[1]);
-    return Math.round(val * 10000000);
+    return isNaN(val) ? null : Math.round(val * 10000000);
   }
 
-  // Check for Lakh / Lac
-  const lakhMatch = cleaned.match(/(\d+(?:\.\d+)?)\s*(?:lakh|lac|l)/);
+  // 2. Check for Lakh / Lac
+  const lakhMatch = raw.match(/(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)\s*(?:lakh|lakhs|lac|lacs|l\b)/i);
   if (lakhMatch) {
     const val = parseFloat(lakhMatch[1]);
-    return Math.round(val * 100000);
+    return isNaN(val) ? null : Math.round(val * 100000);
   }
 
-  // Check for K (thousands)
-  const kMatch = cleaned.match(/(\d+(?:\.\d+)?)\s*k/);
+  // 3. Check for K (thousands)
+  const kMatch = raw.match(/(?:₹|rs\.?|inr)?\s*(\d+(?:\.\d+)?)\s*k\b/i);
   if (kMatch) {
     const val = parseFloat(kMatch[1]);
-    return Math.round(val * 1000);
+    return isNaN(val) ? null : Math.round(val * 1000);
   }
 
-  // Strip common currency prefixes and abbreviations like "rs.", "rs", "₹", "inr"
-  let sanitized = raw.replace(/(?:rs\.?|inr|₹)/gi, ' ');
-  // Match the first valid number group (e.g. "12,000" or "42000.50")
-  const numMatch = sanitized.match(/(\d[\d,]*(?:\.\d+)?)/);
-  if (numMatch) {
-    const cleanedNum = numMatch[1].replace(/,/g, '');
-    const val = parseFloat(cleanedNum);
+  // 4. Check for explicit currency symbol or price/rent prefix
+  const explicitCurrencyMatch = raw.match(/(?:₹|rs\.?|inr|price\s*:?|rent\s*:?)\s*([\d,]+(?:\.\d+)?)/i);
+  if (explicitCurrencyMatch) {
+    const val = parseFloat(explicitCurrencyMatch[1].replace(/,/g, ''));
+    return isNaN(val) ? null : Math.round(val);
+  }
+
+  // 5. If pure numeric string (e.g. from dedicated price element containing "42,000" or "42000/mo")
+  const pureNumMatch = raw.trim().match(/^([\d,]+(?:\.\d+)?)\s*(?:\/\s*(?:mo|month|pm))?$/i);
+  if (pureNumMatch && !/(?:bhk|bedroom|sqft|sq\.?ft|floor)/i.test(raw)) {
+    const val = parseFloat(pureNumMatch[1].replace(/,/g, ''));
     return isNaN(val) ? null : Math.round(val);
   }
 
@@ -58,7 +60,7 @@ export function parseIndianCurrency(raw) {
  */
 export function parseBHK(raw) {
   if (!raw || typeof raw !== 'string') return null;
-  const bhkMatch = raw.match(/(\d+)\s*(?:bhk|bedroom|bed|rk)/i);
+  const bhkMatch = raw.match(/(\d+)[\s\-_]*(?:bhk|bedroom|bed|rk)/i);
   if (bhkMatch) {
     return parseInt(bhkMatch[1], 10);
   }
@@ -67,13 +69,13 @@ export function parseBHK(raw) {
 }
 
 /**
- * Extracts area in square feet (e.g. "1,250 sq.ft", "900 sqft", "1450 sq ft")
+ * Extracts area in square feet (e.g. "1,250 sq.ft", "900 sqft", "1450 sq ft", "3928-Sq-ft")
  * @param {string} raw
  * @returns {number|null}
  */
 export function parseArea(raw) {
   if (!raw || typeof raw !== 'string') return null;
-  const match = raw.match(/([\d,]+(?:\.\d+)?)\s*(?:sq\.?\s*ft|sqft|sq-ft|square\s*feet)/i);
+  const match = raw.match(/([\d,]+(?:\.\d+)?)[\s\-_]*(?:sq\.?\s*ft|sqft|sq-ft|square\s*feet)/i);
   if (match) {
     const num = parseFloat(match[1].replace(/,/g, ''));
     return isNaN(num) ? null : Math.round(num);
@@ -153,16 +155,20 @@ export function parseReraId(raw) {
     /\b(RAJ\s*[\/\-]\s*[PA]\s*[\/\-]\s*\d{4}\s*[\/\-]\s*\d+|RAJ-?RERA[-\w\/\-]+|PRM\/KA\/RERA\/[\w\/\-]+|ACK\/KA\/RERA\/[\w\/\-]+|P\d{11}|P\d{9}|HRERA[-\w\/\-]+|UPRERA[-\w\/\-]+|PR\/GJ\/[\w\/\-]+|DLRERA[\w\/\-]+)\b/i
   );
   if (stateMatch) {
-    return stateMatch[1].trim().replace(/\s+/g, '');
+    let id = stateMatch[1].trim().replace(/\s+/g, '');
+    // Strip trailing UI words glued to the RERA ID from DOM concatenation (e.g. 003243CopiedSource)
+    id = id.replace(/(?<=\d|\/)(?:copied|source|extracted|verified|details|view|click|more|share|copy).*$/i, '');
+    return id.trim();
   }
 
   // 2. Generic RERA prefix: must contain at least 2 digits and not be common descriptive words
   const genericMatch = raw.match(/\bRERA\b(?:\s*(?:Registration|Registered|Regn?|Number|No|ID))?\.?[:\s#-]+([A-Z0-9][A-Z0-9\/\-]{4,})/i);
   if (genericMatch) {
-    const candidate = genericMatch[1].trim();
+    let candidate = genericMatch[1].trim();
+    candidate = candidate.replace(/(?<=\d|\/)(?:copied|source|extracted|verified|details|view|click|more|share|copy).*$/i, '');
     const INVALID_WORDS = /^(?:website|registered|registration|approved|disclaimer|details|status|portal|number|license|got_it|project|projects|amenities|developer|builder|rera|apply)$/i;
     if (!INVALID_WORDS.test(candidate) && /\d{2,}/.test(candidate)) {
-      return candidate;
+      return candidate.trim();
     }
   }
 
@@ -186,5 +192,42 @@ export function parseListingType(rawText, url = '') {
   const result = classifyListingType(null, rawText, url);
   return result.mode;
 }
+
+/**
+ * Filters out ad trackers, video player thumbnails, svgs, and icons,
+ * leaving authentic property listing photos.
+ * @param {string[]} images
+ * @returns {string[]}
+ */
+export function filterPropertyImages(images) {
+  if (!Array.isArray(images)) return [];
+  const badPatterns = [
+    /youtube\.com/i,
+    /ytimg\.com/i,
+    /doubleclick/i,
+    /googlesyndication/i,
+    /google-analytics/i,
+    /facebook\.com/i,
+    /favicon/i,
+    /\.svg($|\?)/i,
+    /^data:image/i,
+    /avatar/i,
+    /badge/i,
+    /icon/i,
+    /logo/i,
+    /tracker/i,
+    /pixel/i,
+    /advert/i,
+    /play[-_]?button/i,
+    /video[-_]?thumb/i
+  ];
+  return images.filter(url => {
+    if (!url || typeof url !== 'string') return false;
+    const trimmed = url.trim();
+    if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) return false;
+    return !badPatterns.some(pat => pat.test(trimmed));
+  });
+}
+
 
 

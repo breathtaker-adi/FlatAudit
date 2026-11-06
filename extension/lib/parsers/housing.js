@@ -7,7 +7,8 @@ import {
   parseAreaType,
   parsePossessionStatus,
   parseReraId,
-  classifyListingType
+  classifyListingType,
+  filterPropertyImages
 } from './currency.js';
 import { parseListingKey, canonicalizeUrl } from '../tracker.js';
 import { extractJsonLdData } from './jsonld.js';
@@ -89,15 +90,15 @@ export function parseHousing(document, url = '') {
 
   // Images: DOM -> JSON-LD -> Meta
   const imageEls = Array.from(container.querySelectorAll('.css-slide-img, img'));
-  let images = imageEls.map(img => img.src || img.getAttribute('src')).filter(Boolean);
+  let rawImages = imageEls.map(img => img.src || img.getAttribute('src')).filter(Boolean);
   if (jsonLd && jsonLd.images && jsonLd.images.length > 0) {
-    images = [...jsonLd.images, ...images];
+    rawImages = [...jsonLd.images, ...rawImages];
   }
-  if (images.length === 0 && metaImgEl) {
+  if (rawImages.length === 0 && metaImgEl) {
     const src = metaImgEl.getAttribute('content');
-    if (src) images.push(src);
+    if (src) rawImages.push(src);
   }
-  images = Array.from(new Set(images)).slice(0, 15);
+  const images = filterPropertyImages(Array.from(new Set(rawImages))).slice(0, 15);
 
   const fullText = container.textContent || '';
   const classification = classifyListingType(container, fullText, currentUrl);

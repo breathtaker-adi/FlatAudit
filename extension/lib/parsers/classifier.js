@@ -100,38 +100,44 @@ export function classifyListingType(docOrContext, rawText = '', url = '') {
   let rentScore = 0;
 
   // 1. URL Path Tokens (Weight: 2-3)
-  if (/(?:\/buy\/|\/sale\/|\/resale\/|\/property-for-sale\/|\/buy-property\/|\/for-sale\/|\/residential-buy\/|npxid-|npid-|\/projects?\/|\/new-projects?\/)/i.test(currentUrl)) {
+  if (/(?:[\/\-_](?:buy|sale|resale|for-sale|buy-property|property-for-sale|residential-buy|projects?|new-projects?)[\/\-_]|npxid-|npid-)/i.test(currentUrl) ||
+      /\b(?:for-sale|property-for-sale|resale-property)\b/i.test(currentUrl)) {
     saleSignals.push('URL indicates sale/buy/project path');
     saleScore += 2;
-  } else if (/(?:\/rent\/|\/rentals\/|\/property-for-rent\/|\/flat-for-rent\/|\/to-let\/|\/residential-rent\/)/i.test(currentUrl)) {
+  } else if (/(?:[\/\-_](?:rent|rentals|for-rent|flat-for-rent|to-let|property-for-rent|residential-rent)[\/\-_])/i.test(currentUrl) ||
+             /\b(?:for-rent|flat-for-rent|house-for-rent)\b/i.test(currentUrl)) {
     rentSignals.push('URL indicates rent/to-let path');
     rentScore += 2;
   }
 
-  // 2. Title & Breadcrumbs (Weight: 2)
+  // 2. Title & Breadcrumbs (Weight: 3 for explicit declaration)
   const headerContext = `${title} ${breadcrumbText}`;
-  if (/\b(?:for\s*sale|resale|buy\s*flat|buy\s*apartment|ready\s*possession|sale\s*in|property\s*for\s*sale|projects?\s*in|project\s*overview|price\s*list)\b/i.test(headerContext)) {
+  if (/\b(?:for\s*sale|resale|buy\s*flat|buy\s*apartment|house\s*for\s*sale|villa\s*for\s*sale|independent\s*house\s*for\s*sale|ready\s*possession|sale\s*in|property\s*for\s*sale|projects?\s*in|project\s*overview|price\s*list)\b/i.test(headerContext)) {
     saleSignals.push('Title or breadcrumb explicitly mentions sale/buy/resale/project');
-    saleScore += 2;
+    saleScore += 3;
   }
-  if (/\b(?:for\s*rent|flat\s*for\s*rent|house\s*for\s*rent|to\s*let|rent\s*in|monthly\s*rental)\b/i.test(headerContext)) {
+  if (/\b(?:for\s*rent|flat\s*for\s*rent|house\s*for\s*rent|villa\s*for\s*rent|to\s*let|rent\s*in|monthly\s*rental)\b/i.test(headerContext)) {
     rentSignals.push('Title or breadcrumb explicitly mentions rent/to-let');
-    rentScore += 2;
+    rentScore += 3;
   }
 
   // 3. Price Notation & Currency Units (Weight: 3)
-  // Check for Crore (very strong indicator of buying/sale)
-  if (/\b\d+(?:\.\d+)?\s*(?:cr\b|crore|crores)/.test(text) || /\b\d+(?:\.\d+)?\s*(?:cr\b|crore|crores)/.test(title)) {
+  // Check for Crore or high Lakhs (very strong indicator of buying/sale)
+  if (/\b\d+(?:\.\d+)?\s*(?:cr\b|crore|crores)/.test(text) || /\b\d+(?:\.\d+)?\s*(?:cr\b|crore|crores)/.test(title) ||
+      (/\b(?:price|cost|₹|rs\.?)\s*:?\s*(?:₹|rs\.?)?\s*([2-9]\d|\d{3,})\s*(?:lac|lacs|lakh|lakhs)\b/i.test(text) && !/deposit/i.test(text))) {
     // Check if it's not a rare luxury rent mentioned as "1 Crore deposit"
     if (!/\b1\s*crore\s*deposit\b/.test(text)) {
-      saleSignals.push('Price quoted in Crores (Cr)');
+      saleSignals.push('Price quoted in Crores (Cr) or substantial capital Lakhs (L)');
       saleScore += 3;
     }
   }
 
   // Check for explicit monthly rental notation (/mo, /month, per month, pm)
-  if (/(?:\/\s*mo\b|\/\s*month\b|per\s*month\b|\bp\.?m\.?\b|monthly\s*rent)/.test(text) || 
-      /(?:\/\s*mo\b|\/\s*month\b|per\s*month\b|\bp\.?m\.?\b|monthly\s*rent)/.test(title)) {
+  // Clean out maintenance, society charges, and EMI mentions which frequently occur on sale listings
+  const cleanRentText = text.replace(/(?:maintenance|society\s*charges?|emi|loan|club\s*house)\s*[:\-]?\s*(?:₹|rs\.?)?\s*[\d,]+\s*(?:\/\s*mo\b|\/\s*month\b|per\s*month\b|\bp\.?m\.?\b)/gi, '');
+  if ((/(?:\/\s*mo\b|\/\s*month\b|per\s*month\b|\bp\.?m\.?\b|monthly\s*rent)/i.test(cleanRentText) || 
+       /(?:\/\s*mo\b|\/\s*month\b|per\s*month\b|\bp\.?m\.?\b|monthly\s*rent)/i.test(title)) &&
+      !/\bfor\s*sale\b/i.test(title)) {
     rentSignals.push('Price explicitly qualified with per-month notation');
     rentScore += 3;
   }

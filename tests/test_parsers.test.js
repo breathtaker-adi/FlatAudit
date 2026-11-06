@@ -11,7 +11,8 @@ import {
   parsePricePerSqFt,
   parseAreaType,
   parsePossessionStatus,
-  parseReraId
+  parseReraId,
+  filterPropertyImages
 } from '../extension/lib/parsers/currency.js';
 import { extractListing, isListingValid } from '../extension/lib/parsers/index.js';
 
@@ -58,11 +59,28 @@ describe('Currency and BHK Parsers', () => {
     assert.equal(parsePossessionStatus('General property'), 'unknown');
   });
 
-  it('extracts State RERA Registration Numbers', () => {
+  it('extracts State RERA Registration Numbers and strips DOM button words', () => {
     assert.equal(parseReraId('RERA ID: PRM/KA/RERA/1251/310/PR/171015/000451'), 'PRM/KA/RERA/1251/310/PR/171015/000451');
+    assert.equal(parseReraId('PRM/KA/RERA/1251/446/PR/200205/003243CopiedSource extracted.'), 'PRM/KA/RERA/1251/446/PR/200205/003243');
     assert.equal(parseReraId('MahaRERA: P51800001234'), 'P51800001234');
     assert.equal(parseReraId('HRERA Registered: HRERA-PKL-GGM-102'), 'HRERA-PKL-GGM-102');
     assert.equal(parseReraId('No registration mentioned'), null);
+  });
+
+  it('filters out YouTube thumbnails, ad trackers, SVGs, and data URLs from property images', () => {
+    const rawList = [
+      'https://img.youtube.com/vi_webp/UYR2n0Ne0fM/hqdefault.webp',
+      'https://img.nobroker.in/images/8a9f908781/property.jpg',
+      'https://googleads.g.doubleclick.net/pagead/ads?id=123',
+      'https://cdn.mbimg.com/photos/apartment-exterior.png',
+      'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA',
+      'https://portal.com/icons/verified-badge.svg'
+    ];
+    const cleaned = filterPropertyImages(rawList);
+    assert.deepEqual(cleaned, [
+      'https://img.nobroker.in/images/8a9f908781/property.jpg',
+      'https://cdn.mbimg.com/photos/apartment-exterior.png'
+    ]);
   });
 
   it('parses BHK and Bedroom counts', () => {

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" fill="none">
+  <defs>
+    <linearGradient id="shieldGrad" x1="16" y1="12" x2="112" y2="116" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0A84FF" />
+      <stop offset="60%" stop-color="#0066CC" />
+      <stop offset="100%" stop-color="#004080" />
+    </linearGradient>
+    <linearGradient id="facetLeft" x1="28" y1="36" x2="64" y2="108" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#64D2FF" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#0A84FF" stop-opacity="0.2" />
+    </linearGradient>
+    <linearGradient id="facetRight" x1="100" y1="36" x2="64" y2="108" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#5E5CE6" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#0A84FF" stop-opacity="0.1" />
+    </linearGradient>
+    <linearGradient id="roofGrad" x1="64" y1="20" x2="64" y2="52" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.95" />
+      <stop offset="100%" stop-color="#B8E1FF" stop-opacity="0.7" />
+    </linearGradient>
+    <filter id="glow" x="-10%" y="-10%" width="120%" height="120%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0066CC" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Base Smooth Shield Shape with Filter Glow -->
+  <path d="M64 12 C96 12 110 26 110 52 C110 84 82 108 64 118 C46 108 18 84 18 52 C18 26 32 12 64 12 Z" 
+        fill="url(#shieldGrad)" filter="url(#glow)" />
+
+  <!-- Keystone / Architectural Roof Peak Facets -->
+  <!-- Left Prism Facet -->
+  <path d="M64 24 L28 48 L64 68 Z" fill="url(#facetLeft)" />
+  
+  <!-- Right Prism Facet -->
+  <path d="M64 24 L100 48 L64 68 Z" fill="url(#facetRight)" />
+
+  <!-- Keystone Center Pillar / Shield Spine -->
+  <path d="M64 68 L28 48 L42 90 L64 104 Z" fill="url(#facetLeft)" fill-opacity="0.6" />
+  <path d="M64 68 L100 48 L86 90 L64 104 Z" fill="url(#facetRight)" fill-opacity="0.75" />
+
+  <!-- Central Verification Crest / Pillar -->
+  <path d="M64 36 L78 52 L64 96 L50 52 Z" fill="url(#roofGrad)" />
+</svg>

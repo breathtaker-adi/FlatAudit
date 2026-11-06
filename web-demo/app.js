@@ -1,5 +1,6 @@
 import { hammingDistance } from '../extension/lib/dhash.js';
 import { analyzeListing } from '../extension/lib/signals.js';
+import { calculateInvestmentForecast, formatIndianCurrencyAbbr } from '../extension/lib/investment.js';
 import {
   trackListing,
   getTrackedListings,
@@ -174,6 +175,66 @@ function evaluateCurrentForm() {
 }
 
 function renderResults(res) {
+  // Update Dossier Hero Details
+  const eyebrowEl = document.getElementById('dossier-locality-eyebrow');
+  if (eyebrowEl) eyebrowEl.textContent = res.listing?.locality || 'Property Audit Dossier';
+
+  const titleEl = document.getElementById('dossier-property-title');
+  if (titleEl) titleEl.textContent = res.listing?.title || 'Listing Due Diligence Summary';
+
+  const isSale = res.listing?.listingType === 'sale' || Boolean(res.listing?.price && !res.listing?.rent) || (res.listing?.price >= 1000000);
+
+  const priceValEl = document.getElementById('dossier-price-val');
+  if (priceValEl) {
+    if (isSale) {
+      priceValEl.textContent = `₹ ${formatIndianCurrencyAbbr(res.listing.price || res.listing.salePrice || 0)}`;
+    } else {
+      priceValEl.textContent = `₹ ${(res.listing.rent || 0).toLocaleString('en-IN')}/mo`;
+    }
+  }
+
+  const secLblEl = document.getElementById('dossier-sec-lbl');
+  const secValEl = document.getElementById('dossier-sec-val');
+  if (secLblEl && secValEl) {
+    if (isSale) {
+      secLblEl.textContent = 'Rate / Sq.Ft';
+      const pps = res.listing.pricePerSqft || Math.round((res.listing.price || 0) / (res.listing.area_sqft || 1230));
+      secValEl.textContent = pps ? `₹ ${pps.toLocaleString('en-IN')}` : '₹ --';
+    } else {
+      secLblEl.textContent = 'Security Deposit';
+      secValEl.textContent = res.listing.deposit ? `₹ ${res.listing.deposit.toLocaleString('en-IN')}` : '₹ --';
+    }
+  }
+
+  const bhkValEl = document.getElementById('dossier-bhk-val');
+  if (bhkValEl) {
+    bhkValEl.textContent = `${res.listing.bhk || 2} BHK • ${(res.listing.area_sqft || 1230).toLocaleString('en-IN')} sqft`;
+  }
+
+  // Update Investment Forecast
+  const forecast = calculateInvestmentForecast(res.listing);
+  if (forecast && forecast.horizons) {
+    const h3 = forecast.horizons['3y'];
+    const h5 = forecast.horizons['5y'];
+    const h10 = forecast.horizons['10y'];
+    const setVal = (id, text) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = text;
+    };
+    setVal('web-invest-val-3y', `₹ ${h3.projectedValueFormatted}`);
+    setVal('web-invest-gain-3y', `+₹ ${h3.absoluteGainFormatted} (+${h3.percentageGainFormatted})`);
+    setVal('web-invest-val-5y', `₹ ${h5.projectedValueFormatted}`);
+    setVal('web-invest-gain-5y', `+₹ ${h5.absoluteGainFormatted} (+${h5.percentageGainFormatted})`);
+    setVal('web-invest-val-10y', `₹ ${h10.projectedValueFormatted}`);
+    setVal('web-invest-gain-10y', `+₹ ${h10.absoluteGainFormatted} (+${h10.percentageGainFormatted})`);
+
+    if (forecast.rentalYield) {
+      setVal('web-invest-monthly-rent', `₹ ${forecast.rentalYield.estimatedMonthlyRentFormatted}/mo`);
+      setVal('web-invest-5y-rent', `₹ ${forecast.rentalYield.fiveYearCumulativeRentFormatted}`);
+      setVal('web-invest-total-wealth', `+₹ ${forecast.rentalYield.fiveYearTotalWealthGainFormatted}`);
+    }
+  }
+
   // Update Benchmark Ladder Card
   const bmCard = document.getElementById('benchmark-level-card');
   const bmTag = document.getElementById('demo-bm-tag');
@@ -241,7 +302,7 @@ function renderResults(res) {
 
   const mockPointsTitle = document.createElement('div');
   mockPointsTitle.className = 'mock-points-title';
-  mockPointsTitle.textContent = 'KEY OBSERVATIONS (POINTS & REASONS):';
+  mockPointsTitle.textContent = 'Key Observations (Observable Facts):';
   mockDrawerBody.appendChild(mockPointsTitle);
 
   const pointsGrid = document.getElementById('points-grid');
@@ -253,7 +314,7 @@ function renderResults(res) {
     card.className = `point-card ${p.fired ? 'flagged' : 'normal'}`;
     card.innerHTML = `
       <div class="point-header">
-        <span class="point-cat">${p.icon} ${p.category}</span>
+        <span class="point-cat">${p.category}</span>
         <span class="point-status ${p.fired ? 'status-flagged' : 'status-normal'}">${p.fired ? 'Flagged' : 'Verified'}</span>
       </div>
       <div class="point-headline">${p.point}</div>
@@ -280,7 +341,6 @@ function renderResults(res) {
   // Handle Buyer Mode vs Renter Safety Advice
   const buyerPanel = document.getElementById('buyer-mode-panel');
   const renterSafetyCard = document.getElementById('renter-safety-card');
-  const isSale = res.listing?.listingType === 'sale' || Boolean(res.listing?.price && !res.listing?.rent) || (res.listing?.price >= 1000000);
 
   if (isSale && buyerPanel) {
     buyerPanel.style.display = 'block';
@@ -329,16 +389,16 @@ function renderResults(res) {
     if (costSummary) {
       const c = buyerReport.costEstimate;
       costSummary.innerHTML = `
-        <div class="cost-summary-header">💰 Estimated All-In Acquisition Cost (Karnataka)</div>
+        <div class="cost-summary-header">Estimated All-In Acquisition Cost (Karnataka)</div>
         <div class="cost-summary-grid">
           <div><span>Base Price:</span> <strong>₹${(c.basePrice / 10000000).toFixed(2)} Cr</strong></div>
           <div><span>Stamp Duty (5.6%):</span> <strong>₹${c.statutoryCharges.stampDutyAmount.toLocaleString('en-IN')}</strong></div>
           <div><span>Registration (1.0%):</span> <strong>₹${c.statutoryCharges.registrationAmount.toLocaleString('en-IN')}</strong></div>
           <div><span>GST (${c.statutoryCharges.gstPct}%):</span> <strong>₹${c.statutoryCharges.gstAmount.toLocaleString('en-IN')}</strong></div>
           <div><span>Maintenance & Connection:</span> <strong>₹${c.otherCharges.total.toLocaleString('en-IN')}</strong></div>
-          <div><span>Estimated All-In:</span> <strong style="color:#7cc4ff;">₹${(c.totalCost / 10000000).toFixed(2)} Cr</strong></div>
+          <div><span>Estimated All-In:</span> <strong style="color:var(--tint);">₹${(c.totalCost / 10000000).toFixed(2)} Cr</strong></div>
         </div>
-        <div class="cost-emi-note">Estimated Monthly EMI (20 years @ 8.5% interest on 80% loan): <strong>₹${c.financing.monthlyEmi.toLocaleString('en-IN')}/mo</strong></div>
+        <div class="cost-emi-note">Estimated Monthly EMI (20 years @ 8.5% on 80% loan): <strong>₹${c.financing.monthlyEmi.toLocaleString('en-IN')}/mo</strong></div>
       `;
     }
 
@@ -430,9 +490,13 @@ async function renderDemoWatchlist() {
   if (items.length === 0) {
     container.innerHTML = `
       <div class="empty-state">
-        <span class="empty-icon">📌</span>
-        <b>No listings tracked in simulation yet</b>
-        <p>Use the buttons on the left to track a listing, simulate price drops, and watch the SVG sparkline graph update in real time.</p>
+        <div class="empty-icon" style="color:var(--text-tertiary); display:flex; justify-content:center;">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+          </svg>
+        </div>
+        <b>No properties tracked in simulation yet</b>
+        <p>Use the simulation actions on the left to track a listing, simulate price revisions, and view dynamic price history sparklines.</p>
       </div>
     `;
     document.getElementById('demo-compare-section').style.display = 'none';
@@ -639,27 +703,6 @@ async function renderDemoCompare() {
 }
 
 function initDemoSimulatorControls() {
-  // Tab Switching
-  const inspectorTabBtn = document.getElementById('demo-tab-inspector');
-  const buyhatkeTabBtn = document.getElementById('demo-tab-buyhatke');
-  const inspectorContent = document.getElementById('tab-content-inspector');
-  const buyhatkeContent = document.getElementById('tab-content-buyhatke');
-
-  inspectorTabBtn.addEventListener('click', () => {
-    inspectorTabBtn.classList.add('active');
-    buyhatkeTabBtn.classList.remove('active');
-    inspectorContent.classList.add('active');
-    buyhatkeContent.classList.remove('active');
-  });
-
-  buyhatkeTabBtn.addEventListener('click', () => {
-    buyhatkeTabBtn.classList.add('active');
-    inspectorTabBtn.classList.remove('active');
-    buyhatkeContent.classList.add('active');
-    inspectorContent.classList.remove('active');
-    renderDemoWatchlist();
-  });
-
   // Track Primary
   document.getElementById('btn-sim-track-primary').addEventListener('click', async () => {
     await trackListing({
@@ -810,6 +853,41 @@ function initDemoSimulatorControls() {
 document.addEventListener('DOMContentLoaded', () => {
   checkApiHealth();
   initDemoSimulatorControls();
+
+  // Top Primary Navigation (Property Audit | Price History & Compare | Research & Lab)
+  document.querySelectorAll('.demo-tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.demo-tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      document.querySelectorAll('.demo-tab-content').forEach(c => c.classList.remove('active'));
+
+      btn.classList.add('active');
+      btn.setAttribute('aria-selected', 'true');
+      const targetId = btn.getAttribute('data-tab');
+      const targetContent = document.getElementById(targetId);
+      if (targetContent) targetContent.classList.add('active');
+      if (targetId === 'tab-content-buyhatke') {
+        renderDemoWatchlist();
+      }
+    });
+  });
+
+  // Dossier Subview Tabs (Audit Findings | Capital Appreciation & ROI | Statutory Due Diligence)
+  document.querySelectorAll('.dossier-tab-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.querySelectorAll('.dossier-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.dossier-subview').forEach(v => v.classList.remove('active'));
+
+      btn.classList.add('active');
+      const targetId = btn.getAttribute('data-dossier');
+      const targetView = document.getElementById(targetId);
+      if (targetView) targetView.classList.add('active');
+    });
+  });
 
   // Mock badge click handler: toggles drawer and keeps it open
   const mockBadgeBtn = document.getElementById('mock-badge-btn');

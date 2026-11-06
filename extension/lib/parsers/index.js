@@ -3,7 +3,7 @@ import { parseMagicBricks } from './magicbricks.js';
 import { parse99acres } from './ninety_nine_acres.js';
 import { parseHousing } from './housing.js';
 import { parseGeneric } from './generic.js';
-import { parseIndianCurrency, parseBHK, parseArea } from './currency.js';
+import { parseIndianCurrency, parseBHK, parseArea, filterPropertyImages } from './currency.js';
 import { classifyListingType } from './classifier.js';
 import { parseCoordinatesFromPage } from '../geohash.js';
 
@@ -68,6 +68,11 @@ export function extractListing(document, url = '') {
   } else {
     // Mode is 'unknown'
     listing.listingType = 'unknown';
+  }
+
+  // Sanitize and filter extracted property images
+  if (listing && Array.isArray(listing.images)) {
+    listing.images = filterPropertyImages(listing.images);
   }
 
   listing.isValid = isListingValid(listing);

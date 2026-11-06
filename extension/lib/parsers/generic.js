@@ -1,4 +1,4 @@
-import { parseIndianCurrency, parseBHK, parseArea, parseFloor } from './currency.js';
+import { parseIndianCurrency, parseBHK, parseArea, parseFloor, filterPropertyImages } from './currency.js';
 import { parseListingKey, canonicalizeUrl } from '../tracker.js';
 
 export function parseGeneric(document, url = '') {
@@ -9,18 +9,56 @@ export function parseGeneric(document, url = '') {
   // Extract text body
   const bodyText = document.body ? document.body.innerText || document.body.textContent : '';
 
-  // Heuristic rent search
+  // Heuristic price / rent search
   let rent = null;
-  const priceMatches = bodyText.match(/(?:rent|monthly|price|₹|rs\.?)\s*:?\s*(?:₹|rs\.?)?\s*([\d,]+(?:\.\d+)?\s*(?:k|lac|lakh)?)/gi);
-  if (priceMatches && priceMatches.length > 0) {
-    for (const match of priceMatches) {
-      const parsed = parseIndianCurrency(match);
-      if (parsed && parsed >= 3000 && parsed <= 500000) {
-        rent = parsed;
-        break;
+  let price = null;
+  const isSaleContext = /\b(?:for\s*sale|resale|buy\s*flat|house\s*for\s*sale|villa\s*for\s*sale|independent\s*house)\b/i.test(title) ||
+                        /(?:\/buy\/|\/sale\/|\/resale\/|\/property-for-sale\/)/i.test(url);
+
+  // 1. Check explicit price elements in DOM
+  const explicitPriceEl = document.querySelector('[class*="price--amount"], [class*="pdp__price"], [class*="cardPrice"], [class*="priceValue"], [itemprop="price"], meta[property="og:price:amount"]');
+  if (explicitPriceEl) {
+    const rawVal = explicitPriceEl.content || explicitPriceEl.textContent || '';
+    const parsedVal = parseIndianCurrency(rawVal);
+    if (parsedVal) {
+      if (isSaleContext || parsedVal >= 500000) {
+        price = parsedVal;
+      } else {
+        rent = parsedVal;
       }
     }
   }
+
+  // 2. Fallback heuristic regex in body text
+  if (!price && !rent) {
+    const saleMatches = bodyText.match(/(?:price|total\s*price|cost|₹|rs\.?)\s*:?\s*(?:₹|rs\.?)?\s*([\d,]+(?:\.\d+)?\s*(?:cr\b|crore|crores|lac|lacs|lakh|lakhs))/gi);
+    if (saleMatches && saleMatches.length > 0) {
+      for (const match of saleMatches) {
+        const parsed = parseIndianCurrency(match);
+        if (parsed && parsed >= 500000) {
+          price = parsed;
+          break;
+        }
+      }
+    }
+  }
+
+  if (!price && !rent) {
+    const priceMatches = bodyText.match(/(?:rent|monthly|price|₹|rs\.?)\s*:?\s*(?:₹|rs\.?)?\s*([\d,]+(?:\.\d+)?\s*(?:k|lac|lakh)?)/gi);
+    if (priceMatches && priceMatches.length > 0) {
+      for (const match of priceMatches) {
+        const parsed = parseIndianCurrency(match);
+        if (parsed && parsed >= 3000 && parsed <= 500000) {
+          rent = parsed;
+          break;
+        }
+      }
+    }
+  }
+
+  // If sale context and we found a price, ensure it's recorded
+  const rawPrice = price || rent;
+  const listingType = isSaleContext ? 'sale' : (rent ? 'rent' : 'unknown');
 
   // Heuristic deposit search
   let deposit = null;
@@ -52,12 +90,14 @@ export function parseGeneric(document, url = '') {
 
   // Images
   const imgEls = Array.from(document.querySelectorAll('img[src*="photo"], img[src*="property"], img[src*="listing"], img'));
-  const images = imgEls
+  const rawImages = imgEls
     .map(i => i.src || i.getAttribute('src'))
-    .filter(src => src && !src.includes('avatar') && !src.includes('icon') && !src.includes('logo'))
-    .slice(0, 5);
+    .filter(Boolean);
+  const images = filterPropertyImages(Array.from(new Set(rawImages))).slice(0, 5);
 
   const listingKey = parseListingKey('generic', url, document);
+
+  const pricePerSqft = area_sqft && price ? Math.round(price / area_sqft) : null;
 
   return {
     portal: 'generic',
@@ -65,8 +105,13 @@ export function parseGeneric(document, url = '') {
     url: canonicalizeUrl(url),
     title,
     locality,
-    rent,
-    deposit,
+    listingType,
+    rawPrice,
+    rent: listingType === 'sale' ? null : rent,
+    price: listingType === 'sale' ? (price || rawPrice) : null,
+    salePrice: listingType === 'sale' ? (price || rawPrice) : null,
+    pricePerSqft,
+    deposit: listingType === 'sale' ? null : deposit,
     bhk,
     area_sqft,
     areaSqft: area_sqft,

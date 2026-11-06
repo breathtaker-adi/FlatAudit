@@ -18,6 +18,7 @@
     const signalsUrl = chrome.runtime.getURL('lib/signals.js');
     const trackerUrl = chrome.runtime.getURL('lib/tracker.js');
     const buyerUrl = chrome.runtime.getURL('lib/buyer.js');
+    const investmentUrl = chrome.runtime.getURL('lib/investment.js');
 
     const { extractListing, parsePeerListingsFromPage } = await import(parsersUrl);
     const { analyzeListing } = await import(signalsUrl);
@@ -37,6 +38,10 @@
       estimateTotalCost,
       getPaperworkChecklist
     } = await import(buyerUrl);
+    const {
+      calculateInvestmentForecast,
+      formatIndianCurrencyAbbr
+    } = await import(investmentUrl);
 
     let currentAnalysis = null;
     let badgeContainer = null;
@@ -194,6 +199,37 @@
           listing.rent = listing.rent || amt;
           listing.price = null;
           listing.salePrice = null;
+          listing.pricePerSqft = null;
+        }
+      } else {
+        const isTitleSale = /\b(?:for\s*sale|resale|buy\s*flat|house\s*for\s*sale|villa\s*for\s*sale|independent\s*house\s*for\s*sale)\b/i.test(listing.title || '');
+        const isTitleRent = /\b(?:for\s*rent|flat\s*for\s*rent|house\s*for\s*rent|villa\s*for\s*rent|to\s*let|rent\s*in)\b/i.test(listing.title || '');
+
+        if (isTitleSale && !isTitleRent) {
+          listing.listingType = 'sale';
+        } else if (isTitleRent && !isTitleSale) {
+          listing.listingType = 'rent';
+        } else if (listing.listingType === 'unknown' && listing.rawPrice) {
+          if (listing.rawPrice >= 1000000) {
+            listing.listingType = 'sale';
+          } else if (listing.rawPrice < 500000) {
+            listing.listingType = 'rent';
+          }
+        }
+
+        const amt = listing.rawPrice || listing.price || listing.rent;
+        if (listing.listingType === 'sale') {
+          listing.price = listing.price || amt;
+          listing.salePrice = listing.price;
+          listing.rent = null;
+          if (listing.price && listing.area_sqft && !listing.pricePerSqft) {
+            listing.pricePerSqft = Math.round(listing.price / listing.area_sqft);
+          }
+        } else if (listing.listingType === 'rent') {
+          listing.rent = listing.rent || amt;
+          listing.price = null;
+          listing.salePrice = null;
+          listing.pricePerSqft = null;
         }
       }
 
@@ -202,20 +238,22 @@
       let seenCount = 1;
 
       if (listing.images && listing.images.length > 0) {
-        const firstImg = listing.images[0];
-        const hashResponse = await safeSendMessage({
-          type: 'COMPUTE_DHASH',
-          imageUrl: firstImg
-        });
-
-        if (hashResponse && hashResponse.hash) {
-          topHash = hashResponse.hash;
-          const seenResponse = await safeSendMessage({
-            type: 'CHECK_SEEN',
-            hash: topHash
+        const firstImg = listing.images.find(img => img && typeof img === 'string' && !/youtube\.com|ytimg\.com|data:|\.svg/i.test(img));
+        if (firstImg) {
+          const hashResponse = await safeSendMessage({
+            type: 'COMPUTE_DHASH',
+            imageUrl: firstImg
           });
-          if (seenResponse && seenResponse.seenCount) {
-            seenCount = seenResponse.seenCount;
+
+          if (hashResponse && hashResponse.hash) {
+            topHash = hashResponse.hash;
+            const seenResponse = await safeSendMessage({
+              type: 'CHECK_SEEN',
+              hash: topHash
+            });
+            if (seenResponse && seenResponse.seenCount) {
+              seenCount = seenResponse.seenCount;
+            }
           }
         }
       }
@@ -317,9 +355,17 @@
       btn.type = 'button';
       btn.setAttribute('aria-label', `FlatAudit listing status: ${data.badgeLabel}`);
 
+      const KEYSTONE_ICON_HTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2.5L20.5 7.4V16.6L12 21.5L3.5 16.6V7.4L12 2.5Z" stroke="#0A84FF" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M12 2.5V12L20.5 7.4" stroke="#0A84FF" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M12 12L3.5 7.4" stroke="#0A84FF" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M12 12V21.5" stroke="#0A84FF" stroke-width="1.8" stroke-linecap="round"/>
+        <circle cx="12" cy="12" r="2" fill="#0A84FF"/>
+      </svg>`;
+
       const icon = document.createElement('span');
       icon.className = 'flataudit-badge-icon';
-      icon.textContent = data.badgeTone === 'bad' ? '⚠️' : data.badgeTone === 'warn' ? '🔍' : '🛡️';
+      icon.innerHTML = KEYSTONE_ICON_HTML;
 
       const title = document.createElement('span');
       title.className = 'flataudit-badge-title';
@@ -349,11 +395,11 @@
 
       const shieldIcon = document.createElement('span');
       shieldIcon.className = 'flataudit-drawer-shield';
-      shieldIcon.textContent = '🛡️';
+      shieldIcon.innerHTML = KEYSTONE_ICON_HTML;
 
       const titleText = document.createElement('span');
       titleText.className = 'flataudit-drawer-title';
-      titleText.textContent = 'FlatAudit Companion';
+      titleText.textContent = 'FlatAudit';
 
       headerTitle.appendChild(shieldIcon);
       headerTitle.appendChild(titleText);
@@ -364,8 +410,8 @@
       const trackBtn = document.createElement('button');
       trackBtn.type = 'button';
       trackBtn.className = `flataudit-track-btn ${trackedItem ? 'is-tracked' : ''}`;
-      trackBtn.textContent = trackedItem ? '✓ In Watchlist' : '★ Track Flat';
-      trackBtn.title = 'Save listing and track rent history';
+      trackBtn.textContent = trackedItem ? '✓ In Watchlist' : '★ Track Property';
+      trackBtn.title = 'Save listing and track price history';
 
       const closeBtn = document.createElement('button');
       closeBtn.className = 'flataudit-close-btn';
@@ -381,7 +427,13 @@
       drawer.appendChild(header);
 
       // Section: Mode Selector Toggle (Rent vs Buy/Sale)
-      const currentMode = data.listing?.listingType || 'unknown';
+      const isSale = data.listing?.listingType === 'sale' || 
+                     Boolean(data.listing?.price && !data.listing?.rent) || 
+                     Boolean(data.listing?.salePrice) ||
+                     /\b(?:for\s*sale|resale|buy\s*flat|villa\s*for\s*sale|house\s*for\s*sale|independent\s*house)\b/i.test(data.listing?.title || '');
+      
+      const currentMode = isSale ? 'sale' : (data.listing?.listingType || 'rent');
+
       const modeSwitchRow = document.createElement('div');
       modeSwitchRow.className = 'flataudit-mode-switch-row';
 
@@ -392,7 +444,7 @@
       const rentBtn = document.createElement('button');
       rentBtn.type = 'button';
       rentBtn.className = `flataudit-mode-btn ${currentMode === 'rent' ? 'active' : ''}`;
-      rentBtn.textContent = '🔑 Rent';
+      rentBtn.textContent = 'Rent';
       rentBtn.title = 'Switch to Rental evaluation mode';
       rentBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -400,13 +452,13 @@
         const overrides = stored.flataudit_mode_overrides || {};
         overrides[listingKey] = 'rent';
         await safeStorageSet({ flataudit_mode_overrides: overrides });
-        await evaluatePage();
+        await evaluatePage(true);
       });
 
       const saleBtn = document.createElement('button');
       saleBtn.type = 'button';
       saleBtn.className = `flataudit-mode-btn ${currentMode === 'sale' ? 'active' : ''}`;
-      saleBtn.textContent = '🏡 Buy / Sale';
+      saleBtn.textContent = 'Buy / Sale';
       saleBtn.title = 'Switch to Property Buying evaluation mode';
       saleBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
@@ -414,7 +466,7 @@
         const overrides = stored.flataudit_mode_overrides || {};
         overrides[listingKey] = 'sale';
         await safeStorageSet({ flataudit_mode_overrides: overrides });
-        await evaluatePage();
+        await evaluatePage(true);
       });
 
       modeSwitchRow.appendChild(modeLabel);
@@ -422,7 +474,7 @@
       modeSwitchRow.appendChild(saleBtn);
       drawer.appendChild(modeSwitchRow);
 
-      // Section: Buyhatke Price History & Watchlist Card
+      // Section: Price History & Valuation Card
       const historyCard = document.createElement('div');
       historyCard.className = 'flataudit-history-card';
 
@@ -431,11 +483,11 @@
 
       const historyTitle = document.createElement('span');
       historyTitle.className = 'flataudit-history-title';
-      historyTitle.textContent = '📈 Price History & Watchlist';
+      historyTitle.textContent = isSale ? 'Property Valuation & Investment' : 'Rental Rate & Watchlist';
 
       const timeOnMarket = document.createElement('span');
       timeOnMarket.className = 'flataudit-time-badge';
-      timeOnMarket.textContent = trackedItem ? formatTimeOnMarket(trackedItem.firstSeen) : 'First seen today';
+      timeOnMarket.textContent = trackedItem ? formatTimeOnMarket(trackedItem.firstSeen) : 'Recorded today';
 
       historyHead.appendChild(historyTitle);
       historyHead.appendChild(timeOnMarket);
@@ -444,23 +496,25 @@
       const historyStatsRow = document.createElement('div');
       historyStatsRow.className = 'flataudit-history-stats';
 
-      const isSale = data.listing?.listingType === 'sale' || Boolean(data.listing?.price && !data.listing?.rent);
+      const effectivePrice = data.listing?.price || data.listing?.salePrice || data.listing?.rawPrice || data.listing?.rent || 0;
+
       const rentStat = document.createElement('span');
       rentStat.className = 'flataudit-stat-rent';
       if (isSale) {
-        const p = data.listing?.price || 0;
-        const pStr = p >= 10000000 ? `₹${(p / 10000000).toFixed(2)} Cr` : `₹${(p / 100000).toFixed(2)} L`;
-        const psfStr = data.listing?.pricePerSqft ? ` (₹${data.listing.pricePerSqft.toLocaleString('en-IN')}/sqft)` : '';
+        const pStr = formatIndianCurrencyAbbr(effectivePrice);
+        const psfStr = (data.listing?.pricePerSqft || (data.listing?.area_sqft && effectivePrice > 0 ? Math.round(effectivePrice / data.listing.area_sqft) : null))
+          ? ` • ₹${(data.listing.pricePerSqft || Math.round(effectivePrice / data.listing.area_sqft)).toLocaleString('en-IN')}/sqft`
+          : '';
         rentStat.textContent = pStr + psfStr;
       } else {
-        rentStat.textContent = `₹${(data.listing?.rent || 0).toLocaleString('en-IN')}/mo`;
+        rentStat.textContent = effectivePrice > 0 ? `₹${effectivePrice.toLocaleString('en-IN')}/mo` : 'Rent on request';
       }
 
       const hasPriceHistory = Boolean(trackedItem && trackedItem.snapshots && trackedItem.snapshots.length >= 2);
 
       if (hasPriceHistory) {
         const deltaBadge = document.createElement('span');
-        const snapPrices = isSale ? [{ price: data.listing?.price }] : [{ rent: data.listing?.rent }];
+        const snapPrices = isSale ? [{ price: effectivePrice }] : [{ rent: data.listing?.rent }];
         const stats = computePriceHistoryStats(trackedItem ? trackedItem.snapshots : snapPrices);
 
         if (stats.delta < 0) {
@@ -490,63 +544,49 @@
         sparkWrap.appendChild(document.importNode(svgElement, true));
         historyCard.appendChild(sparkWrap);
       } else {
-        // First observation: Show current rate and active tracking confirmation
         const activeBadge = document.createElement('span');
         activeBadge.className = 'flataudit-delta-badge stable';
-        activeBadge.textContent = trackedItem ? 'Tracking In Watchlist' : 'Tracker Active';
+        activeBadge.textContent = trackedItem ? 'In Watchlist' : 'Monitoring Active';
 
         historyStatsRow.appendChild(rentStat);
         historyStatsRow.appendChild(activeBadge);
         historyCard.appendChild(historyStatsRow);
-
-        const emptyNote = document.createElement('div');
-        emptyNote.className = 'flataudit-history-empty-note';
-
-        const noteIcon = document.createElement('span');
-        noteIcon.className = 'flataudit-empty-icon';
-        noteIcon.textContent = '⏳';
-
-        const noteBody = document.createElement('div');
-        noteBody.className = 'flataudit-empty-body';
-
-        const noteTitle = document.createElement('div');
-        noteTitle.className = 'flataudit-empty-title';
-        noteTitle.textContent = 'Price Trend Tracking Active';
-
-        const noteText = document.createElement('div');
-        noteText.className = 'flataudit-empty-text';
-        noteText.textContent = `First price snapshot recorded today. As you revisit this property or browse similar listings, historical price changes and drops will chart automatically here.`;
-
-        noteBody.appendChild(noteTitle);
-        noteBody.appendChild(noteText);
-        emptyNote.appendChild(noteIcon);
-        emptyNote.appendChild(noteBody);
-        historyCard.appendChild(emptyNote);
       }
 
-      // Status selector and private note (when tracked)
-      const controlsRow = document.createElement('div');
-      controlsRow.className = 'flataudit-watchlist-controls';
+      // Add Capital Appreciation Model for Sale Listings
+      if (isSale && effectivePrice > 0) {
+        const forecast = calculateInvestmentForecast(effectivePrice);
+        if (forecast && forecast.isValid) {
+          const investBox = document.createElement('div');
+          investBox.className = 'flataudit-invest-drawer-box';
+          investBox.innerHTML = `
+            <div class="flataudit-invest-head">
+              <span class="flataudit-invest-title">Capital Appreciation (Normal Conditions)</span>
+              <span class="flataudit-invest-rate">+7.5% p.a.</span>
+            </div>
+            <div class="flataudit-invest-grid">
+              <div class="flataudit-milestone-pill">
+                <span class="m-lbl">3-Year</span>
+                <strong class="m-num">${forecast.milestones[0].projectedFormatted}</strong>
+                <span class="m-gain">+24.2%</span>
+              </div>
+              <div class="flataudit-milestone-pill highlight">
+                <span class="m-lbl">5-Year</span>
+                <strong class="m-num">${forecast.milestones[1].projectedFormatted}</strong>
+                <span class="m-gain">+43.6%</span>
+              </div>
+              <div class="flataudit-milestone-pill">
+                <span class="m-lbl">10-Year</span>
+                <strong class="m-num">${forecast.milestones[2].projectedFormatted}</strong>
+                <span class="m-gain">+106%</span>
+              </div>
+            </div>
+            <div class="flataudit-invest-yield">Rental Yield Potential: ~${forecast.monthlyRentalFormatted}/mo</div>
+          `;
+          historyCard.appendChild(investBox);
+        }
+      }
 
-      const statusSelect = document.createElement('select');
-      statusSelect.className = 'flataudit-status-select';
-      ['Interested', 'Visited', 'Rejected'].forEach(st => {
-        const opt = document.createElement('option');
-        opt.value = st;
-        opt.textContent = st;
-        if (trackedItem && trackedItem.status === st) opt.selected = true;
-        statusSelect.appendChild(opt);
-      });
-
-      const noteInput = document.createElement('input');
-      noteInput.type = 'text';
-      noteInput.className = 'flataudit-note-input';
-      noteInput.placeholder = 'Add private note (e.g. talked to guard Rahul)';
-      noteInput.value = trackedItem && trackedItem.note ? trackedItem.note : '';
-
-      controlsRow.appendChild(statusSelect);
-      controlsRow.appendChild(noteInput);
-      historyCard.appendChild(controlsRow);
       drawer.appendChild(historyCard);
 
       // Section: Buyer Mode (Flat, Project, Builder, Paperwork)
@@ -962,20 +1002,6 @@
         await renderTrustBadge(data);
       });
 
-      statusSelect.addEventListener('change', async (e) => {
-        e.stopPropagation();
-        if (trackedItem) {
-          await updateListingStatus(listingKey, statusSelect.value);
-        }
-      });
-
-      noteInput.addEventListener('change', async (e) => {
-        e.stopPropagation();
-        if (trackedItem) {
-          await updateListingNote(listingKey, noteInput.value);
-        }
-      });
-
       btn.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1017,6 +1043,14 @@
 
     // Initial evaluation
     evaluatePage();
+
+    // Listen for requests from popup to get active page analysis
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+      if (request && request.type === 'GET_PAGE_ANALYSIS') {
+        sendResponse({ analysis: currentAnalysis });
+        return true;
+      }
+    });
 
     // Re-check on dynamic SPA DOM mutations outside our own root
     let mutationTimeoutId;

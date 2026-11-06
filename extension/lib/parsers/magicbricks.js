@@ -7,7 +7,8 @@ import {
   parseAreaType,
   parsePossessionStatus,
   parseReraId,
-  classifyListingType
+  classifyListingType,
+  filterPropertyImages
 } from './currency.js';
 import { parseListingKey, canonicalizeUrl } from '../tracker.js';
 import { extractJsonLdData } from './jsonld.js';
@@ -25,13 +26,13 @@ export function parseMagicBricks(document, url = '') {
   const metaImgEl = document.querySelector ? document.querySelector('meta[property="og:image"]') : null;
 
   // Title: DOM -> JSON-LD -> Meta -> Fallback
-  const titleEl = container.querySelector('.mb-srp__card--title--heading, .pdp__title, h2, h1');
+  const titleEl = container.querySelector('.mb-ldp__dtls__title, .mb-srp__card--title--heading, .pdp__title, h2, h1');
   let title = (titleEl ? titleEl.textContent.trim() : '') ||
               (jsonLd ? jsonLd.title : '') ||
               (metaTitleEl ? metaTitleEl.getAttribute('content') : '') || '';
 
-  // Locality: DOM -> JSON-LD -> URL
-  const localityEl = container.querySelector('.mb-srp__card--locality, .pdp__locality, [class*="locality"], [class*="property-location"]');
+  // Locality: DOM -> JSON-LD -> Title / URL Fallback
+  const localityEl = container.querySelector('.mb-ldp__dtls__body--title, .mb-ldp__dtls__title, .mb-srp__card--locality, .pdp__locality, [class*="locality"], [class*="property-location"]');
   let locality = localityEl ? localityEl.textContent.trim() : '';
   if (!locality && jsonLd) {
     if (jsonLd.locality && jsonLd.city) {
@@ -40,15 +41,35 @@ export function parseMagicBricks(document, url = '') {
       locality = jsonLd.locality || jsonLd.city || '';
     }
   }
+  if (!locality && (title || currentUrl)) {
+    const locMatch = (title || currentUrl).match(/(?:in|at)\s+([A-Za-z\s\-]+?)(?:,\s*([A-Za-z\s]+)|$|\&|\?)/i) ||
+                     currentUrl.match(/(?:for-sale|for-rent)-([a-z0-9-]+?)-in-([a-z0-9-]+)/i);
+    if (locMatch) {
+      const p1 = locMatch[1].replace(/-/g, ' ').trim();
+      const p2 = locMatch[2] ? locMatch[2].replace(/-/g, ' ').trim() : '';
+      locality = p2 ? `${p1}, ${p2}` : p1;
+    }
+  }
 
-  // Price / Rent: DOM -> JSON-LD -> Meta
-  const priceEl = container.querySelector('.mb-srp__card__price--amount, .pdp__price, [class*="price--amount"], [class*="pdp__price"], [id*="price"]');
+  // Price / Rent: DOM (Search + Detail Page) -> JSON-LD -> Meta -> FullText
+  const priceEl = container.querySelector(
+    '.mb-ldp__dtls__price, .mb-ldp__more-dtl__list--price, .mb-ldp__price, .mb-srp__card__price--amount, .pdp__price, [class*="price--amount"], [class*="dtls__price"], [class*="pdp__price"], [class*="property-price"], [data-price], [itemprop="price"], [id*="price"]'
+  );
   let rawPrice = priceEl ? parseIndianCurrency(priceEl.textContent) : null;
   if (!rawPrice && jsonLd) {
     rawPrice = jsonLd.rent || jsonLd.price || jsonLd.rawPrice;
   }
+  if (!rawPrice && metaDescEl) {
+    rawPrice = parseIndianCurrency(metaDescEl.getAttribute('content'));
+  }
   if (!rawPrice && metaTitleEl) {
     rawPrice = parseIndianCurrency(metaTitleEl.getAttribute('content'));
+  }
+  if (!rawPrice) {
+    const textPriceMatch = (container.textContent || '').match(/(?:₹|rs\.?|inr|price\s*:?)\s*([\d,]+(?:\.\d+)?\s*(?:crore|crores|cr|lakh|lakhs|lac|lacs|k)?)/i);
+    if (textPriceMatch) {
+      rawPrice = parseIndianCurrency(textPriceMatch[0]);
+    }
   }
 
   // Deposit: DOM -> Text regex
@@ -70,10 +91,12 @@ export function parseMagicBricks(document, url = '') {
   if (!bhk && currentUrl) bhk = parseBHK(currentUrl);
   if (!bhk) bhk = 2;
 
-  // Area: DOM -> JSON-LD -> Text
-  const areaEl = container.querySelector('[data-field="area"] .val, [class*="area"], [class*="Area"]');
+  // Area: DOM -> JSON-LD -> Title -> URL -> Description
+  const areaEl = container.querySelector('[data-field="area"] .val, .mb-ldp__more-dtl__list--size, [class*="more-dtl__list--size"], [class*="area"], [class*="Area"]');
   let area_sqft = areaEl ? parseArea(areaEl.textContent) : null;
   if (!area_sqft && jsonLd && jsonLd.area_sqft) area_sqft = jsonLd.area_sqft;
+  if (!area_sqft && title) area_sqft = parseArea(title);
+  if (!area_sqft && currentUrl) area_sqft = parseArea(currentUrl);
 
   // Floor: DOM -> JSON-LD -> Title
   const floorEl = container.querySelector('[data-field="floor"] .val, [class*="floor"]');
@@ -89,15 +112,15 @@ export function parseMagicBricks(document, url = '') {
 
   // Images: DOM -> JSON-LD -> Meta
   const imageEls = Array.from(container.querySelectorAll('.mb-srp__card__photo, .pdp__photo img, img'));
-  let images = imageEls.map(img => img.src || img.getAttribute('src')).filter(Boolean);
+  let rawImages = imageEls.map(img => img.src || img.getAttribute('src')).filter(Boolean);
   if (jsonLd && jsonLd.images && jsonLd.images.length > 0) {
-    images = [...jsonLd.images, ...images];
+    rawImages = [...jsonLd.images, ...rawImages];
   }
-  if (images.length === 0 && metaImgEl) {
+  if (rawImages.length === 0 && metaImgEl) {
     const src = metaImgEl.getAttribute('content');
-    if (src) images.push(src);
+    if (src) rawImages.push(src);
   }
-  images = Array.from(new Set(images)).slice(0, 15);
+  const images = filterPropertyImages(Array.from(new Set(rawImages))).slice(0, 15);
 
   const fullText = container.textContent || '';
   const classification = classifyListingType(container, fullText, currentUrl);

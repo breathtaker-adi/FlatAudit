@@ -82,8 +82,8 @@ export function parseListingKey(portal, url, doc = null) {
     const match = cleanUrl.match(/([a-f0-9]{16,36}|nb-[a-z0-9-]+)/i);
     if (match) return `nobroker:${match[1]}`;
   } else if (p === 'magicbricks') {
-    // Examples: ...-pdpid-4d4233363032333939
-    const match = cleanUrl.match(/pdpid-([a-z0-9]+)/i) || cleanUrl.match(/\/([0-9]{8,14})(?:\.html)?$/);
+    // Examples: ...-pdpid-4d4233363032333939 or &id=4d423835353934393739
+    const match = cleanUrl.match(/(?:pdpid-|[?&]id=|id-)([a-z0-9]+)/i) || cleanUrl.match(/\/([0-9]{8,14})(?:\.html)?$/);
     if (match) return `magicbricks:${match[1]}`;
   } else if (p === '99acres') {
     // Examples: ...-rpid-R12345678 or ...-npid-N12345678 or ...-npxid-r380406 or ...-spid-Y49932640 or ...-id-12345

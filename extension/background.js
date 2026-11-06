@@ -22,14 +22,23 @@ const imageHashCache = new Map();
  * and extracts 64-bit dHash.
  */
 async function computeHashFromUrl(imageUrl) {
-  if (imageHashCache.has(imageUrl)) {
-    return imageHashCache.get(imageUrl);
+  if (!imageUrl || typeof imageUrl !== 'string') return null;
+  const cleanUrl = imageUrl.trim();
+  if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) return null;
+
+  // Skip video player thumbnails, ads, analytics, svg icons, or third-party widgets
+  if (/youtube\.com|ytimg\.com|doubleclick|googlesyndication|google-analytics|facebook\.com|favicon|\.svg/i.test(cleanUrl)) {
+    return null;
+  }
+
+  if (imageHashCache.has(cleanUrl)) {
+    return imageHashCache.get(cleanUrl);
   }
 
   try {
-    const response = await fetch(imageUrl, { mode: 'cors' });
+    const response = await fetch(cleanUrl, { mode: 'cors' });
     if (!response.ok) {
-      throw new Error(`Failed to fetch image: ${response.status}`);
+      return null;
     }
 
     const blob = await response.blob();
@@ -42,10 +51,10 @@ async function computeHashFromUrl(imageUrl) {
     const imageData = ctx.getImageData(0, 0, 9, 8);
     const hash = computeDHashFromImageData(imageData);
 
-    imageHashCache.set(imageUrl, hash);
+    imageHashCache.set(cleanUrl, hash);
     return hash;
   } catch (err) {
-    console.warn('[FlatAudit ServiceWorker] Could not compute dHash for image:', imageUrl, err.message);
+    // Silent fallback: never pollutes DevTools console on unreachable CDN or CORS assets
     return null;
   }
 }

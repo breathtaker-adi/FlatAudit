@@ -20,6 +20,10 @@ import {
   buildComparisonMatrix,
   exportShortlistToCSV
 } from '../lib/tracker.js';
+import {
+  calculateInvestmentForecast,
+  formatIndianCurrencyAbbr
+} from '../lib/investment.js';
 
 let activeAnalysis = null;
 const selectedForCompare = new Set();
@@ -101,19 +105,77 @@ function updateTrustUI(analysis) {
   const tagBhk = document.getElementById('tag-bhk');
   const tagArea = document.getElementById('tag-area');
 
-  if (analysis.listing?.rent) {
-    tagRent.textContent = `₹ ${analysis.listing.rent.toLocaleString('en-IN')}`;
+  const isSale = analysis.listing?.listingType === 'sale' || 
+                 Boolean(analysis.listing?.price && !analysis.listing?.rent) || 
+                 /\b(?:for\s*sale|resale|buy\s*flat|villa\s*for\s*sale|house\s*for\s*sale|independent\s*house)\b/i.test(analysis.listing?.title || '');
+
+  const effectivePrice = analysis.listing?.price || analysis.listing?.salePrice || analysis.listing?.rawPrice || analysis.listing?.rent || 0;
+
+  if (isSale) {
+    if (effectivePrice > 0) {
+      tagRent.textContent = formatIndianCurrencyAbbr(effectivePrice);
+    } else {
+      tagRent.textContent = 'Price on Request';
+    }
+
+    if (analysis.listing?.pricePerSqft) {
+      tagDeposit.textContent = `₹ ${analysis.listing.pricePerSqft.toLocaleString('en-IN')}/sqft`;
+    } else if (analysis.listing?.area_sqft && effectivePrice > 0) {
+      const psf = Math.round(effectivePrice / analysis.listing.area_sqft);
+      tagDeposit.textContent = `₹ ${psf.toLocaleString('en-IN')}/sqft`;
+    } else {
+      tagDeposit.textContent = 'For Sale';
+    }
+  } else {
+    // Rental Listing
+    if (analysis.listing?.rent) {
+      tagRent.textContent = `₹ ${analysis.listing.rent.toLocaleString('en-IN')}/mo`;
+    } else {
+      tagRent.textContent = 'Rent on Request';
+    }
+
+    if (analysis.listing?.deposit !== null && analysis.listing?.deposit !== undefined && analysis.listing?.deposit > 0) {
+      tagDeposit.textContent = `Deposit: ₹ ${analysis.listing.deposit.toLocaleString('en-IN')}`;
+    } else {
+      tagDeposit.textContent = 'Zero Deposit';
+    }
   }
-  if (analysis.listing?.deposit !== null && analysis.listing?.deposit !== undefined) {
-    tagDeposit.textContent = `Dep: ₹ ${analysis.listing.deposit.toLocaleString('en-IN')}`;
-  }
+
   if (analysis.listing?.bhk) {
     tagBhk.textContent = `${analysis.listing.bhk} BHK`;
+  } else {
+    tagBhk.textContent = '-- BHK';
   }
+
   if (analysis.listing?.area_sqft || analysis.listing?.areaSqft) {
     tagArea.textContent = `${analysis.listing.area_sqft || analysis.listing.areaSqft} sqft`;
   } else {
     tagArea.textContent = `-- sqft`;
+  }
+
+  // Populate Investment Appreciation Card
+  const investCard = document.getElementById('investment-growth-card');
+  if (investCard) {
+    const forecastPrice = isSale ? effectivePrice : (analysis.listing?.rent ? Math.round((analysis.listing.rent * 12) / 0.035) : 0);
+    if (forecastPrice > 0) {
+      investCard.style.display = 'flex';
+      const forecast = calculateInvestmentForecast(forecastPrice);
+      if (forecast.isValid) {
+        document.getElementById('invest-val-3y').textContent = forecast.milestones[0].projectedFormatted;
+        document.getElementById('invest-gain-3y').textContent = forecast.milestones[0].percentGain;
+        document.getElementById('invest-val-5y').textContent = forecast.milestones[1].projectedFormatted;
+        document.getElementById('invest-gain-5y').textContent = forecast.milestones[1].percentGain;
+        document.getElementById('invest-val-10y').textContent = forecast.milestones[2].projectedFormatted;
+        document.getElementById('invest-gain-10y').textContent = forecast.milestones[2].percentGain;
+        
+        const yieldLabel = document.getElementById('invest-yield-label');
+        if (yieldLabel) {
+          yieldLabel.textContent = `Rental Yield: ~${forecast.monthlyRentalFormatted}/mo`;
+        }
+      }
+    } else {
+      investCard.style.display = 'none';
+    }
   }
 
   // Dynamic Fallback Ladder Benchmark Pill
@@ -177,11 +239,12 @@ function updateTrustUI(analysis) {
     head.className = 'point-head';
 
     const cat = document.createElement('span');
-    cat.textContent = `${item.icon} ${item.category}`;
+    cat.className = 'point-cat';
+    cat.textContent = item.category;
 
     const st = document.createElement('span');
+    st.className = `point-status ${item.fired ? 'status-flagged' : 'status-normal'}`;
     st.textContent = item.fired ? 'Flagged' : 'Verified';
-    st.style.color = item.fired ? 'var(--warn)' : 'var(--ok)';
 
     head.appendChild(cat);
     head.appendChild(st);
@@ -536,9 +599,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  chrome.storage.local.get(['lastAnalysis'], (result) => {
-    if (result.lastAnalysis) {
-      updateTrustUI(result.lastAnalysis);
+  // Query the current active tab directly so the popup immediately reflects the active page
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    const activeTab = tabs && tabs[0];
+    if (activeTab && activeTab.id) {
+      chrome.tabs.sendMessage(activeTab.id, { type: 'GET_PAGE_ANALYSIS' }, (res) => {
+        if (!chrome.runtime.lastError && res && res.analysis) {
+          activeAnalysis = res.analysis;
+          updateTrustUI(res.analysis);
+          return;
+        }
+        // Fallback to storage if active tab has no response
+        chrome.storage.local.get(['lastAnalysis'], (result) => {
+          if (result && result.lastAnalysis) {
+            activeAnalysis = result.lastAnalysis;
+            updateTrustUI(result.lastAnalysis);
+          }
+        });
+      });
+    } else {
+      chrome.storage.local.get(['lastAnalysis'], (result) => {
+        if (result && result.lastAnalysis) {
+          activeAnalysis = result.lastAnalysis;
+          updateTrustUI(result.lastAnalysis);
+        }
+      });
     }
   });
 });

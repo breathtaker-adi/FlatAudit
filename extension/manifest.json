@@ -10,9 +10,13 @@
     "http://127.0.0.1:8000/*",
     "http://localhost:8000/*",
     "*://*.nobroker.in/*",
+    "*://img.nobroker.in/*",
     "*://*.magicbricks.com/*",
+    "*://*.mbimg.com/*",
     "*://*.99acres.com/*",
     "*://*.housing.com/*",
+    "*://*.housingcdn.com/*",
+    "*://*.cloudfront.net/*",
     "file:///*"
   ],
   "icons": {
