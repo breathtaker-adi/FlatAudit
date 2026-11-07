@@ -116,7 +116,7 @@ describe('Slice S3: Price Check UI Line, Details & Wording Verification', () => 
     const analysis = analyzeListing(saleListing, { cellEntries, radiusKm: 3, dataAsOf: '2026-11' });
     const pt = analysis.humanReadablePoints.find(p => p.category === 'Price per Sq.Ft');
     assert.ok(pt);
-    assert.equal(pt.statusLabel, 'Verified');
+    assert.equal(pt.statusLabel, 'Validated');
 
     // Section 5.5 Headline:
     // ₹9,120/sq ft, 6% above the middle rate of ₹8,600/sq ft (23 listings, 3 localities within 3 km).
@@ -155,3 +155,4 @@ describe('Slice S3: Price Check UI Line, Details & Wording Verification', () => 
     }
   });
 });
+

@@ -11,17 +11,17 @@
   --surface-pill: rgba(255, 255, 255, 0.08);
 
   --separator: rgba(255, 255, 255, 0.09);
-  --separator-strong: rgba(11, 54, 254, 0.32);
+  --separator-strong: rgba(56, 189, 248, 0.35);
   --specular: rgba(255, 255, 255, 0.08);
 
   --text-primary: #ffffff;
-  --text-secondary: #b0bed4;
-  --text-tertiary: #7d8fa9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
 
-  --tint: #0b36fe;
-  --tint-hover: #335dff;
-  --tint-surface: rgba(11, 54, 254, 0.16);
-  --tint-glow: 0 4px 18px rgba(11, 54, 254, 0.35);
+  --tint: #38bdf8;
+  --tint-hover: #7dd3fc;
+  --tint-surface: rgba(56, 189, 248, 0.16);
+  --tint-glow: 0 4px 18px rgba(56, 189, 248, 0.35);
 
   --status-ok: #30d158;
   --status-ok-bg: rgba(48, 209, 88, 0.14);
@@ -42,6 +42,39 @@
 
   --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* Apple-Style Floating Translucent Scrollbars (HIG Compliant) */
+html,
+body,
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.38);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 * {

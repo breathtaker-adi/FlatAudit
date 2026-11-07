@@ -347,7 +347,7 @@ export function evaluatePricePerSqftCheck(target = {}, candidateListings = [], o
     category: 'Price per Sq.Ft',
     icon: '📏',
     fired: false,
-    statusLabel: 'Verified',
+    statusLabel: 'Validated',
     point,
     reason: fullReason,
     fact,

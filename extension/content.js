@@ -619,23 +619,24 @@
         buyerTitle.textContent = '🏛️ Buyer Due Diligence Report';
         const scenarioBadge = document.createElement('span');
         scenarioBadge.className = 'flataudit-scenario-badge';
-        scenarioBadge.textContent = (buyerReport.meta.scenario || 'resale').toUpperCase().replace('_', ' ');
+        scenarioBadge.textContent = (buyerReport.meta?.categoryLabel || buyerReport.meta?.scenario || 'resale').toUpperCase().replace('_', ' ');
         buyerHead.appendChild(buyerTitle);
         buyerHead.appendChild(scenarioBadge);
         buyerCard.appendChild(buyerHead);
 
-        // 4-Line Table: Flat, Project, Builder, Paperwork
+        // 4-Line Table: Tailored specifically to Individual Resale vs Builder Floor vs Developer Project
         const linesTable = document.createElement('div');
         linesTable.className = 'flataudit-buyer-rep-lines';
 
         const repLines = [
-          { key: 'Flat', item: buyerReport.reportLines.flat },
-          { key: 'Project', item: buyerReport.reportLines.project },
-          { key: 'Builder', item: buyerReport.reportLines.builder },
-          { key: 'Paperwork', item: buyerReport.reportLines.paperwork }
+          { key: buyerReport.reportLines.flat?.label || 'Valuation', item: buyerReport.reportLines.flat },
+          { key: buyerReport.reportLines.project?.label || 'Project / Title', item: buyerReport.reportLines.project },
+          { key: buyerReport.reportLines.builder?.label || 'Clearances', item: buyerReport.reportLines.builder },
+          { key: buyerReport.reportLines.paperwork?.label || 'Paperwork', item: buyerReport.reportLines.paperwork }
         ];
 
         for (const line of repLines) {
+          if (!line.item) continue;
           const row = document.createElement('div');
           row.className = 'flataudit-buyer-rep-row';
 
@@ -670,13 +671,16 @@
         }
         buyerCard.appendChild(linesTable);
 
-        // All-In Acquisition Cost Summary
+        // All-In Acquisition Cost Summary (Apple-Style Elevated High-Contrast Surface)
         const costBox = document.createElement('div');
         costBox.className = 'flataudit-buyer-cost-box';
         const costHead = document.createElement('div');
         costHead.className = 'flataudit-buyer-cost-head';
         const costState = buyerReport.costEstimate?.state || buyerReport.meta?.state || 'Karnataka';
-        costHead.textContent = `💰 Estimated All-In Acquisition Cost (${costState})`;
+        costHead.innerHTML = `
+          <span>💰 Estimated All-In Acquisition Cost (${costState})</span>
+          <span style="font-size:10px;color:#94a3b8;font-weight:500;">Statutory Levies</span>
+        `;
         costBox.appendChild(costHead);
 
         const costRows = document.createElement('div');
@@ -686,27 +690,37 @@
         const regStr = buyerReport.costEstimate.statutoryCharges.registrationAmount.toLocaleString('en-IN');
         const gstStr = buyerReport.costEstimate.statutoryCharges.gstAmount.toLocaleString('en-IN');
         const otherStr = buyerReport.costEstimate.otherCharges.total.toLocaleString('en-IN');
-        
-        const row1 = document.createElement('div');
-        row1.textContent = `Stamp Duty (5.6%): ₹${dutyStr}`;
-        const row2 = document.createElement('div');
-        row2.textContent = `Registration (1.0%): ₹${regStr}`;
-        const row3 = document.createElement('div');
-        row3.textContent = `GST (${buyerReport.costEstimate.statutoryCharges.gstPct}%): ₹${gstStr}`;
-        const row4 = document.createElement('div');
-        row4.textContent = `Advance & Connection: ₹${otherStr}`;
-        
-        costRows.appendChild(row1);
-        costRows.appendChild(row2);
-        costRows.appendChild(row3);
-        costRows.appendChild(row4);
+
+        const stampPct = buyerReport.costEstimate.statutoryCharges.stampDutyPct || 5.6;
+        const regPct = buyerReport.costEstimate.statutoryCharges.registrationFeePct || 1.0;
+        const gstPct = buyerReport.costEstimate.statutoryCharges.gstPct || 0;
+
+        const costItems = [
+          { label: `Stamp Duty (${stampPct}%)`, val: `₹${dutyStr}` },
+          { label: `Registration (${regPct}%)`, val: `₹${regStr}` },
+          { label: `GST (${gstPct}%)`, val: `₹${gstStr}` },
+          { label: `Advance & Connection`, val: `₹${otherStr}` }
+        ];
+
+        for (const itm of costItems) {
+          const col = document.createElement('div');
+          col.className = 'flataudit-cost-item';
+          col.innerHTML = `
+            <span class="flataudit-cost-lbl">${itm.label}</span>
+            <span class="flataudit-cost-val">${itm.val}</span>
+          `;
+          costRows.appendChild(col);
+        }
         costBox.appendChild(costRows);
 
         const totalRow = document.createElement('div');
         totalRow.className = 'flataudit-buyer-total-row';
         const totalCr = (buyerReport.costEstimate.totalCost / 10000000).toFixed(2);
         const emiStr = buyerReport.costEstimate.financing.monthlyEmi.toLocaleString('en-IN');
-        totalRow.textContent = `Estimated All-In: ₹${totalCr} Cr (Monthly EMI: ~₹${emiStr}/mo)`;
+        totalRow.innerHTML = `
+          <span>Estimated All-In: <b style="color:#ffffff;">₹${totalCr} Cr</b></span>
+          <span class="flataudit-total-badge">EMI: ~₹${emiStr}/mo</span>
+        `;
         costBox.appendChild(totalRow);
         buyerCard.appendChild(costBox);
 
@@ -816,7 +830,7 @@
         ? `High Risk Signals (${data.firedCount} Flagged)`
         : data.badgeTone === 'warn'
         ? 'Unusual Listing Pattern'
-        : 'Listing Verified Normal';
+        : 'Listing Validated Normal';
 
       const bannerSub = document.createElement('p');
       bannerSub.textContent = data.headlineSummary || 'Detailed safety evaluation based on local market norms.';
@@ -840,6 +854,10 @@
         for (const item of data.humanReadablePoints) {
           const pointCard = document.createElement('div');
           pointCard.className = `flataudit-point-card ${item.fired ? 'flagged' : 'normal'}`;
+          pointCard.setAttribute('tabindex', '0');
+          pointCard.setAttribute('role', 'button');
+          pointCard.setAttribute('aria-expanded', 'false');
+          pointCard.style.cursor = 'pointer';
 
           const cardHeader = document.createElement('div');
           cardHeader.className = 'flataudit-point-header';
@@ -848,59 +866,80 @@
           cardTitle.className = 'flataudit-point-cat';
           cardTitle.textContent = `${item.icon} ${item.category}`;
 
+          const badgeGroup = document.createElement('div');
+          badgeGroup.className = 'flataudit-badge-group';
+
           const statusPill = document.createElement('span');
           const isBlocked = item.statusLabel === 'Blocked';
           const isInfo = item.statusLabel === 'Info' || item.statusLabel === 'Action Required';
           statusPill.className = `flataudit-point-status ${item.fired ? 'status-flagged' : (isBlocked ? 'status-blocked' : (isInfo ? 'status-info' : 'status-normal'))}`;
-          statusPill.textContent = item.statusLabel || (item.fired ? 'Flagged' : 'Verified');
+          const rawStatus = item.statusLabel === 'Verified' ? 'Validated' : item.statusLabel;
+          statusPill.textContent = rawStatus || (item.fired ? 'Flagged' : 'Validated');
+          badgeGroup.appendChild(statusPill);
+
+          const chevron = document.createElement('span');
+          chevron.className = 'flataudit-card-chevron';
+          chevron.textContent = '▾';
+          chevron.style.marginLeft = '8px';
+          chevron.style.fontSize = '12px';
+          chevron.style.color = '#94a3b8';
+          chevron.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)';
+          badgeGroup.appendChild(chevron);
 
           cardHeader.appendChild(cardTitle);
-          cardHeader.appendChild(statusPill);
+          cardHeader.appendChild(badgeGroup);
           pointCard.appendChild(cardHeader);
 
+          // 1-Line Headline
           const pointText = document.createElement('div');
           pointText.className = 'flataudit-point-headline';
           pointText.textContent = item.point;
           pointCard.appendChild(pointText);
 
+          // Drop Box (Collapsible Description and Details)
+          const detailsEl = document.createElement('div');
+          detailsEl.className = 'flataudit-point-details';
+          detailsEl.style.display = 'none';
+          detailsEl.style.marginTop = '8px';
+          detailsEl.style.paddingTop = '6px';
+          detailsEl.style.borderTop = '1px solid rgba(255, 255, 255, 0.08)';
+          detailsEl.style.fontSize = '11px';
+          detailsEl.style.lineHeight = '1.45';
+          detailsEl.style.color = '#cbd5e1';
+
+          let detailsHtml = '';
           if (item.reason && item.reason.trim().toLowerCase() !== item.point.trim().toLowerCase()) {
-            const reasonText = document.createElement('div');
-            reasonText.className = 'flataudit-point-reason';
-            reasonText.textContent = item.reason;
-            pointCard.appendChild(reasonText);
+            detailsHtml += `<div class="flataudit-point-reason" style="margin-bottom:4px;color:#cbd5e1;">${item.reason}</div>`;
+          }
+          if (item.details) {
+            if (item.details.how_compared) {
+              detailsHtml += `<div style="margin-bottom:3px"><b>How judged:</b> ${item.details.how_compared}</div>`;
+            }
+            if (item.details.fact) {
+              detailsHtml += `<div style="margin-bottom:3px"><b>Fact:</b> ${item.details.fact}</div>`;
+            }
+            if (item.details.drawback) {
+              detailsHtml += `<div style="margin-bottom:3px"><b>Drawback:</b> ${item.details.drawback}</div>`;
+            }
           }
 
-          if (item.details && (item.details.how_compared || item.details.drawback)) {
-            const detailsEl = document.createElement('div');
-            detailsEl.className = 'flataudit-point-details';
-            detailsEl.style.display = 'none';
-            detailsEl.style.marginTop = '6px';
-            detailsEl.style.fontSize = '11px';
-            detailsEl.style.lineHeight = '1.4';
-            detailsEl.style.color = '#86868b';
-            detailsEl.innerHTML = `
-              ${item.details.how_compared ? `<div style="margin-bottom:3px"><b>How judged:</b> ${item.details.how_compared}</div>` : ''}
-              ${item.details.fact ? `<div style="margin-bottom:3px"><b>Fact:</b> ${item.details.fact}</div>` : ''}
-              ${item.details.drawback ? `<div><b>Drawback:</b> ${item.details.drawback}</div>` : ''}
-            `;
-            pointCard.appendChild(detailsEl);
-            pointCard.style.cursor = 'pointer';
-            pointCard.setAttribute('tabindex', '0');
-            pointCard.setAttribute('role', 'button');
-            pointCard.setAttribute('aria-expanded', 'false');
-            const toggle = () => {
-              const isExp = detailsEl.style.display === 'block';
-              detailsEl.style.display = isExp ? 'none' : 'block';
-              pointCard.setAttribute('aria-expanded', isExp ? 'false' : 'true');
-            };
-            pointCard.addEventListener('click', toggle);
-            pointCard.addEventListener('keydown', (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                toggle();
-              }
-            });
-          }
+          detailsEl.innerHTML = detailsHtml || `<div style="color:#94a3b8;">${item.point}</div>`;
+          pointCard.appendChild(detailsEl);
+
+          const toggle = () => {
+            const isExp = detailsEl.style.display === 'block';
+            detailsEl.style.display = isExp ? 'none' : 'block';
+            chevron.style.transform = isExp ? 'rotate(0deg)' : 'rotate(180deg)';
+            pointCard.setAttribute('aria-expanded', isExp ? 'false' : 'true');
+          };
+
+          pointCard.addEventListener('click', toggle);
+          pointCard.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggle();
+            }
+          });
 
           pointsList.appendChild(pointCard);
         }

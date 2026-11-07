@@ -390,6 +390,36 @@ export function evaluateResaleSocietyFacts(listing) {
 }
 
 /**
+ * Evaluates Line 2 for Builder Floor Properties: Sanctioned Floor Drawings & FAR Limits
+ * @param {object} listing 
+ * @returns {{ indicator: string, summary: string, details: string, source: string, dataAsOf: string }}
+ */
+export function evaluateBuilderFloorApprovals(listing) {
+  return {
+    indicator: '?',
+    summary: 'Sanctioned architectural floor drawings & FAR (Floor Area Ratio) verification required.',
+    details: 'Verify that this specific floor is legally sanctioned in the approved layout and not built over maximum stilt/FAR limits or unauthorized rooftop additions.',
+    source: 'Municipal Town Planning Authority',
+    dataAsOf: new Date().toISOString().split('T')[0]
+  };
+}
+
+/**
+ * Evaluates Line 3 for Builder Floor Properties: Joint Development Agreement & Undivided Share of Land (UDS)
+ * @param {object} listing 
+ * @returns {{ indicator: string, summary: string, details: string, source: string, dataAsOf: string }}
+ */
+export function evaluateBuilderJdaFacts(listing) {
+  return {
+    indicator: '?',
+    summary: 'Registered Joint Development Agreement (JDA) & Undivided Share of Land (UDS) deed verification.',
+    details: 'Confirm developer has registered allocation rights from original landowner to sell this exact floor, with corresponding proportionate UDS title transferred upon registration.',
+    source: 'Sub-Registrar Registered Deeds',
+    dataAsOf: new Date().toISOString().split('T')[0]
+  };
+}
+
+/**
  * Evaluates Line 4: Paperwork & Legal Hand-off
  * Confirms non-coverage of physical title and references the scenario-specific checklist.
  * 
@@ -647,6 +677,64 @@ export function getPaperworkChecklist(scenario = 'resale') {
 }
 
 /**
+ * Detects the property listing category for buyer due diligence:
+ * - 'builder': Independent builder floor or boutique developer floor
+ * - 'project': Gated society, high-rise project, new launch, or under construction
+ * - 'individual': Standalone resale flat, independent house, or villa
+ * 
+ * @param {object} listing 
+ * @param {object} [options] 
+ * @returns {'builder'|'project'|'individual'}
+ */
+export function detectListingCategory(listing = {}, options = {}) {
+  if (options.listingCategory) return options.listingCategory;
+  if (listing.listingCategory) return listing.listingCategory;
+
+  const title = (listing.title || '').toLowerCase();
+  const desc = (listing.description || '').toLowerCase();
+  const propType = (listing.propertyType || '').toLowerCase();
+  const combined = `${title} ${desc} ${propType}`;
+
+  // 1. Builder Floor / Developer Unit
+  if (
+    listing.isBuilderFloor || 
+    options.isBuilderFloor ||
+    /(?:builder\s*floor|independent\s*floor|builder\s*flat|new\s*builder\s*floor)/i.test(combined)
+  ) {
+    return 'builder';
+  }
+
+  // 2. Explicit Individual Resale / Independent House / Villa
+  if (
+    listing.isProject === false ||
+    /(?:independent\s*house|independent\s*villa|bungalow|standalone\s*house|resale\s*house|individual\s*house|row\s*house)/i.test(combined)
+  ) {
+    return 'individual';
+  }
+
+  // 3. Developer Project / Township / High-Rise Society / New Launch
+  if (
+    listing.isProject === true ||
+    options.isProject === true ||
+    (listing.projectName && listing.projectName.trim().length > 0) ||
+    (options.projectName && options.projectName.trim().length > 0) ||
+    listing.possessionStatus === 'under_construction' ||
+    options.scenario === 'under_construction' ||
+    /(?:new\s*project|pre[\s-]launch|residential\s*project|phase\s*\d|towers?|high[\s-]rise\s*society|gated\s*community\s*project)/i.test(combined)
+  ) {
+    return 'project';
+  }
+
+  // If RERA ID is explicitly present and it's not marked resale/independent
+  if (listing.reraId || options.reraId) {
+    return 'project';
+  }
+
+  // Default to individual for completed resale properties
+  return 'individual';
+}
+
+/**
  * Generates the full 4-Line Buyer Due Diligence Report and cost estimation.
  * 
  * @param {object} listing 
@@ -665,25 +753,45 @@ export function generateBuyerReport(listing, options = {}) {
   const lookup = lookupProjectFacts(reraId, projectName, jurisdiction);
   const projectFacts = lookup.facts;
 
-  // Distinguish between developer project / new launch vs individual resale listing
-  const isProject = Boolean(listing.isProject || listing.projectName || reraId || options.projectName || options.isProject);
+  // Distinguish between individual resale, developer project, and builder floor
+  const listingCategory = detectListingCategory(listing, options);
+  const isProject = listingCategory === 'project';
+  const isBuilder = listingCategory === 'builder';
+  const isIndividual = listingCategory === 'individual';
 
-  // Evaluate the 4 lines
+  let categoryLabel = 'INDIVIDUAL RESALE';
+  if (isBuilder) categoryLabel = 'BUILDER FLOOR';
+  else if (isProject) categoryLabel = 'DEVELOPER PROJECT';
+
+  // Evaluate the 4 lines tailored to category
   const flatLine = evaluateFlatFacts(listing, options);
+  flatLine.label = isBuilder ? 'Loading & Area' : (isProject ? 'Pricing & Floor' : 'Valuation & DLC');
+
   let projectLine;
   let builderLine;
 
-  if (!isProject) {
+  if (isIndividual) {
     // Individual Resale Property: Evaluate Title and Society Clearances directly
     projectLine = evaluateResaleTitleFacts(listing);
+    projectLine.label = '30-Year Title & EC';
     builderLine = evaluateResaleSocietyFacts(listing);
+    builderLine.label = 'Society NOC & Taxes';
+  } else if (isBuilder) {
+    // Builder Floor / Developer Unit: Sanctioned drawings & JDA rights
+    projectLine = evaluateBuilderFloorApprovals(listing);
+    projectLine.label = 'Floor Approvals & FAR';
+    builderLine = evaluateBuilderJdaFacts(listing);
+    builderLine.label = 'Builder JDA & UDS';
   } else {
     // Developer Project / New Launch: Evaluate Project Completion and Builder Track Record
     projectLine = evaluateProjectFacts(projectFacts, reraId, listing.locality, jurisdiction);
+    projectLine.label = 'RERA Project Filings';
     builderLine = evaluateBuilderFacts(projectFacts, jurisdiction);
+    builderLine.label = 'Promoter Track Record';
   }
 
-  const paperworkLine = evaluatePaperworkFacts(scenario);
+  const paperworkLine = evaluatePaperworkFacts(isBuilder ? 'builder_floor' : (isIndividual ? 'resale' : scenario));
+  paperworkLine.label = 'Essential Paperwork';
 
   // Closing cost and loan estimation based on detected state
   const costEstimate = estimateTotalCost({
@@ -704,7 +812,11 @@ export function generateBuyerReport(listing, options = {}) {
       state: jurisdiction.state,
       jurisdiction: `${jurisdiction.state} (${jurisdiction.authorityCode})`,
       pilotAuthority: jurisdiction.authorityName,
+      listingCategory,
+      categoryLabel,
       isProject,
+      isBuilder,
+      isIndividual,
       scenario,
       matchMethod: lookup.matchMethod,
       disclaimer: 'This report summarizes visible listing data and official public filings as of the indicated dates. It does not constitute legal or financial advice and does not verify property title. Consult an independent advocate before paying any deposit.'
@@ -769,17 +881,17 @@ export function renderPrintableHtml(buyerReport, listing) {
   <div class="header-box">
     <div>
       <h1>FlatAudit Buyer Due Diligence Report</h1>
-      <div class="subtitle">${title} | Base Asking Price: ${priceFormatted}</div>
+      <div class="subtitle">${title} | Base Asking Price: ${priceFormatted} <span style="display:inline-block;padding:2px 8px;background:#e0f2fe;color:#0369a1;border-radius:9999px;font-size:11px;font-weight:700;margin-left:6px;">${meta.categoryLabel || 'RESALE'}</span></div>
     </div>
     <div class="no-print">
       <button class="print-btn" onclick="window.print()">🖨️ Print / Save PDF</button>
     </div>
   </div>
 
-  <div class="section-title">1. Objective 4-Line Evaluation (Observable Facts Only)</div>
+  <div class="section-title">1. Objective 4-Line Evaluation (${meta.categoryLabel || 'Observable Facts Only'})</div>
   <table class="rep-table">
     <tr>
-      <th>Flat</th>
+      <th>${reportLines.flat.label || 'Valuation'}</th>
       <td>
         <span class="${reportLines.flat.indicator === '✓' ? 'badge-ok' : (reportLines.flat.indicator === '⚠' ? 'badge-warn' : 'badge-unknown')}">${reportLines.flat.indicator}</span>
         ${reportLines.flat.summary}<br>
@@ -787,7 +899,7 @@ export function renderPrintableHtml(buyerReport, listing) {
       </td>
     </tr>
     <tr>
-      <th>Project</th>
+      <th>${reportLines.project.label || 'Project / Title'}</th>
       <td>
         <span class="${reportLines.project.indicator === '✓' ? 'badge-ok' : (reportLines.project.indicator === '⚠' ? 'badge-warn' : 'badge-unknown')}">${reportLines.project.indicator}</span>
         ${reportLines.project.summary}<br>
@@ -795,7 +907,7 @@ export function renderPrintableHtml(buyerReport, listing) {
       </td>
     </tr>
     <tr>
-      <th>Builder</th>
+      <th>${reportLines.builder.label || 'Promoter / Clearances'}</th>
       <td>
         <span class="${reportLines.builder.indicator === '✓' ? 'badge-ok' : (reportLines.builder.indicator === '⚠' ? 'badge-warn' : 'badge-unknown')}">${reportLines.builder.indicator}</span>
         ${reportLines.builder.summary}<br>
@@ -803,7 +915,7 @@ export function renderPrintableHtml(buyerReport, listing) {
       </td>
     </tr>
     <tr>
-      <th>Paperwork</th>
+      <th>${reportLines.paperwork.label || 'Paperwork'}</th>
       <td>
         <span class="badge-unknown">?</span>
         ${reportLines.paperwork.summary}<br>
@@ -812,7 +924,7 @@ export function renderPrintableHtml(buyerReport, listing) {
     </tr>
   </table>
 
-  <div class="section-title">2. Estimated All-In Acquisition Cost (Karnataka)</div>
+  <div class="section-title">2. Estimated All-In Acquisition Cost (${meta.state || 'Statutory Norms'})</div>
   <div class="cost-grid">
     <div class="cost-box">
       <strong>Statutory Government Levies</strong>

@@ -2,6 +2,7 @@
   "version": 1,
   "city_tiers": {
     "bengaluru": "metro",
+    "bangalore": "metro",
     "jaipur": "smaller",
     "jodhpur": "smaller"
   },
@@ -173,3 +174,4 @@
     "unsupported_city": "Not available for this city yet."
   }
 }
+

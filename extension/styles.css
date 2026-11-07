@@ -3,6 +3,54 @@
    Apple Human Interface Guidelines & Liquid Glass Specification
    ========================================================================== */
 
+/* Apple-Style Floating Translucent Scrollbars (HIG Compliant) */
+#flataudit-root,
+#flataudit-root *,
+.flataudit-drawer,
+.flataudit-drawer-body,
+.flataudit-points-container {
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(255, 255, 255, 0.22) transparent !important;
+}
+
+#flataudit-root *::-webkit-scrollbar,
+.flataudit-drawer::-webkit-scrollbar,
+.flataudit-drawer-body::-webkit-scrollbar,
+.flataudit-points-container::-webkit-scrollbar {
+  width: 6px !important;
+  height: 6px !important;
+}
+
+#flataudit-root *::-webkit-scrollbar-track,
+.flataudit-drawer::-webkit-scrollbar-track,
+.flataudit-drawer-body::-webkit-scrollbar-track,
+.flataudit-points-container::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+#flataudit-root *::-webkit-scrollbar-thumb,
+.flataudit-drawer::-webkit-scrollbar-thumb,
+.flataudit-drawer-body::-webkit-scrollbar-thumb,
+.flataudit-points-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22) !important;
+  border-radius: 9999px !important;
+  border: 1px solid transparent !important;
+  background-clip: padding-box !important;
+  transition: background 0.2s ease !important;
+}
+
+#flataudit-root *::-webkit-scrollbar-thumb:hover,
+.flataudit-drawer::-webkit-scrollbar-thumb:hover,
+.flataudit-drawer-body::-webkit-scrollbar-thumb:hover,
+.flataudit-points-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.38) !important;
+}
+
+#flataudit-root *::-webkit-scrollbar-corner,
+.flataudit-drawer::-webkit-scrollbar-corner {
+  background: transparent !important;
+}
+
 #flataudit-root {
   all: initial;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -70,7 +118,7 @@
 
 #flataudit-root .flataudit-badge-btn:focus-visible,
 .flataudit-badge-btn:focus-visible {
-  outline: 2px solid #0b36fe !important;
+  outline: 2px solid #38bdf8 !important;
   outline-offset: 2px !important;
 }
 
@@ -79,7 +127,7 @@
   font-size: 15px !important;
   display: flex !important;
   align-items: center !important;
-  color: #0b36fe !important;
+  color: #38bdf8 !important;
   flex-shrink: 0 !important;
 }
 
@@ -193,7 +241,7 @@
 
 .flataudit-drawer-shield {
   font-size: 16px;
-  color: #0b36fe;
+  color: #38bdf8;
 }
 
 .flataudit-drawer-title {
@@ -210,9 +258,9 @@
 }
 
 .flataudit-track-btn {
-  background: rgba(11, 54, 254, 0.12);
-  border: 1px solid rgba(11, 54, 254, 0.3);
-  color: #0b36fe;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
   border-radius: 9999px;
   padding: 4px 10px;
   font-family: inherit;
@@ -227,7 +275,7 @@
 }
 
 .flataudit-track-btn:hover {
-  background: rgba(11, 54, 254, 0.22);
+  background: rgba(56, 189, 248, 0.22);
 }
 
 .flataudit-track-btn.is-tracked {
@@ -388,16 +436,34 @@
 .flataudit-point-card {
   background: #212c3d;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
+  border-radius: 10px;
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flataudit-point-card:hover {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: #253245;
+}
+
+.flataudit-point-card:focus-visible {
+  outline: 2px solid #38bdf8;
+  outline-offset: 1px;
+}
+
+.flataudit-card-chevron {
+  font-size: 12px;
+  color: #94a3b8;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-block;
 }
 
 .flataudit-point-card.flagged {
-  border-color: rgba(255, 159, 10, 0.3);
-  background: linear-gradient(180deg, rgba(255, 159, 10, 0.04) 0%, #212c3d 100%);
+  border-color: rgba(255, 159, 10, 0.35);
+  background: linear-gradient(180deg, rgba(255, 159, 10, 0.06) 0%, #212c3d 100%);
 }
 
 .flataudit-point-card.normal {
@@ -420,57 +486,57 @@
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  padding: 2px 7px;
+  padding: 2.5px 8px;
   border-radius: 9999px;
   letter-spacing: 0.02em;
 }
 
 .status-flagged {
-  background: rgba(255, 159, 10, 0.14);
+  background: rgba(255, 159, 10, 0.15);
   color: #ff9f0a;
-  border: 1px solid rgba(255, 159, 10, 0.3);
+  border: 1px solid rgba(255, 159, 10, 0.35);
 }
 
 .status-blocked {
-  background: rgba(255, 159, 10, 0.14);
+  background: rgba(255, 159, 10, 0.15);
   color: #ff9f0a;
-  border: 1px solid rgba(255, 159, 10, 0.3);
+  border: 1px solid rgba(255, 159, 10, 0.35);
 }
 
 .status-info {
-  background: rgba(11, 54, 254, 0.14);
-  color: #7cc4ff;
-  border: 1px solid rgba(11, 54, 254, 0.3);
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.32);
 }
 
 .status-normal {
-  background: rgba(48, 209, 88, 0.12);
+  background: rgba(48, 209, 88, 0.14);
   color: #30d158;
-  border: 1px solid rgba(48, 209, 88, 0.28);
+  border: 1px solid rgba(48, 209, 88, 0.3);
 }
 
 .status-good {
-  background: rgba(48, 209, 88, 0.14);
+  background: rgba(48, 209, 88, 0.15);
   color: #30d158;
-  border: 1px solid rgba(48, 209, 88, 0.32);
+  border: 1px solid rgba(48, 209, 88, 0.35);
 }
 
 .status-okay {
-  background: rgba(255, 159, 10, 0.14);
+  background: rgba(255, 159, 10, 0.15);
   color: #ff9f0a;
-  border: 1px solid rgba(255, 159, 10, 0.32);
+  border: 1px solid rgba(255, 159, 10, 0.35);
 }
 
 .status-weak {
-  background: rgba(255, 69, 58, 0.14);
+  background: rgba(255, 69, 58, 0.15);
   color: #ff453a;
-  border: 1px solid rgba(255, 69, 58, 0.32);
+  border: 1px solid rgba(255, 69, 58, 0.35);
 }
 
 .flataudit-point-score {
   font-size: 11px;
   font-weight: 700;
-  color: #b0bed4;
+  color: #e2e8f0;
   margin-left: 6px;
 }
 
@@ -497,14 +563,14 @@
 
 .flataudit-area-section-tag {
   font-size: 10px;
-  color: #7d8fa9;
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
 .flataudit-area-subtitle {
   font-size: 10px;
-  color: #7d8fa9;
+  color: #94a3b8;
   margin-top: 1px;
 }
 
@@ -522,8 +588,48 @@
 
 .flataudit-point-reason {
   font-size: 11.5px;
-  color: #98989d;
-  line-height: 1.4;
+  color: #cbd5e1;
+  line-height: 1.45;
+}
+
+.flataudit-area-state-card {
+  padding: 12px !important;
+}
+
+.flataudit-area-state-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 10px !important;
+}
+
+.flataudit-area-state-icon {
+  font-size: 18px !important;
+  flex-shrink: 0 !important;
+  line-height: 1.2 !important;
+}
+
+.flataudit-area-state-content {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+}
+
+.flataudit-area-state-desc {
+  font-size: 11px !important;
+  color: #94a3b8 !important;
+  line-height: 1.4 !important;
+}
+
+.flataudit-category-badge {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 2.5px 8px !important;
+  border-radius: 9999px !important;
+  background: rgba(56, 189, 248, 0.16) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.32) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
 }
 
 /* --------------------------------------------------------------------------
@@ -918,9 +1024,9 @@
 
 .flataudit-buyer-line-lbl {
   font-weight: 600;
-  color: #86868b;
-  min-width: 58px;
-  max-width: 68px;
+  color: #cbd5e1;
+  min-width: 65px;
+  max-width: 90px;
   flex-shrink: 0;
 }
 
@@ -937,7 +1043,7 @@
 }
 .flataudit-buyer-ind.ind-ok { color: #30d158; }
 .flataudit-buyer-ind.ind-warn { color: #ff9f0a; }
-.flataudit-buyer-ind.ind-unknown { color: #86868b; }
+.flataudit-buyer-ind.ind-unknown { color: #94a3b8; }
 
 .flataudit-buyer-line-text {
   color: #f5f5f7;
@@ -947,55 +1053,92 @@
 
 .flataudit-buyer-line-sub {
   font-size: 10.5px;
-  color: #86868b;
+  color: #94a3b8;
   margin-top: 2px;
   overflow-wrap: anywhere;
   word-break: break-word;
 }
 
 .flataudit-buyer-cost-box {
-  background: #273448;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin: 10px 0;
-  font-size: 11px;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+  border: 1px solid rgba(56, 189, 248, 0.28) !important;
+  border-radius: 12px !important;
+  padding: 12px 14px !important;
+  margin: 12px 0 !important;
+  font-size: 11.5px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.05) inset !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
 }
 
 .flataudit-buyer-cost-head {
-  font-weight: 600;
-  color: #0b36fe;
-  margin-bottom: 8px;
-  font-size: 11px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  font-weight: 700 !important;
+  color: #38bdf8 !important;
+  margin-bottom: 10px !important;
+  font-size: 12px !important;
+  letter-spacing: 0.01em !important;
 }
 
 .flataudit-buyer-cost-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 5px 10px;
-  color: #98989d;
-  margin-bottom: 8px;
-  font-variant-numeric: tabular-nums;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 8px 10px !important;
+  margin-bottom: 10px !important;
+  font-variant-numeric: tabular-nums !important;
+}
+
+.flataudit-cost-item {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 2px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  border-radius: 6px !important;
+  padding: 6px 8px !important;
+}
+
+.flataudit-cost-lbl {
+  font-size: 10px !important;
+  color: #94a3b8 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+}
+
+.flataudit-cost-val {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #f8fafc !important;
 }
 
 .flataudit-buyer-total-row {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 6px;
-  color: #f5f5f7;
-  font-weight: 600;
-  display: flex;
-  justify-content: space-between;
+  border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
+  padding-top: 8px !important;
+  margin-top: 4px !important;
+  color: #f1f5f9 !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  font-size: 12px !important;
 }
 
-.flataudit-buyer-total-row small {
-  color: #0b36fe;
-  font-weight: 600;
+.flataudit-total-badge {
+  background: rgba(56, 189, 248, 0.16) !important;
+  color: #38bdf8 !important;
+  border: 1px solid rgba(56, 189, 248, 0.35) !important;
+  border-radius: 6px !important;
+  padding: 3px 8px !important;
+  font-weight: 700 !important;
+  font-size: 12px !important;
 }
 
 .flataudit-print-report-btn {
   width: 100%;
-  background: #273448;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   color: #f5f5f7;
   border-radius: 8px;
   padding: 8px 12px;
@@ -1013,18 +1156,18 @@
 }
 
 .flataudit-print-report-btn:hover {
-  background: #2e3d54;
-  border-color: #0b36fe;
-  color: #0b36fe;
+  background: rgba(56, 189, 248, 0.15);
+  border-color: #38bdf8;
+  color: #38bdf8;
 }
 
 .flataudit-rera-link-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(11, 54, 254, 0.12);
-  border: 1px solid rgba(11, 54, 254, 0.3);
-  color: #0b36fe;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  color: #38bdf8;
   border-radius: 6px;
   padding: 5px 10px;
   font-size: 11.5px;
@@ -1035,7 +1178,7 @@
 }
 
 .flataudit-rera-link-btn:hover {
-  background: rgba(11, 54, 254, 0.22);
+  background: rgba(56, 189, 248, 0.22);
 }
 
 /* --------------------------------------------------------------------------
@@ -1052,7 +1195,7 @@
 .flataudit-safety-header {
   font-size: 12px;
   font-weight: 600;
-  color: #0b36fe;
+  color: #38bdf8;
   margin-bottom: 6px;
 }
 
@@ -1060,7 +1203,7 @@
   margin: 0;
   padding-left: 18px;
   font-size: 11.5px;
-  color: #98989d;
+  color: #cbd5e1;
   line-height: 1.45;
 }
 
@@ -1100,19 +1243,19 @@
   border-radius: 6px;
   padding: 3px 8px;
   font-size: 10.5px;
-  color: #86868b;
+  color: #cbd5e1;
 }
 
 .flataudit-hash-code {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-  color: #0b36fe;
+  color: #38bdf8;
   font-weight: 500;
 }
 
 .flataudit-feedback-btn {
   background: transparent;
   border: none;
-  color: #86868b;
+  color: #cbd5e1;
   font-family: inherit;
   font-size: 11px;
   cursor: pointer;

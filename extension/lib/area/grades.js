@@ -17,6 +17,9 @@ import defaultRules from '../data/area_rules.json' with { type: 'json' };
 export function getCityTier(city, rules = defaultRules) {
   if (!city || typeof city !== 'string') return null;
   const normalized = city.trim().toLowerCase();
+  if (/bengaluru|bangalore/i.test(normalized)) return 'metro';
+  if (/jaipur/i.test(normalized)) return 'smaller';
+  if (/jodhpur/i.test(normalized)) return 'smaller';
   return rules.city_tiers?.[normalized] || null;
 }
 
@@ -207,3 +210,4 @@ export function gradeCategory(evaluatedChecks, categoryId, cityTier = 'metro', r
     status: 'ok'
   };
 }
+

@@ -102,7 +102,7 @@ function updateTrustUI(analysis) {
   } else if (analysis.badgeTone === 'warn') {
     title.textContent = `Caution: Unusual Listing Pattern`;
   } else {
-    title.textContent = `Listing Verified Normal`;
+    title.textContent = `Listing Validated Normal`;
   }
   sub.textContent = analysis.headlineSummary || 'All signals conform to local rental norms.';
 
@@ -244,6 +244,10 @@ function updateTrustUI(analysis) {
   for (const item of points) {
     const card = document.createElement('div');
     card.className = `point-card ${item.fired ? 'flagged' : 'normal'}`;
+    card.setAttribute('tabindex', '0');
+    card.setAttribute('role', 'button');
+    card.setAttribute('aria-expanded', 'false');
+    card.style.cursor = 'pointer';
 
     const head = document.createElement('div');
     head.className = 'point-head';
@@ -252,60 +256,84 @@ function updateTrustUI(analysis) {
     cat.className = 'point-cat';
     cat.textContent = item.category;
 
+    const badgeGroup = document.createElement('div');
+    badgeGroup.className = 'point-badge-group';
+    badgeGroup.style.display = 'flex';
+    badgeGroup.style.alignItems = 'center';
+
     const st = document.createElement('span');
     const isBlocked = item.statusLabel === 'Blocked';
     const isInfo = item.statusLabel === 'Info' || item.statusLabel === 'Action Required';
     st.className = `point-status ${item.fired ? 'status-flagged' : (isBlocked ? 'status-warn' : (isInfo ? 'status-info' : 'status-normal'))}`;
-    st.textContent = item.statusLabel || (item.fired ? 'Flagged' : 'Verified');
+    const rawStatus = item.statusLabel === 'Verified' ? 'Validated' : item.statusLabel;
+    st.textContent = rawStatus || (item.fired ? 'Flagged' : 'Validated');
+    badgeGroup.appendChild(st);
+
+    const chevron = document.createElement('span');
+    chevron.className = 'point-chevron';
+    chevron.textContent = '▾';
+    chevron.style.marginLeft = '8px';
+    chevron.style.fontSize = '12px';
+    chevron.style.color = 'var(--text-tertiary)';
+    chevron.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)';
+    badgeGroup.appendChild(chevron);
 
     head.appendChild(cat);
-    head.appendChild(st);
+    head.appendChild(badgeGroup);
+    card.appendChild(head);
 
+    // 1-Line Headline
     const body = document.createElement('div');
-    body.className = 'point-body';
+    body.className = 'point-body point-headline';
     const pointText = (item.point || '').trim();
     const reasonText = (item.reason || '').trim();
-    if (pointText && reasonText && pointText.toLowerCase() === reasonText.toLowerCase()) {
-      body.textContent = pointText;
-    } else {
-      const sep = pointText.endsWith('.') ? ' ' : '. ';
-      body.textContent = `${pointText}${sep}${reasonText}`;
-    }
-
-    card.appendChild(head);
+    body.textContent = pointText;
     card.appendChild(body);
 
-    if (item.details && (item.details.how_compared || item.details.drawback)) {
-      const detailsEl = document.createElement('div');
-      detailsEl.className = 'point-details';
-      detailsEl.style.display = 'none';
-      detailsEl.style.marginTop = '6px';
-      detailsEl.style.fontSize = '11px';
-      detailsEl.style.lineHeight = '1.4';
-      detailsEl.style.color = 'var(--text-tertiary)';
-      detailsEl.innerHTML = `
-        ${item.details.how_compared ? `<div style="margin-bottom:3px"><b>How judged:</b> ${item.details.how_compared}</div>` : ''}
-        ${item.details.fact ? `<div style="margin-bottom:3px"><b>Fact:</b> ${item.details.fact}</div>` : ''}
-        ${item.details.drawback ? `<div><b>Drawback:</b> ${item.details.drawback}</div>` : ''}
-      `;
-      card.appendChild(detailsEl);
-      card.style.cursor = 'pointer';
-      card.setAttribute('tabindex', '0');
-      card.setAttribute('role', 'button');
-      card.setAttribute('aria-expanded', 'false');
-      const toggle = () => {
-        const isExp = detailsEl.style.display === 'block';
-        detailsEl.style.display = isExp ? 'none' : 'block';
-        card.setAttribute('aria-expanded', isExp ? 'false' : 'true');
-      };
-      card.addEventListener('click', toggle);
-      card.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          toggle();
-        }
-      });
+    // Drop Box (Collapsible Description and Details)
+    const detailsEl = document.createElement('div');
+    detailsEl.className = 'point-details';
+    detailsEl.style.display = 'none';
+    detailsEl.style.marginTop = '6px';
+    detailsEl.style.paddingTop = '6px';
+    detailsEl.style.borderTop = '1px solid var(--separator)';
+    detailsEl.style.fontSize = '11.5px';
+    detailsEl.style.lineHeight = '1.45';
+    detailsEl.style.color = 'var(--text-secondary)';
+
+    let detailsHtml = '';
+    if (reasonText && reasonText.toLowerCase() !== pointText.toLowerCase()) {
+      detailsHtml += `<div class="point-reason" style="margin-bottom:4px;color:var(--text-secondary);">${reasonText}</div>`;
     }
+    if (item.details) {
+      if (item.details.how_compared) {
+        detailsHtml += `<div style="margin-bottom:3px"><b>How judged:</b> ${item.details.how_compared}</div>`;
+      }
+      if (item.details.fact) {
+        detailsHtml += `<div style="margin-bottom:3px"><b>Fact:</b> ${item.details.fact}</div>`;
+      }
+      if (item.details.drawback) {
+        detailsHtml += `<div style="margin-bottom:3px"><b>Drawback:</b> ${item.details.drawback}</div>`;
+      }
+    }
+
+    detailsEl.innerHTML = detailsHtml || `<div style="color:var(--text-tertiary);">${pointText}</div>`;
+    card.appendChild(detailsEl);
+
+    const toggle = () => {
+      const isExp = detailsEl.style.display === 'block';
+      detailsEl.style.display = isExp ? 'none' : 'block';
+      chevron.style.transform = isExp ? 'rotate(0deg)' : 'rotate(180deg)';
+      card.setAttribute('aria-expanded', isExp ? 'false' : 'true');
+    };
+
+    card.addEventListener('click', toggle);
+    card.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggle();
+      }
+    });
 
     pointsList.appendChild(card);
   }

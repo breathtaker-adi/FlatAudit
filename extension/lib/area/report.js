@@ -203,22 +203,41 @@ export function renderAreaReportDOM(reportData, doc = globalThis.document) {
   // Handle Non-OK States with exact strings
   if (reportData.status !== 'ok') {
     const card = doc.createElement('div');
-    card.className = 'flataudit-point-card normal';
+    card.className = 'flataudit-point-card normal flataudit-area-state-card';
 
     let message = EXACT_AREA_STRINGS.UNAVAILABLE;
+    let icon = 'ℹ️';
+    let subnote = '';
+
     if (reportData.status === 'off') {
       message = EXACT_AREA_STRINGS.OFF;
+      icon = '🗺️';
+      subnote = 'Turn on Area Report in extension settings to see emergency, transit, grocery, and night environment facts nearby.';
     } else if (reportData.status === 'loading') {
       message = EXACT_AREA_STRINGS.LOADING;
+      icon = '⏳';
+      subnote = 'Querying OpenStreetMap Overpass facts within 1 km...';
     } else if (reportData.status === 'thin_map') {
       message = EXACT_AREA_STRINGS.THIN_MAP;
+      icon = '📍';
+      subnote = 'Fewer than 5 local landmarks recorded in this ~100m grid cell on OpenStreetMap.';
     } else if (reportData.status === 'unsupported_city') {
       message = EXACT_AREA_STRINGS.UNSUPPORTED_CITY;
+      icon = '🏙️';
+      subnote = 'Pilot dataset currently supports Bengaluru, Jaipur, and Jodhpur.';
     } else if (reportData.message) {
       message = reportData.message;
     }
 
-    card.innerHTML = `<div class="flataudit-point-headline">${message}</div>`;
+    card.innerHTML = `
+      <div class="flataudit-area-state-row">
+        <span class="flataudit-area-state-icon">${icon}</span>
+        <div class="flataudit-area-state-content">
+          <div class="flataudit-point-headline">${message}</div>
+          ${subnote ? `<div class="flataudit-area-state-desc">${subnote}</div>` : ''}
+        </div>
+      </div>
+    `;
     container.appendChild(card);
     return container;
   }
@@ -290,6 +309,15 @@ export function renderAreaReportDOM(reportData, doc = globalThis.document) {
       badgeGroup.appendChild(statusPill);
     }
 
+    const chevron = doc.createElement('span');
+    chevron.className = 'flataudit-card-chevron';
+    chevron.textContent = '▾';
+    chevron.style.marginLeft = '8px';
+    chevron.style.fontSize = '12px';
+    chevron.style.color = '#94a3b8';
+    chevron.style.transition = 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)';
+    badgeGroup.appendChild(chevron);
+
     cardHeader.appendChild(titleGroup);
     cardHeader.appendChild(badgeGroup);
     card.appendChild(cardHeader);
@@ -309,7 +337,7 @@ export function renderAreaReportDOM(reportData, doc = globalThis.document) {
     details.style.borderTop = '1px solid rgba(255, 255, 255, 0.08)';
     details.style.fontSize = '11px';
     details.style.lineHeight = '1.45';
-    details.style.color = '#86868b';
+    details.style.color = '#cbd5e1';
 
     const criteriaStr = formatCriteriaThresholds(catId, reportData.cityTier || 'metro');
 
@@ -329,7 +357,7 @@ export function renderAreaReportDOM(reportData, doc = globalThis.document) {
       <div style="margin-bottom:3px"><b>Fact:</b> ${catData.fact || 'None recorded'}</div>
       <div style="margin-bottom:4px"><b>Drawback:</b> ${catData.drawback || 'None recorded'}</div>
       ${extraContextHtml}
-      <div style="margin-top:6px;font-size:10px;color:#7d8fa9">${EXACT_AREA_STRINGS.STRAIGHT_LINE_NOTE}</div>
+      <div style="margin-top:6px;font-size:10px;color:#94a3b8">${EXACT_AREA_STRINGS.STRAIGHT_LINE_NOTE}</div>
     `;
 
     card.appendChild(details);
@@ -339,6 +367,7 @@ export function renderAreaReportDOM(reportData, doc = globalThis.document) {
       e?.preventDefault();
       const isExpanded = details.style.display === 'block';
       details.style.display = isExpanded ? 'none' : 'block';
+      chevron.style.transform = isExpanded ? 'rotate(0deg)' : 'rotate(180deg)';
       card.setAttribute('aria-expanded', isExpanded ? 'false' : 'true');
     };
 

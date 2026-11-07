@@ -635,7 +635,7 @@ export function analyzeListing(listing, options = {}) {
           category: 'Price per Sq.Ft',
           icon: '📏',
           fired: false,
-          statusLabel: priceCheck.status === 'ok' ? 'Verified' : 'Info',
+          statusLabel: priceCheck.status === 'ok' ? 'Validated' : 'Info',
           point: priceCheck.point,
           reason: priceCheck.reason,
           details: priceCheck

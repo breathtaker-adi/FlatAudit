@@ -283,7 +283,7 @@ function renderResults(res) {
     ? `High Risk Signals (${res.firedCount} Flagged)`
     : res.badgeTone === 'warn'
     ? 'Unusual Listing Pattern'
-    : 'Listing Verified Normal';
+    : 'Listing Validated Normal';
   verdictSub.textContent = res.headlineSummary || 'Detailed safety evaluation based on local market norms.';
 
   const mockBadgeBtn = document.getElementById('mock-badge-btn');
@@ -319,7 +319,8 @@ function renderResults(res) {
     const isInfo = p.statusLabel === 'Info' || p.statusLabel === 'Action Required';
     card.className = `point-card ${p.fired ? 'flagged' : (isBlocked ? 'warn' : 'normal')}`;
     const statusClass = p.fired ? 'status-flagged' : (isBlocked ? 'status-warn' : (isInfo ? 'status-info' : 'status-normal'));
-    const statusText = p.statusLabel || (p.fired ? 'Flagged' : 'Verified');
+    const rawStatus = p.statusLabel === 'Verified' ? 'Validated' : p.statusLabel;
+    const statusText = rawStatus || (p.fired ? 'Flagged' : 'Validated');
     const reasonHtml = (p.reason && p.reason.trim().toLowerCase() !== p.point.trim().toLowerCase())
       ? `<div class="point-reason">${p.reason}</div>`
       : '';
