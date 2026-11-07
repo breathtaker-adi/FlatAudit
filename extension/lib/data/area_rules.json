@@ -1,0 +1,175 @@
+{
+  "version": 1,
+  "city_tiers": {
+    "bengaluru": "metro",
+    "jaipur": "smaller",
+    "jodhpur": "smaller"
+  },
+  "min_checks_with_data": 2,
+  "grade_cutoffs": {
+    "good": 1.5,
+    "okay": 0.75
+  },
+  "categories": {
+    "emergency_healthcare": {
+      "id": "emergency_healthcare",
+      "title": "Emergency & Healthcare",
+      "checks": {
+        "hospital_km": {
+          "label": "Hospital",
+          "thing": "hospital",
+          "metro": [2.0, 5.0],
+          "smaller": [3.0, 7.0],
+          "search_radius_km": 3.0
+        },
+        "clinic_km": {
+          "label": "Clinic",
+          "thing": "clinic or doctor",
+          "metro": [1.0, 2.5],
+          "smaller": [1.5, 3.5],
+          "search_radius_km": 2.0
+        },
+        "pharmacy_km": {
+          "label": "Pharmacy",
+          "thing": "pharmacy",
+          "metro": [0.5, 1.5],
+          "smaller": [1.0, 2.5],
+          "search_radius_km": 1.5
+        }
+      }
+    },
+    "daily_supplies": {
+      "id": "daily_supplies",
+      "title": "Daily Supplies & Services",
+      "checks": {
+        "grocery_km": {
+          "label": "Supermarket or Grocery",
+          "thing": "grocery or supermarket",
+          "metro": [0.5, 1.5],
+          "smaller": [1.0, 2.5],
+          "search_radius_km": 2.0
+        },
+        "greengrocer_km": {
+          "label": "Greengrocer or Vegetable Market",
+          "thing": "greengrocer",
+          "metro": [0.8, 2.0],
+          "smaller": [1.2, 3.0],
+          "search_radius_km": 2.0
+        },
+        "bank_atm_km": {
+          "label": "Bank or ATM",
+          "thing": "bank or ATM",
+          "metro": [0.5, 1.5],
+          "smaller": [1.0, 2.5],
+          "search_radius_km": 1.5
+        },
+        "pharmacy_km": {
+          "label": "Pharmacy",
+          "thing": "pharmacy",
+          "metro": [0.5, 1.5],
+          "smaller": [1.0, 2.5],
+          "search_radius_km": 1.5
+        }
+      }
+    },
+    "commute_transit": {
+      "id": "commute_transit",
+      "title": "Commute & Transit",
+      "checks": {
+        "bus_stop_km": {
+          "label": "Bus Stop",
+          "thing": "bus stop",
+          "metro": [0.5, 1.2],
+          "smaller": [0.8, 2.0],
+          "search_radius_km": 1.5
+        },
+        "metro_rail_km": {
+          "label": "Metro or Rail Station",
+          "thing": "metro or rail station",
+          "metro": [1.5, 3.0],
+          "smaller": [2.5, 5.0],
+          "search_radius_km": 3.0
+        },
+        "main_road_km": {
+          "label": "Primary Road",
+          "thing": "primary or secondary road",
+          "metro": [0.3, 0.8],
+          "smaller": [0.5, 1.2],
+          "search_radius_km": 1.0
+        }
+      }
+    },
+    "safety_environment": {
+      "id": "safety_environment",
+      "title": "Safety & Environment",
+      "subtitle": "Nearby map facts, not crime data.",
+      "checks": {
+        "police_km": {
+          "label": "Police Station",
+          "thing": "police station",
+          "metro": [2.0, 4.0],
+          "smaller": [3.0, 6.0],
+          "search_radius_km": 3.0
+        },
+        "main_road_km": {
+          "label": "Main Road Access",
+          "thing": "main road",
+          "metro": [0.4, 1.0],
+          "smaller": [0.6, 1.5],
+          "search_radius_km": 1.0
+        },
+        "green_space_km": {
+          "label": "Park or Green Space",
+          "thing": "park or green space",
+          "metro": [0.8, 2.0],
+          "smaller": [1.2, 3.0],
+          "search_radius_km": 2.0
+        }
+      }
+    },
+    "lifestyle_community": {
+      "id": "lifestyle_community",
+      "title": "Lifestyle & Community",
+      "checks": {
+        "park_km": {
+          "label": "Public Park",
+          "thing": "public park",
+          "metro": [0.8, 2.0],
+          "smaller": [1.2, 2.5],
+          "search_radius_km": 2.0
+        },
+        "cafe_restaurant_km": {
+          "label": "Cafe or Restaurant",
+          "thing": "cafe or restaurant",
+          "metro": [0.5, 1.5],
+          "smaller": [1.0, 2.5],
+          "search_radius_km": 2.0
+        },
+        "fitness_km": {
+          "label": "Gym or Fitness Centre",
+          "thing": "gym or fitness centre",
+          "metro": [0.8, 2.0],
+          "smaller": [1.2, 3.0],
+          "search_radius_km": 2.0
+        },
+        "school_km": {
+          "label": "School or College",
+          "thing": "school or college",
+          "metro": [1.0, 2.5],
+          "smaller": [1.5, 3.5],
+          "search_radius_km": 2.0
+        }
+      }
+    }
+  },
+  "templates": {
+    "fact": "{name} is {km} km away (straight line).",
+    "drawback": "No {thing} found within {km} km on the map.",
+    "drawback_distant": "{name} is {km} km away on the map (straight line).",
+    "no_drawback": "No major drawback found among the checks used.",
+    "thin_night_data": "Not enough night data on the map.",
+    "thin_map": "Not enough map data here.",
+    "unavailable": "Area data unavailable right now.",
+    "unsupported_city": "Not available for this city yet."
+  }
+}
