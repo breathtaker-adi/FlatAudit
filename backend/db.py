@@ -25,8 +25,13 @@ def hamming_distance(h1: str, h2: str) -> int:
     return dist
 
 def get_connection(db_file: str = DB_PATH) -> sqlite3.Connection:
-    conn = sqlite3.connect(db_file)
+    conn = sqlite3.connect(db_file, timeout=10.0)
     conn.row_factory = sqlite3.Row
+    try:
+        conn.execute("PRAGMA journal_mode=WAL")
+        conn.execute("PRAGMA busy_timeout = 5000")
+    except sqlite3.OperationalError:
+        pass
     return conn
 
 def init_db(db_file: str = DB_PATH):

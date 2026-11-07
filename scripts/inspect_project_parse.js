@@ -1,4 +1,6 @@
 import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { JSDOM } from 'jsdom';
 import { parse99acres } from '../extension/lib/parsers/ninety_nine_acres.js';
 import { 
@@ -13,7 +15,10 @@ import {
 } from '../extension/lib/parsers/currency.js';
 import { extractJsonLdData } from '../extension/lib/parsers/jsonld.js';
 
-const html = fs.readFileSync('C:/Users/adity/.gemini/antigravity-ide/brain/e052d273-30fa-4767-8e0a-f8e58a0cd974/.system_generated/steps/2096/content.md', 'utf8');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const fixturePath = path.join(__dirname, '../fixtures/99acres_project_jaipur_kiara.html');
+const html = fs.existsSync(fixturePath) ? fs.readFileSync(fixturePath, 'utf8') : '<html><body></body></html>';
 const dom = new JSDOM(html);
 const document = dom.window.document;
 const currentUrl = 'https://www.99acres.com/kiara-ville-jagatpura-jagatpura-jaipur-npxid-r380406?src=NPSRP';

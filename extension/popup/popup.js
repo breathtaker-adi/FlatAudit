@@ -381,24 +381,29 @@ async function syncQuickTrackBtn() {
 
 async function initQuickTrackBtn() {
   const btn = document.getElementById('btn-quick-track');
+  if (!btn) return;
   btn.addEventListener('click', async () => {
     if (!activeAnalysis || !activeAnalysis.listing) return;
-    const listingKey = activeAnalysis.listing.listingKey;
-    const trackedMap = await getTrackedListings();
+    try {
+      const listingKey = activeAnalysis.listing.listingKey;
+      const trackedMap = await getTrackedListings();
 
-    if (trackedMap[listingKey]) {
-      await untrackListing(listingKey);
-    } else {
-      await trackListing({
-        ...activeAnalysis.listing,
-        listingKey,
-        signalsFiredCount: activeAnalysis.firedCount || 0,
-        badgeLabel: activeAnalysis.badgeLabel,
-        badgeTone: activeAnalysis.badgeTone
-      });
+      if (trackedMap[listingKey]) {
+        await untrackListing(listingKey);
+      } else {
+        await trackListing({
+          ...activeAnalysis.listing,
+          listingKey,
+          signalsFiredCount: activeAnalysis.firedCount || 0,
+          badgeLabel: activeAnalysis.badgeLabel,
+          badgeTone: activeAnalysis.badgeTone
+        });
+      }
+      await syncQuickTrackBtn();
+      await updateTrackedBadgeCount();
+    } catch (err) {
+      console.warn('[FlatAudit] Quick track toggle error:', err);
     }
-    await syncQuickTrackBtn();
-    await updateTrackedBadgeCount();
   });
 }
 

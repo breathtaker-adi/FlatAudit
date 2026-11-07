@@ -333,6 +333,8 @@
       }
 
         await renderTrustBadge(currentAnalysis);
+      } catch (err) {
+        console.warn('[FlatAudit] Page evaluation encountered error:', err);
       } finally {
         isEvaluating = false;
       }
@@ -342,11 +344,13 @@
      * Safely constructs badge and explanation drawer using ONLY textContent and DOM APIs.
      */
     async function renderTrustBadge(data) {
-      if (!badgeContainer) {
-        badgeContainer = document.createElement('div');
-        badgeContainer.id = 'flataudit-root';
-        document.body.appendChild(badgeContainer);
-      }
+      if (!data || !data.listing) return;
+      try {
+        if (!badgeContainer) {
+          badgeContainer = document.createElement('div');
+          badgeContainer.id = 'flataudit-root';
+          document.body.appendChild(badgeContainer);
+        }
 
       while (badgeContainer.firstChild) {
         badgeContainer.removeChild(badgeContainer.firstChild);
@@ -1155,7 +1159,10 @@
       wrapper.appendChild(btn);
       wrapper.appendChild(drawer);
       badgeContainer.appendChild(wrapper);
+    } catch (renderErr) {
+      console.warn('[FlatAudit] Failed to render trust badge:', renderErr);
     }
+  }
 
     document.addEventListener('click', (e) => {
       if (badgeContainer && !badgeContainer.contains(e.target)) {

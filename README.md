@@ -237,6 +237,7 @@ FlatAudit/
 │   ├── evaluate.py            # Zero-drift evaluation runner
 │   └── run_signals.js         # Node subprocess bridge to signals.js
 ├── docs/                      # Security & Engineering Documentation
+│   ├── plans/                 # Product roadmaps, specifications & build plans
 │   ├── zero_context_blueprint.md     # Architectural reconstruction blueprint
 │   ├── buyer-mode-wording-guide.md   # Anti-defamation & editorial vocabulary standard
 │   ├── threat-model.md        # Full STRIDE threat model
@@ -245,7 +246,7 @@ FlatAudit/
 │   ├── engineering-retrospective-v1.md # Lessons learned & retrospective
 │   ├── architecture.md        # Architecture diagrams
 │   └── scam-taxonomy.md       # Rental fraud kill chain breakdown
-├── tests/                     # Node.js test suite (111 tests passing)
+├── tests/                     # Node.js test suite (270 tests across 100 suites)
 ├── web-demo/                  # Standalone interactive browser testbed
 └── package.json
 ```

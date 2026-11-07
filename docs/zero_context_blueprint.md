@@ -168,15 +168,6 @@ FlatAudit/
 ├── package.json
 ├── package-lock.json
 ├── README.md
-├── Build Plan_ Listing Trust Analyzer (1).html
-├── FlatAudit Buyer Mode_ Evaluate the Flat, Project and Builder.html
-├── FlatAudit Expansion Plan_ States, Price Freshness, Yearly Memory.html
-├── FlatAudit Roadmap_ Buyhatke-style companion for property.html
-├── FlatAudit_ Adding Property Buying and Price History.html
-├── FlatAudit_ Every-City Benchmarks Without Hardcoding.html
-├── FlatAudit_ Next Stage Plan.html
-├── FlatAudit_ What's Left to Finish v1.html
-├── Listing Trust Analyzer_ Project Document.html
 ├── backend/
 │   ├── build_packs.py
 │   ├── config.py
@@ -205,7 +196,17 @@ FlatAudit/
 │   ├── technical_report_next_stage.md
 │   ├── threat-model.md
 │   ├── verification_log.md
-│   └── zero_context_blueprint.md
+│   ├── zero_context_blueprint.md
+│   └── plans/
+│       ├── Build Plan_ Listing Trust Analyzer (1).html
+│       ├── FlatAudit Buyer Mode_ Evaluate the Flat, Project and Builder.html
+│       ├── FlatAudit Expansion Plan_ States, Price Freshness, Yearly Memory.html
+│       ├── FlatAudit Roadmap_ Buyhatke-style companion for property.html
+│       ├── FlatAudit_ Adding Property Buying and Price History.html
+│       ├── FlatAudit_ Every-City Benchmarks Without Hardcoding.html
+│       ├── FlatAudit_ Next Stage Plan.html
+│       ├── FlatAudit_ What's Left to Finish v1.html
+│       └── Listing Trust Analyzer_ Project Document.html
 ├── eval/
 │   ├── area_report_qa.csv
 │   ├── evaluate.py
@@ -300,6 +301,7 @@ FlatAudit/
 ├── scripts/
 │   ├── generate_icons.py
 │   ├── generate_localities.js
+│   ├── inspect_project_parse.js
 │   └── trace_logo.py
 ├── tests/
 │   ├── test_area_cache.test.js
@@ -323,7 +325,6 @@ FlatAudit/
 │   ├── test_price_check_ui.test.js
 │   ├── test_price_compare.test.js
 │   ├── test_privacy_settings.test.js
-│   ├── test_project_parse.js
 │   ├── test_rajasthan.test.js
 │   ├── test_signals.test.js
 │   ├── test_tracker.test.js

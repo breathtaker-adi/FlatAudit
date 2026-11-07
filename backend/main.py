@@ -63,6 +63,43 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+from fastapi.exceptions import RequestValidationError
+import logging
+
+logger = logging.getLogger("flataudit")
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "detail": exc.errors(),
+            "message": "Invalid request schema or query parameters",
+            "status": "error"
+        }
+    )
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request: Request, exc: HTTPException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={
+            "detail": exc.detail,
+            "status": "error"
+        }
+    )
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled server exception on %s: %s", request.url.path, str(exc))
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "detail": "Internal server error occurred. Zero personal data was leaked.",
+            "status": "error"
+        }
+    )
+
 LOCALITY_BENCHMARKS = {
     'indiranagar': {'bhk1': 22000, 'bhk2': 40000, 'bhk3': 65000, 'deposit_months': (3, 6), 'city': 'Bangalore'},
     'hsr layout': {'bhk1': 18000, 'bhk2': 32000, 'bhk3': 52000, 'deposit_months': (3, 6), 'city': 'Bangalore'},

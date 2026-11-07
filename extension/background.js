@@ -19,26 +19,60 @@ async function getBackendUrl() {
 const imageHashCache = new Map();
 
 /**
+ * Validates whether an image URL originates from an approved property portal or standard CDN.
+ * Prevents CORS console errors and avoids fetching video embeds, ad trackers, or third-party pixels.
+ */
+function isSupportedImageOrigin(url) {
+  if (!url || typeof url !== 'string') return false;
+  const clean = url.trim();
+  if (!clean.startsWith('http://') && !clean.startsWith('https://')) return false;
+
+  try {
+    const parsed = new URL(clean);
+    const host = parsed.hostname.toLowerCase();
+    
+    // Explicit blacklist: video players, analytics, ads, trackers, social widgets
+    if (/youtube|ytimg|google|doubleclick|googlesyndication|google-analytics|facebook|vimeo|dailymotion|tracker|pixel|advert/i.test(host)) {
+      return false;
+    }
+
+    // Explicit path blacklist
+    if (/\.(svg|gif|mp4|webm|avi|mkv)($|\?)/i.test(parsed.pathname) || /avatar|badge|favicon|logo|button|thumb_video/i.test(parsed.pathname)) {
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
  * Downloads image via background worker host permissions, draws to 9x8 OffscreenCanvas,
- * and extracts 64-bit dHash.
+ * and extracts 64-bit dHash. Uses 5-second AbortController timeout and handles CORS/aborts gracefully.
  */
 async function computeHashFromUrl(imageUrl) {
-  if (!imageUrl || typeof imageUrl !== 'string') return null;
+  if (!isSupportedImageOrigin(imageUrl)) return null;
+
   const cleanUrl = imageUrl.trim();
-  if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) return null;
-
-  // Skip video player thumbnails, ads, analytics, svg icons, or third-party widgets
-  if (/youtube\.com|ytimg\.com|doubleclick|googlesyndication|google-analytics|facebook\.com|favicon|\.svg/i.test(cleanUrl)) {
-    return null;
-  }
-
   if (imageHashCache.has(cleanUrl)) {
     return imageHashCache.get(cleanUrl);
   }
 
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), 5000) : null;
+
   try {
-    const response = await fetch(cleanUrl, { mode: 'cors' });
-    if (!response.ok) {
+    const response = await fetch(cleanUrl, {
+      signal: controller?.signal,
+      credentials: 'omit',
+      cache: 'force-cache'
+    });
+
+    if (!response.ok) return null;
+
+    const contentType = response.headers.get('content-type') || '';
+    if (contentType && !contentType.startsWith('image/')) {
       return null;
     }
 
@@ -52,49 +86,66 @@ async function computeHashFromUrl(imageUrl) {
     const imageData = ctx.getImageData(0, 0, 9, 8);
     const hash = computeDHashFromImageData(imageData);
 
-    imageHashCache.set(cleanUrl, hash);
+    if (hash) {
+      imageHashCache.set(cleanUrl, hash);
+    }
     return hash;
   } catch (err) {
-    // Silent fallback: never pollutes DevTools console on unreachable CDN or CORS assets
+    // Network aborted, CORS blocked, or decoding error: handle cleanly without polluting console
     return null;
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
 }
 
 /**
- * Communicates with FastAPI backend
+ * Communicates with FastAPI backend with timeout protection
  */
 async function checkImageSeen(hash) {
   if (!hash) return { seenCount: 1 };
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), 3500) : null;
   try {
     const backendUrl = await getBackendUrl();
-    const res = await fetch(`${backendUrl}/seen?hash=${encodeURIComponent(hash)}&threshold=10`);
-    if (res.ok) {
-      return await res.json();
-    }
-  } catch (e) {
-    // Backend offline; degrade gracefully
-  }
-  return { seenCount: 1 };
-}
-
-async function observeListing(payload) {
-  try {
-    const backendUrl = await getBackendUrl();
-    const res = await fetch(`${backendUrl}/observe`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
+    const res = await fetch(`${backendUrl}/seen?hash=${encodeURIComponent(hash)}&threshold=10`, {
+      signal: controller?.signal
     });
     if (res.ok) {
       return await res.json();
     }
   } catch (e) {
-    // Backend offline; log locally
+    // Backend offline or timeout; degrade gracefully
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+  return { seenCount: 1 };
+}
+
+async function observeListing(payload) {
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), 3500) : null;
+  try {
+    const backendUrl = await getBackendUrl();
+    const res = await fetch(`${backendUrl}/observe`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller?.signal
+    });
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (e) {
+    // Backend offline; degrade gracefully
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
   return { status: 'offline' };
 }
 
 async function checkMatches(payload) {
+  const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timeoutId = controller ? setTimeout(() => controller.abort(), 3500) : null;
   try {
     const backendUrl = await getBackendUrl();
     const params = new URLSearchParams({
@@ -108,11 +159,17 @@ async function checkMatches(payload) {
     if (payload.floor !== null && payload.floor !== undefined) params.append('floor', payload.floor);
     if (payload.image_hash) params.append('image_hash', payload.image_hash);
 
-    const res = await fetch(`${backendUrl}/matches?${params.toString()}`);
+    const res = await fetch(`${backendUrl}/matches?${params.toString()}`, {
+      signal: controller?.signal
+    });
     if (res.ok) {
       return await res.json();
     }
-  } catch (e) {}
+  } catch (e) {
+    // Backend offline; degrade gracefully
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
   return { match_count: 0, matches: [] };
 }
 
@@ -179,56 +236,86 @@ async function sendTelemetryFeedback(payload) {
   }
 }
 
-// Extension message listener
+// Extension message listener with strict error boundaries
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (!request || typeof request !== 'object' || !request.type) {
+    sendResponse({ error: 'Invalid or missing message type' });
+    return false;
+  }
+
   if (request.type === 'COMPUTE_DHASH') {
-    computeHashFromUrl(request.imageUrl).then(hash => sendResponse({ hash }));
+    computeHashFromUrl(request.imageUrl)
+      .then(hash => sendResponse({ hash }))
+      .catch(err => sendResponse({ hash: null, error: err?.message || 'Hash failure' }));
     return true; // asynchronous reply
   }
 
   if (request.type === 'CHECK_SEEN') {
-    checkImageSeen(request.hash).then(data => sendResponse(data));
+    checkImageSeen(request.hash)
+      .then(data => sendResponse(data))
+      .catch(err => sendResponse({ seenCount: 1, error: err?.message }));
     return true;
   }
 
   if (request.type === 'OBSERVE_LISTING') {
-    observeListing(request.payload).then(data => sendResponse(data));
+    observeListing(request.payload)
+      .then(data => sendResponse(data))
+      .catch(err => sendResponse({ status: 'offline', error: err?.message }));
     return true;
   }
 
   if (request.type === 'CHECK_MATCHES') {
-    checkMatches(request.payload).then(data => sendResponse(data));
+    checkMatches(request.payload)
+      .then(data => sendResponse(data))
+      .catch(err => sendResponse({ match_count: 0, matches: [], error: err?.message }));
     return true;
   }
 
   if (request.type === 'INGEST_TELEMETRY_OBSERVATION') {
-    queueTelemetryObservation(request.payload).then(() => sendResponse({ status: 'queued' }));
+    queueTelemetryObservation(request.payload)
+      .then(() => sendResponse({ status: 'queued' }))
+      .catch(err => sendResponse({ status: 'failed', error: err?.message }));
     return true;
   }
 
   if (request.type === 'INGEST_TELEMETRY_FEEDBACK') {
-    sendTelemetryFeedback(request.payload).then(data => sendResponse(data));
+    sendTelemetryFeedback(request.payload)
+      .then(data => sendResponse(data))
+      .catch(err => sendResponse({ status: 'network_error', error: err?.message }));
     return true;
   }
 
   if (request.type === 'GET_CACHED_ANALYSIS') {
-    chrome.storage.local.get(['lastAnalysis'], (result) => {
-      sendResponse(result.lastAnalysis || null);
-    });
+    try {
+      chrome.storage.local.get(['lastAnalysis'], (result) => {
+        if (chrome.runtime.lastError) {
+          sendResponse(null);
+          return;
+        }
+        sendResponse(result ? result.lastAnalysis || null : null);
+      });
+    } catch (err) {
+      sendResponse(null);
+    }
     return true;
   }
 
   if (request.type === 'AREA_QUERY') {
-    getAreaReportSettings().then((settings) => {
-      if (!settings.enabled) {
-        sendResponse({ status: 'off', message: 'Area Report is off' });
-        return;
-      }
-      // When enabled, S5 client executes Overpass query
-      sendResponse({ status: 'ready' });
-    }).catch(() => {
-      sendResponse({ status: 'off' });
-    });
+    getAreaReportSettings()
+      .then((settings) => {
+        if (!settings || !settings.enabled) {
+          sendResponse({ status: 'off', message: 'Area Report is off' });
+          return;
+        }
+        // When enabled, S5 client executes Overpass query
+        sendResponse({ status: 'ready' });
+      })
+      .catch((err) => {
+        sendResponse({ status: 'off', error: err?.message });
+      });
     return true;
   }
+
+  sendResponse({ error: `Unknown message type: ${request.type}` });
+  return false;
 });

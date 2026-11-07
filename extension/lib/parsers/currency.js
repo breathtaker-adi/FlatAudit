@@ -202,14 +202,14 @@ export function parseListingType(rawText, url = '') {
 export function filterPropertyImages(images) {
   if (!Array.isArray(images)) return [];
   const badPatterns = [
-    /youtube\.com/i,
-    /ytimg\.com/i,
+    /youtube/i,
+    /ytimg/i,
     /doubleclick/i,
     /googlesyndication/i,
     /google-analytics/i,
-    /facebook\.com/i,
+    /facebook/i,
     /favicon/i,
-    /\.svg($|\?)/i,
+    /\.(svg|gif|mp4|webm)($|\?)/i,
     /^data:image/i,
     /avatar/i,
     /badge/i,
