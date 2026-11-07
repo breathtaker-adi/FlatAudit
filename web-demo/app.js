@@ -319,6 +319,13 @@ function renderResults(res) {
     const reasonHtml = (p.reason && p.reason.trim().toLowerCase() !== p.point.trim().toLowerCase())
       ? `<div class="point-reason">${p.reason}</div>`
       : '';
+    const detailsHtml = (p.details && (p.details.how_compared || p.details.drawback))
+      ? `<div class="point-details" style="margin-top:6px;font-size:11px;line-height:1.4;color:var(--text-tertiary)">
+          ${p.details.how_compared ? `<div style="margin-bottom:3px"><b>How judged:</b> ${p.details.how_compared}</div>` : ''}
+          ${p.details.fact ? `<div style="margin-bottom:3px"><b>Fact:</b> ${p.details.fact}</div>` : ''}
+          ${p.details.drawback ? `<div><b>Drawback:</b> ${p.details.drawback}</div>` : ''}
+        </div>`
+      : '';
     card.innerHTML = `
       <div class="point-header">
         <span class="point-cat">${p.icon ? p.icon + ' ' : ''}${p.category}</span>
@@ -326,6 +333,7 @@ function renderResults(res) {
       </div>
       <div class="point-headline">${p.point}</div>
       ${reasonHtml}
+      ${detailsHtml}
     `;
     pointsGrid.appendChild(card);
 

@@ -860,6 +860,38 @@
             pointCard.appendChild(reasonText);
           }
 
+          if (item.details && (item.details.how_compared || item.details.drawback)) {
+            const detailsEl = document.createElement('div');
+            detailsEl.className = 'flataudit-point-details';
+            detailsEl.style.display = 'none';
+            detailsEl.style.marginTop = '6px';
+            detailsEl.style.fontSize = '11px';
+            detailsEl.style.lineHeight = '1.4';
+            detailsEl.style.color = '#86868b';
+            detailsEl.innerHTML = `
+              ${item.details.how_compared ? `<div style="margin-bottom:3px"><b>How judged:</b> ${item.details.how_compared}</div>` : ''}
+              ${item.details.fact ? `<div style="margin-bottom:3px"><b>Fact:</b> ${item.details.fact}</div>` : ''}
+              ${item.details.drawback ? `<div><b>Drawback:</b> ${item.details.drawback}</div>` : ''}
+            `;
+            pointCard.appendChild(detailsEl);
+            pointCard.style.cursor = 'pointer';
+            pointCard.setAttribute('tabindex', '0');
+            pointCard.setAttribute('role', 'button');
+            pointCard.setAttribute('aria-expanded', 'false');
+            const toggle = () => {
+              const isExp = detailsEl.style.display === 'block';
+              detailsEl.style.display = isExp ? 'none' : 'block';
+              pointCard.setAttribute('aria-expanded', isExp ? 'false' : 'true');
+            };
+            pointCard.addEventListener('click', toggle);
+            pointCard.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggle();
+              }
+            });
+          }
+
           pointsList.appendChild(pointCard);
         }
       }

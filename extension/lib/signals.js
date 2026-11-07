@@ -6,8 +6,10 @@
  * Never uses defamatory labels ("scammer", "fraud"); only states verifiable observations.
  */
 
-import { getBenchmark, robustZScore, getGuidanceValue, getReraPortalUrl } from './benchmarks.js';
+import { getBenchmark, robustZScore, getGuidanceValue, getReraPortalUrl, computeMedian } from './benchmarks.js';
 import { evaluatePricePerSqftCheck } from './price_check.js';
+import { comparePricePerSqft, EXACT_STRINGS } from './price_compare.js';
+import { findNeighbourLocalities } from './localities.js';
 import marketPacksData from './data/market_packs.json' with { type: 'json' };
 
 // Backwards-compatible export mapping for external tools & tests
@@ -496,9 +498,8 @@ export function analyzeListing(listing, options = {}) {
   const seenCount = options.seenCount || 1;
   const fullText = `${listing.title || ''} ${listing.description || ''}`;
 
-  // Handle explicit unknown mode: prompt user for mode toggle & block price comparisons
+  // Handle explicit unknown mode: prompt user for mode toggle & block price comparisons (Slice S0)
   if (listing.listingType === 'unknown') {
-    const priceCheck = evaluatePricePerSqftCheck(listing, options.peerListings || [], options);
     return {
       listingType: 'unknown',
       badgeLabel: 'Select Mode',
@@ -516,18 +517,22 @@ export function analyzeListing(listing, options = {}) {
           reason: 'Both rental and purchase signals are ambiguous or insufficient. Please choose whether this listing is for Rent or Sale using the switch in the companion drawer.'
         },
         {
-          category: priceCheck.category,
-          icon: priceCheck.icon,
-          fired: priceCheck.fired,
+          category: 'Price per Sq.Ft',
+          icon: '📏',
+          fired: false,
           blocked: true,
-          statusLabel: priceCheck.statusLabel,
-          point: priceCheck.point,
-          reason: priceCheck.reason,
-          details: priceCheck
+          statusLabel: 'Blocked',
+          point: EXACT_STRINGS.MODE_UNCLEAR,
+          reason: EXACT_STRINGS.MODE_UNCLEAR
         }
       ],
       safetyAdvice: ['Select Rent or Sale to activate verified locality benchmarks.'],
-      priceCheck,
+      priceCheck: {
+        status: 'mode_unknown',
+        point: EXACT_STRINGS.MODE_UNCLEAR,
+        reason: EXACT_STRINGS.MODE_UNCLEAR,
+        usable: false
+      },
       signals: {}
     };
   }
@@ -595,17 +600,47 @@ export function analyzeListing(listing, options = {}) {
     ];
 
     let priceCheck = null;
-    if (options.peerListings || options.includePriceCheck) {
-      priceCheck = evaluatePricePerSqftCheck(listing, options.peerListings || [], options);
-      humanReadablePoints.push({
-        category: priceCheck.category,
-        icon: priceCheck.icon,
-        fired: priceCheck.fired,
-        statusLabel: priceCheck.statusLabel,
-        point: priceCheck.point,
-        reason: priceCheck.reason,
-        details: priceCheck
-      });
+    if (options.peerListings || options.cellEntries || options.includePriceCheck) {
+      let cellEntries = options.cellEntries || [];
+      if (cellEntries.length === 0 && options.peerListings && options.peerListings.length > 0) {
+        const cellMap = new Map();
+        for (const p of options.peerListings) {
+          const key = p.geohash5 || p.locality || 'local_cell';
+          if (!cellMap.has(key)) {
+            cellMap.set(key, { cell: key, name: p.locality || key, bhk: p.bhk, area_type: p.areaType, rates: [] });
+          }
+          const group = cellMap.get(key);
+          const pArea = p.area_sqft || p.areaSqft;
+          const rate = p.pricePerSqft || (p.price && pArea ? Math.round(p.price / pArea) : null);
+          if (rate) group.rates.push(rate);
+        }
+        for (const [k, group] of cellMap.entries()) {
+          if (group.rates.length > 0) {
+            cellEntries.push({
+              cell: k,
+              name: group.name,
+              bhk: group.bhk,
+              area_type: group.area_type,
+              n: group.rates.length,
+              psf_median: computeMedian(group.rates),
+              is_own_locality: Boolean(listing.locality && group.name.toLowerCase().includes(listing.locality.toLowerCase()))
+            });
+          }
+        }
+      }
+
+      priceCheck = comparePricePerSqft(listing, cellEntries, options);
+      if (priceCheck && priceCheck.status !== 'not_applicable') {
+        humanReadablePoints.push({
+          category: 'Price per Sq.Ft',
+          icon: '📏',
+          fired: false,
+          statusLabel: priceCheck.status === 'ok' ? 'Verified' : 'Info',
+          point: priceCheck.point,
+          reason: priceCheck.reason,
+          details: priceCheck
+        });
+      }
     }
 
     const buyerDueDiligenceChecklist = [
@@ -710,20 +745,6 @@ export function analyzeListing(listing, options = {}) {
     }
   ];
 
-  let priceCheck = null;
-  if (options.peerListings || options.includePriceCheck) {
-    priceCheck = evaluatePricePerSqftCheck(listing, options.peerListings || [], options);
-    humanReadablePoints.push({
-      category: priceCheck.category,
-      icon: priceCheck.icon,
-      fired: priceCheck.fired,
-      statusLabel: priceCheck.statusLabel,
-      point: priceCheck.point,
-      reason: priceCheck.reason,
-      details: priceCheck
-    });
-  }
-
   const safetyAdvice = [
     'Never transfer any token fee, gate entry pass fee, or courier charge via UPI before you physically enter and tour the apartment.',
     'Always request to meet the owner, building security guard, or society manager in person at the property gate first.',
@@ -742,7 +763,7 @@ export function analyzeListing(listing, options = {}) {
     observableFacts,
     humanReadablePoints,
     safetyAdvice,
-    priceCheck,
+    priceCheck: null,
     benchmark: {
       level: resolvedBenchmark.level,
       sourceLabel: resolvedBenchmark.sourceLabel,

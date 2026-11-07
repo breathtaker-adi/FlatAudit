@@ -42,8 +42,8 @@ describe('Piece 0: Safety Rule - Block Price Comparison When Mode is Unknown', (
     // Verify observation row exists with exact required safety text
     const pricePoint = analysis.humanReadablePoints.find(p => p.category === 'Price per Sq.Ft');
     assert.ok(pricePoint, 'Price per Sq.Ft observation row must be present');
-    assert.equal(pricePoint.point, 'Pick rent or sale first');
-    assert.match(pricePoint.reason, /choose rent or sale/i);
+    assert.match(pricePoint.point, /Pick rent or sale first/i);
+    assert.match(pricePoint.reason, /Pick rent or sale first/i);
 
     // Verify no price signals or outlier z-score flags fired
     assert.equal(analysis.firedCount, 0);

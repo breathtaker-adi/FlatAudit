@@ -264,6 +264,39 @@ function updateTrustUI(analysis) {
 
     card.appendChild(head);
     card.appendChild(body);
+
+    if (item.details && (item.details.how_compared || item.details.drawback)) {
+      const detailsEl = document.createElement('div');
+      detailsEl.className = 'point-details';
+      detailsEl.style.display = 'none';
+      detailsEl.style.marginTop = '6px';
+      detailsEl.style.fontSize = '11px';
+      detailsEl.style.lineHeight = '1.4';
+      detailsEl.style.color = 'var(--text-tertiary)';
+      detailsEl.innerHTML = `
+        ${item.details.how_compared ? `<div style="margin-bottom:3px"><b>How judged:</b> ${item.details.how_compared}</div>` : ''}
+        ${item.details.fact ? `<div style="margin-bottom:3px"><b>Fact:</b> ${item.details.fact}</div>` : ''}
+        ${item.details.drawback ? `<div><b>Drawback:</b> ${item.details.drawback}</div>` : ''}
+      `;
+      card.appendChild(detailsEl);
+      card.style.cursor = 'pointer';
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('role', 'button');
+      card.setAttribute('aria-expanded', 'false');
+      const toggle = () => {
+        const isExp = detailsEl.style.display === 'block';
+        detailsEl.style.display = isExp ? 'none' : 'block';
+        card.setAttribute('aria-expanded', isExp ? 'false' : 'true');
+      };
+      card.addEventListener('click', toggle);
+      card.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          toggle();
+        }
+      });
+    }
+
     pointsList.appendChild(card);
   }
 }
