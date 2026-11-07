@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="tests/"><img src="https://img.shields.io/badge/Unit%20Tests-111%2F111%20Passing-brightgreen.svg" alt="Tests" /></a>
+  <a href="tests/"><img src="https://img.shields.io/badge/Unit%20Tests-265%2F265%20Passing-brightgreen.svg" alt="Tests" /></a>
   <a href="backend/tests/"><img src="https://img.shields.io/badge/API%20Tests-30%2F30%20Passing-brightgreen.svg" alt="Pytest" /></a>
   <a href="tests/test_classifier_bulk.test.js"><img src="https://img.shields.io/badge/Intent%20Classifier-120%2F120%20(100%25)-brightgreen.svg" alt="Classifier" /></a>
   <a href="eval/evaluation_results.md"><img src="https://img.shields.io/badge/Synthetic%20Baseline-97.3%25-blue.svg" alt="Synthetic Eval" /></a>
@@ -78,6 +78,11 @@ Apple HIG Interface (Companion Drawer & Toolbar Popup)
 
 ### 🏠 Buyer Mode: Evaluate the Flat, Project & Builder
 - **Multi-Signal Intent Classifier (`classifier.js`)**: Evaluates 120+ real-world listing structures across NoBroker, MagicBricks, 99acres, and Housing with a 100% correct mode detection rate (0.0% wrong-mode rate). Automatically engages Buyer Mode on sale listings and Rent Mode on rental pages.
+- **Price Per Sq Ft Intelligence Engine (Sale Mode)**:
+  - Compares flat ₹/sq ft strictly on **like-for-like** area types (Carpet vs SBUA) and identical BHK.
+  - Spatial neighbour inclusion: automatically resolves neighbor localities within a **3.0 km radius** using haversine math.
+  - Robust sample gating: requires $n \ge 8$ listings combined across $\ge 2$ cells (or $n \ge 8$ in 1 cell); otherwise suppresses comparison and reports *"Not enough listings to compare."*
+  - $N$-weighted median calculation: transparently states *"₹X/sq ft, Y% above/below the middle rate of ₹Z/sq ft (N listings, M localities within 3 km)"*.
 - **Objective 4-Line Evaluation**: Replaces arbitrary score badges with factual observations with sources and dates:
   1. **Flat**: Rate per sq.ft vs peers and government circle rate on strict like-for-like area basis (Carpet vs SBUA).
   2. **Project**: Official Form B completion dates vs revised dates (`Dates revised in X of Y projects`), escrow bank, and State RERA status.
@@ -89,6 +94,17 @@ Apple HIG Interface (Companion Drawer & Toolbar Popup)
   - *Raj-RERA Disclosure Auditing*: Checks Form R-1 (Architect), Form R-2 (Engineer), Form R-3 (Chartered Accountant Escrow), and quarterly progress reports (QPR) for overdrawn escrow or improbable completion velocity.
 - **All-In Acquisition Cost Estimator (`closing_costs.json`)**: Statutory stamp duty, registration fees, GST (0% on OC ready-to-move vs 5% under-construction), BESCOM/BWSSB, and Khata transfer estimates.
 - **Printable 1-Page Buyer Due Diligence Report**: One-click generation of a clean, printer-friendly dossier for buyers to hand directly to their advocate.
+
+### 📍 Area Report & Neighborhood Intelligence (`extension/lib/area/`)
+- **Five Graded Amenity Categories**: Evaluates **Emergency & Healthcare**, **Daily Supplies & Services**, **Commute & Transit**, **Safety & Environment** (*"Nearby map facts, not crime data."*), and **Lifestyle & Community**.
+- **Pilot City Tiers**: Metro thresholds for **Bengaluru**; smaller-city thresholds for **Jaipur** and **Jodhpur**.
+- **Privacy by Design Architecture**:
+  - **Off by Default**: Requires explicit user opt-in in settings and requests Chrome's optional host permissions (`optional_host_permissions`).
+  - **Location Rounding (~100m)**: Lat/lng are rounded to 3 decimal places before any network query is made or cached.
+  - **Zero Data Transmission When Off**: The drawer and popup footer guarantee *"🔒 Zero personal data transmitted"*. Unit tests assert zero `fetch` calls occur when disabled.
+  - **On-Device 14-Day LRU Cache**: Stores up to 50 locations locally via `StorageAdapter` to minimize external map queries.
+  - **Density Gating**: Automatically flags `thin_map` (*"Not enough map data here."*) when fewer than 5 amenities exist within 1 km, and low confidence when fewer than 15 exist.
+  - **OpenStreetMap Attribution**: Respects ODbL requirements: *"Map data © OpenStreetMap contributors"*.
 
 ### 📈 Capital Appreciation & Investment Engine (`investment.js`)
 - **Multi-Year Capital Growth Forecast**: Evaluates compounding appreciation trajectories for 3-Year, 5-Year, and 10-Year horizons based on Indian metro infrastructure and historical CAGR tiers (Conservative 5.5%, Moderate 8.0%, High Growth 11.5%).
@@ -113,7 +129,7 @@ FlatAudit maintains an automated single-source-of-truth evaluation bridge (`eval
 
 | Suite | Scope | Pass Rate | Target |
 | :--- | :--- | :--- | :--- |
-| **JavaScript Unit Tests** | 111 tests (parsers, signals, math, buyer, investment, tracker) | **111 / 111 (100%)** | 100% |
+| **JavaScript Unit Tests** | 265 tests (parsers, signals, math, buyer, price check, area report) | **265 / 265 (100%)** | 100% |
 | **Python Backend Tests** | 30 tests (API, SQLite, duplicate matches, telemetry, spikes) | **30 / 30 (100%)** | 100% |
 | **Intent Classifier Bulk** | 120 real-world page patterns (NoBroker, MagicBricks, 99acres) | **120 / 120 (100%)** | > 98% |
 | **Synthetic Dataset A** | 250 synthetic edge cases across 4 cities (`eval/labels.csv`) | **97.3% Accuracy** | > 85% |
@@ -137,7 +153,7 @@ python -m pip install -r backend/requirements.txt
 
 ### Step 2: Run Unit & Integration Tests
 ```bash
-# Run 111 JavaScript unit, buyer mode, parser health & investment tests
+# Run 265 JavaScript unit, buyer mode, price check & area report tests
 npm test
 
 # Run 30 Python API, SQLite, duplicate matching & spike tests

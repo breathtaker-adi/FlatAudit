@@ -60,6 +60,7 @@ It solves two critical problems in the Indian rental market:
 | Permission | Technical Requirement | User Privacy Guarantee |
 | :--- | :--- | :--- |
 | `storage` | Required to store your watchlist, price snapshots, and personal notes locally on your machine. | All data resides in `chrome.storage.local`. Nothing is synced or shared without your explicit action. |
+| `optional_host_permissions` (`https://overpass-api.de/*`, `https://overpass.kumi.systems/*`, `https://lz4.overpass-api.de/*`) | *Optional Host Permission*: Only requested if you explicitly turn on the Area Report in extension settings. Used to fetch public OpenStreetMap amenities using rounded ~100m coordinates. | Never requested automatically. Can be revoked at any time. When disabled, zero map queries are executed. |
 | `host_permissions` (`*.nobroker.in/*`, `*.magicbricks.com/*`, `*.99acres.com/*`, `*.housing.com/*`) | Required to read listing details on supported rental portals and allow the background service worker to fetch listing photos into an `OffscreenCanvas` for local 64-bit dHash computation without canvas tainting. | Only executes on rental listing pages. Zero automated web crawling. |
 | `http://127.0.0.1:8000/*` | Required for the optional local analytics server and cross-portal duplicate check. | Fully configurable via extension settings (`flataudit_api_url`). The extension remains 100% functional offline using built-in static market packs. |
 

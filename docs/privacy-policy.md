@@ -27,7 +27,15 @@ When you navigate to a supported rental listing (*NoBroker*, *MagicBricks*, *99a
 - **Zero Browsing History**: FlatAudit operates exclusively when you open a supported rental portal listing or results page. It has zero visibility into any other tabs, websites, or search queries.
 - **Zero Account Requirement**: FlatAudit requires no signup, login, password, or third-party authentication.
 
-### C. Data Transmitted to the Optional Analytics Registry
+### C. Area Report (OpenStreetMap) Opt-In Privacy & Location Rounding
+FlatAudit includes an optional **Area Report** feature providing neighborhood amenities (healthcare, daily supplies, transit, environment, community):
+- **Off by Default**: The Area Report is strictly disabled by default. No requests are made to map servers unless you explicitly toggle the feature ON in the extension settings.
+- **Consent & Permission**: Toggling ON prompts a transparent consent dialog explaining what is requested and invokes Chrome's optional host permissions API for OpenStreetMap Overpass servers. If denied, the switch remains OFF.
+- **Strict Location Rounding (~100m)**: When enabled, the flat's coordinates are rounded to 3 decimal places (approx. 100 meters at Indian latitudes, e.g. `12.978, 77.641`) before any network query is executed or stored in the local cache. Your exact location is never transmitted.
+- **Zero Transmission Guarantee When Off**: When Area Report is disabled, the footer displays `"🔒 Zero personal data transmitted"`. Unit tests guarantee that zero network calls to map servers can occur while disabled.
+- **How to Turn Off**: You can disable Area Report at any time from the extension popup with one click.
+
+### D. Data Transmitted to the Optional Analytics Registry
 If connected to a FlatAudit backend instance (either your own self-hosted server or an official community instance):
 - The extension transmits only anonymous listing attributes: `portal`, `listing_key`, `locality`, `bhk`, `rent`, `deposit`, `area_sqft`, `floor`, and the 16-hex character `image_hash`.
 - This anonymous data is used solely to detect cross-portal duplicate listings and compute regional trimmed medians.
@@ -45,6 +53,7 @@ FlatAudit requests the minimum permissions necessary to function:
 | `*://*.magicbricks.com/*` | Content script execution and image fetching for dHash computation on MagicBricks. |
 | `*://*.99acres.com/*` | Content script execution and image fetching for dHash computation on 99acres. |
 | `*://*.housing.com/*` | Content script execution and image fetching for dHash computation on Housing.com. |
+| `https://overpass-api.de/*`, `https://overpass.kumi.systems/*`, `https://lz4.overpass-api.de/*` | *Optional Host Permissions*: Only requested if the user explicitly turns on Area Report in settings to fetch nearby map facts from OpenStreetMap. |
 | `http://127.0.0.1:8000/*` | Local development and self-hosted backend API communication. |
 | `file:///*` | Allows users and researchers to run trust evaluations on saved offline HTML fixtures without internet access. |
 

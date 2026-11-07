@@ -32,11 +32,19 @@
 | `Litigation disclosed: [N] matter(s) pending before authority` | Factual disclosure from official filings |
 | `Data completeness: X of Y standard fields found` | Transparent transparency metric |
 | `Price per sq ft is near typical range for X similar listings (carpet area basis)` | Comparative statistical observation |
+| `₹X/sq ft, Y% above/below the middle rate of ₹Z/sq ft (N listings, M localities within 3 km)` | Standardized price per sq ft check wording |
+| `{name} is {km} km away (straight line)` | Factual distance observation |
+| `No {thing} found within {km} km on the map` | Factual absence observation ("on the map") |
+| `Nearby map facts, not crime data.` | Mandatory safety and environment disclaimer |
 | `Not confirmed to be the same builder entity` | Clarification when joining projects across entities |
 
 ### 10 Strictly Banned Phrasings
 | Banned Phrasing | Reason for Ban |
 | :--- | :--- |
+| ❌ `Overpriced` / `Underpriced` | Subjective price judgment; use "X% above/below the middle rate" |
+| ❌ `Cheap` / `Good deal` / `Worth it` | Evaluative commercial commentary; prohibited |
+| ❌ `Bad area` / `Unsafe locality` | Defamatory geographical judgment; forbidden |
+| ❌ `Safe area` / `Safe neighborhood` | False security promise; crime data is not tracked |
 | ❌ `Reliable builder` / `Top builder` | Evaluative subjective label; defamation risk |
 | ❌ `Bad builder` / `Risky promoter` | Defamatory subjective label |
 | ❌ `Safe project` / `100% Legal` | False sense of security; does not verify title |

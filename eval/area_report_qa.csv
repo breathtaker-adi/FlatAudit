@@ -1,0 +1,76 @@
+city,flat_url_hash,category,grade_shown,owner_agrees,note
+bengaluru,bng_ind_01,emergency_healthcare,Good,y,Chinmaya Mission Hospital & Apollo Clinic within 400m
+bengaluru,bng_ind_01,daily_supplies,Good,y,Natures Basket and multiple groceries on 100ft Rd
+bengaluru,bng_ind_01,commute_transit,Good,y,Indiranagar Metro & BMTC stops within 300m
+bengaluru,bng_ind_01,safety_environment,Good,y,Police station 400m away; street lighting on primary road
+bengaluru,bng_ind_01,lifestyle_community,Good,y,Defence Colony park and numerous cafes within 500m
+bengaluru,bng_kor_02,emergency_healthcare,Good,y,St. Johns Medical College Hospital 1.2km away
+bengaluru,bng_kor_02,daily_supplies,Good,y,Spar and Namdharis Fresh easily accessible
+bengaluru,bng_kor_02,commute_transit,Okay,y,Dense bus network but Metro under construction
+bengaluru,bng_kor_02,safety_environment,Good,y,Koramangala Police Station 800m away
+bengaluru,bng_kor_02,lifestyle_community,Good,y,Vibrant dining and fitness center hub
+bengaluru,bng_whi_03,emergency_healthcare,Good,y,Manipal Hospital Whitefield within 1.8km
+bengaluru,bng_whi_03,daily_supplies,Good,y,Supermarkets present along ITPL main corridor
+bengaluru,bng_whi_03,commute_transit,Good,y,Whitefield Purple Line Metro operational
+bengaluru,bng_whi_03,safety_environment,Okay,y,Outer highway traffic; industrial tech park proximity
+bengaluru,bng_whi_03,lifestyle_community,Good,y,Forum Shantiniketan and gyms nearby
+bengaluru,bng_hsr_04,emergency_healthcare,Good,y,Narayana Multispeciality Hospital accessible
+bengaluru,bng_hsr_04,daily_supplies,Good,y,27th Main high-density retail and supermarkets
+bengaluru,bng_hsr_04,commute_transit,Okay,y,Silk Board transit junction and BMTC bus feeder
+bengaluru,bng_hsr_04,safety_environment,Good,y,HSR Police Station 1.1km away
+bengaluru,bng_hsr_04,lifestyle_community,Good,y,HSR sector parks and fitness facilities
+bengaluru,bng_jay_05,emergency_healthcare,Good,y,Sagar Hospitals and Jayadeva nearby
+bengaluru,bng_jay_05,daily_supplies,Good,y,Jayanagar 4th Block complex and fresh market
+bengaluru,bng_jay_05,commute_transit,Good,y,Green line metro and bus terminal
+bengaluru,bng_jay_05,safety_environment,Good,y,Jayanagar Police Station and wide tree-lined avenues
+bengaluru,bng_jay_05,lifestyle_community,Good,y,Madhavan Park and community halls
+jaipur,jpr_csc_01,emergency_healthcare,Good,y,SMS Hospital and super-specialty clinics within 2km
+jaipur,jpr_csc_01,daily_supplies,Good,y,Reliance Fresh and local markets around Ahinsa Circle
+jaipur,jpr_csc_01,commute_transit,Good,y,Jaipur Metro station and Prithviraj Road corridor
+jaipur,jpr_csc_01,safety_environment,Good,y,Ashok Nagar Police Station within 700m
+jaipur,jpr_csc_01,lifestyle_community,Good,y,Central Park Jaipur and high-end cafes
+jaipur,jpr_man_02,emergency_healthcare,Good,y,Metro MAS Hospital and clinics in sector hub
+jaipur,jpr_man_02,daily_supplies,Good,y,Smart Point and Mansarovar vegetable market
+jaipur,jpr_man_02,commute_transit,Good,y,Mansarovar Metro terminus within 1.5km
+jaipur,jpr_man_02,safety_environment,Good,y,Mansarovar Police Station within 1.2km
+jaipur,jpr_man_02,lifestyle_community,Good,y,City Park Mansarovar and schools
+jaipur,jpr_mal_03,emergency_healthcare,Good,y,Apex Hospital and Fortis accessible
+jaipur,jpr_mal_03,daily_supplies,Good,y,Gaurav Tower and World Trade Park retail area
+jaipur,jpr_mal_03,commute_transit,Okay,y,JLN Marg bus transit; rail station slightly farther
+jaipur,jpr_mal_03,safety_environment,Good,y,Malviya Nagar Police Station nearby
+jaipur,jpr_mal_03,lifestyle_community,Good,y,Jawahar Kala Kendra and parks
+jaipur,jpr_vai_04,emergency_healthcare,Good,y,Amrapali circle clinics and hospitals
+jaipur,jpr_vai_04,daily_supplies,Good,y,Dense retail on Queens Road and Amrapali Marg
+jaipur,jpr_vai_04,commute_transit,Okay,y,Road arterial connectivity; metro feeder needed
+jaipur,jpr_vai_04,safety_environment,Good,y,Vaishali Nagar Police Station 1.5km
+jaipur,jpr_vai_04,lifestyle_community,Good,y,Community grounds and restaurants
+jaipur,jpr_raj_05,emergency_healthcare,Good,y,SMS hospital and private nursing homes
+jaipur,jpr_raj_05,daily_supplies,Good,y,Raja Park market corridor
+jaipur,jpr_raj_05,commute_transit,Okay,y,Bus transit along Govind Marg
+jaipur,jpr_raj_05,safety_environment,Good,y,Adarsh Nagar Police Station within 1.8km
+jaipur,jpr_raj_05,lifestyle_community,Good,y,Local dining hub and sports club
+jodhpur,jdh_sar_01,emergency_healthcare,Good,y,MDM Hospital and Goyal Hospital within 1.5km
+jodhpur,jdh_sar_01,daily_supplies,Good,y,National Handloom and Sardarpura grocery market
+jodhpur,jdh_sar_01,commute_transit,Good,y,Jodhpur Junction railway station and main roads
+jodhpur,jdh_sar_01,safety_environment,Good,y,Sardarpura Police Station 800m away
+jodhpur,jdh_sar_01,lifestyle_community,Good,y,Nehru Park and local fitness centers
+jodhpur,jdh_rat_02,emergency_healthcare,Good,y,Military Hospital and polyclinics accessible
+jodhpur,jdh_rat_02,daily_supplies,Good,y,Ratanada circle markets and stores
+jodhpur,jdh_rat_02,commute_transit,Good,y,Ratanada Circle bus and auto transit
+jodhpur,jdh_rat_02,safety_environment,Good,y,Ratanada Police Station 600m away
+jodhpur,jdh_rat_02,lifestyle_community,Good,y,Circuit House area parks and clubs
+jodhpur,jdh_sha_03,emergency_healthcare,Good,y,MDM Hospital corridor and specialty doctors
+jodhpur,jdh_sha_03,daily_supplies,Good,y,Shastri Nagar commercial center
+jodhpur,jdh_sha_03,commute_transit,Good,y,Residency Road public transit connectivity
+jodhpur,jdh_sha_03,safety_environment,Good,y,Shastri Nagar Police Station nearby
+jodhpur,jdh_sha_03,lifestyle_community,Good,y,Community parks and recreational grounds
+jodhpur,jdh_pao_04,emergency_healthcare,Good,y,MG Hospital accessibility and clinics
+jodhpur,jdh_pao_04,daily_supplies,Good,y,Paota BJS market and Mandore road retail
+jodhpur,jdh_pao_04,commute_transit,Good,y,Paota central bus stand major transit hub
+jodhpur,jdh_pao_04,safety_environment,Good,y,Mahamandir Police Station 1.2km
+jodhpur,jdh_pao_04,lifestyle_community,Okay,y,Fewer green spaces; dense commercial mix
+jodhpur,jdh_bjs_05,emergency_healthcare,Okay,y,Local clinics; major hospitals 2.5km
+jodhpur,jdh_bjs_05,daily_supplies,Good,y,BJS Colony community shopping center
+jodhpur,jdh_bjs_05,commute_transit,Good,y,Road connectivity to Paota and bypass
+jodhpur,jdh_bjs_05,safety_environment,Good,y,Residential quiet; police outpost 1.4km
+jodhpur,jdh_bjs_05,lifestyle_community,Okay,y,Colony parks present; commercial entertainment farther

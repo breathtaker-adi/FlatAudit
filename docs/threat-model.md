@@ -65,6 +65,7 @@
 | **I-01** | Leaking tenant browsing history or phone numbers | High | **Privacy by Design**: FlatAudit parses only the listing being viewed on demand. Phone numbers, contact tokens, and broker identities are explicitly discarded and never sent to the backend. | **Mitigated** |
 | **I-02** | Storing copyrighted listing photography | Medium | Only 64-bit perceptual hashes (16 hex chars) are stored; raw image files are never written to disk or sent to backend storage. | **Mitigated** |
 | **I-03** | Leakage of private watchlist notes or shortlisted properties | High | **Local-Only Sandboxing**: Watchlists, price drop snapshots, and user notes are stored strictly in `chrome.storage.local`. They never leave the browser and are never transmitted to any API or portal. | **Mitigated** |
+| **I-04** | Third-party location tracking via OpenStreetMap Overpass queries | Medium | **Off-By-Default & ~100m Rounding**: Area Report is disabled by default. When enabled by user consent, coordinates are strictly rounded to 3 decimal places (~100m) before querying map servers. Queries are cached locally for 14 days (LRU 50 entries) via StorageAdapter to minimize third-party exposure. Rate-limited to 1 request per 5 seconds. | **Mitigated** |
 
 ### 5. Denial of Service (DoS)
 | Threat ID | Threat Description | Severity | Mitigation in FlatAudit | Status |

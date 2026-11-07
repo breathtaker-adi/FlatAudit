@@ -79,3 +79,16 @@ FlatAudit is a privacy-preserving browser extension and lightweight backend desi
 - Constructive, verifiable language: strictly outputs observable facts ("*this photo appeared in 4 other listings*", "*rent is 78% below HSR median*").
 - **Never uses defamatory labels**: UI never states "scammer", "fraudster", or "criminal".
 - Standard status labels: `Looks normal`, `Some signals`, `Many signals`.
+
+### F. Price Per Sq Ft Intelligence Engine (`extension/lib/price_compare.js` & `localities.js`)
+- **Like-for-Like Comparison**: Compares sale property ₹/sq ft strictly on identical BHK and identical Area Type (Carpet vs Super Built-up Area).
+- **Spatial 3 km Neighbours**: Uses haversine math to identify the flat's locality plus all neighbor localities within a 3.0 km radius.
+- **Sample Gating**: Enforces minimum $n \ge 8$ sample across at least 2 distinct cells or $n \ge 8$ in a single cell; otherwise suppresses median and reports *"Not enough listings to compare."*
+- **$N$-Weighted Aggregation**: Computes $n$-weighted median across neighbor localities with transparent reporting of localities used and sample size.
+
+### G. Area Report & Neighborhood Intelligence (`extension/lib/area/`)
+- **OpenStreetMap Integration**: Queries public Overpass API endpoints (primary + fallback mirrors) with 25-second timeout and 5-second rate limiting.
+- **Privacy Preservation**: Off-by-default; requires user consent and optional host permission; location rounded to ~100m (3 decimals) before any network query.
+- **On-Device 14-Day LRU Cache**: Caches up to 50 rounded locations in `StorageAdapter` with 14-day TTL.
+- **Five Graded Categories**: Emergency & Healthcare, Daily Supplies & Services, Commute & Transit, Safety & Environment ("Nearby map facts, not crime data."), and Lifestyle & Community.
+- **City Tier Rules**: Metro thresholds for Bengaluru; smaller-city thresholds for Jaipur and Jodhpur. Density gating (< 5 items = `thin_map`, < 15 items = `low` confidence).
