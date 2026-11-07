@@ -148,3 +148,113 @@ export function evaluateEmergencyHealthcare(elements, cityTier = 'metro', rules 
 
   return graded;
 }
+
+// ============================================================================
+// Slice S7b: Daily Supplies & Services Extractor
+// ============================================================================
+
+/**
+ * Extracts and grades Daily Supplies & Services.
+ * Checks: Supermarket/Grocery, Greengrocer, Bank/ATM, Pharmacy.
+ * @param {Array<object>} elements
+ * @param {'metro'|'smaller'} cityTier
+ * @param {object} [rules]
+ * @returns {object} Graded category result
+ */
+export function evaluateDailySupplies(elements, cityTier = 'metro', rules = defaultRules) {
+  const catDef = rules.categories.daily_supplies;
+  const checksDef = catDef.checks;
+
+  // 1. Supermarket / Convenience / Grocery
+  const nearestGrocery = findNearestElement(elements, (el) => {
+    const shop = el.tags?.shop;
+    return shop && ['supermarket', 'convenience', 'grocery', 'general'].includes(shop);
+  });
+
+  const groceryScore = scoreCheck(
+    nearestGrocery?.distKm ?? null,
+    checksDef.grocery_km,
+    cityTier
+  );
+
+  const groceryCheck = {
+    key: 'grocery_km',
+    label: checksDef.grocery_km.label,
+    thing: checksDef.grocery_km.thing,
+    searchRadiusKm: checksDef.grocery_km.search_radius_km,
+    name: nearestGrocery?.tags?.name || (nearestGrocery ? 'Grocery store' : null),
+    km: nearestGrocery?.distKm ?? null,
+    score: groceryScore.score,
+    hasData: groceryScore.hasData
+  };
+
+  // 2. Greengrocer / Vegetable market
+  const nearestGreengrocer = findNearestElement(elements, (el) => {
+    return el.tags?.shop === 'greengrocer';
+  });
+
+  const greengrocerScore = scoreCheck(
+    nearestGreengrocer?.distKm ?? null,
+    checksDef.greengrocer_km,
+    cityTier
+  );
+
+  const greengrocerCheck = {
+    key: 'greengrocer_km',
+    label: checksDef.greengrocer_km.label,
+    thing: checksDef.greengrocer_km.thing,
+    searchRadiusKm: checksDef.greengrocer_km.search_radius_km,
+    name: nearestGreengrocer?.tags?.name || (nearestGreengrocer ? 'Greengrocer' : null),
+    km: nearestGreengrocer?.distKm ?? null,
+    score: greengrocerScore.score,
+    hasData: greengrocerScore.hasData
+  };
+
+  // 3. Bank or ATM
+  const nearestBankAtm = findNearestElement(elements, (el) => {
+    const amenity = el.tags?.amenity;
+    return amenity === 'atm' || amenity === 'bank';
+  });
+
+  const bankAtmScore = scoreCheck(
+    nearestBankAtm?.distKm ?? null,
+    checksDef.bank_atm_km,
+    cityTier
+  );
+
+  const bankAtmCheck = {
+    key: 'bank_atm_km',
+    label: checksDef.bank_atm_km.label,
+    thing: checksDef.bank_atm_km.thing,
+    searchRadiusKm: checksDef.bank_atm_km.search_radius_km,
+    name: nearestBankAtm?.tags?.name || (nearestBankAtm ? 'Bank or ATM' : null),
+    km: nearestBankAtm?.distKm ?? null,
+    score: bankAtmScore.score,
+    hasData: bankAtmScore.hasData
+  };
+
+  // 4. Pharmacy (daily necessity)
+  const nearestPharmacy = findNearestElement(elements, (el) => {
+    return el.tags?.amenity === 'pharmacy';
+  });
+
+  const pharmacyScore = scoreCheck(
+    nearestPharmacy?.distKm ?? null,
+    checksDef.pharmacy_km,
+    cityTier
+  );
+
+  const pharmacyCheck = {
+    key: 'pharmacy_km',
+    label: checksDef.pharmacy_km.label,
+    thing: checksDef.pharmacy_km.thing,
+    searchRadiusKm: checksDef.pharmacy_km.search_radius_km,
+    name: nearestPharmacy?.tags?.name || (nearestPharmacy ? 'Pharmacy' : null),
+    km: nearestPharmacy?.distKm ?? null,
+    score: pharmacyScore.score,
+    hasData: pharmacyScore.hasData
+  };
+
+  const checks = [groceryCheck, greengrocerCheck, bankAtmCheck, pharmacyCheck];
+  return gradeCategory(checks, 'daily_supplies', cityTier, rules);
+}
