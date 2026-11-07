@@ -19,6 +19,10 @@ import {
   estimateTotalCost,
   getPaperworkChecklist
 } from '../extension/lib/buyer.js';
+import {
+  generateAreaReport,
+  renderAreaReportDOM
+} from '../extension/lib/area/report.js';
 
 const PRESETS = {
   normal: {
@@ -340,6 +344,19 @@ function renderResults(res) {
     const drawerCard = card.cloneNode(true);
     mockDrawerBody.appendChild(drawerCard);
   }
+
+  // Area Report Section (Slice S8)
+  try {
+    const lat = res.listing?.lat || 12.978;
+    const lng = res.listing?.lng || 77.641;
+    const city = res.listing?.city || res.listing?.locality || 'Bengaluru';
+    const areaReport = await generateAreaReport(
+      { lat, lng, city },
+      { settings: { enabled: true } }
+    );
+    const areaEl = renderAreaReportDOM(areaReport, document);
+    mockDrawerBody.appendChild(areaEl);
+  } catch (err) {}
 
   // Update Kill Chain Bar
   for (let i = 1; i <= 4; i++) {

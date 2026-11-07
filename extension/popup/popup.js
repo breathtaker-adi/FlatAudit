@@ -30,6 +30,10 @@ import {
   requestAreaReportPermissions,
   getFooterPrivacyText
 } from '../lib/settings.js';
+import {
+  generateAreaReport,
+  renderAreaReportDOM
+} from '../lib/area/report.js';
 
 let activeAnalysis = null;
 const selectedForCompare = new Set();
@@ -305,6 +309,27 @@ function updateTrustUI(analysis) {
 
     pointsList.appendChild(card);
   }
+
+  // Area Report Section (Slice S8)
+  try {
+    getAreaReportSettings().then(async (areaSettings) => {
+      const latCandidate = analysis.listing?.lat;
+      const lngCandidate = analysis.listing?.lng;
+      const cityCandidate = analysis.listing?.city || analysis.listing?.locality;
+
+      if (latCandidate && lngCandidate) {
+        const areaReport = await generateAreaReport(
+          { lat: latCandidate, lng: lngCandidate, city: cityCandidate },
+          { settings: areaSettings }
+        );
+        const areaReportEl = renderAreaReportDOM(areaReport, document);
+        pointsList.appendChild(areaReportEl);
+      } else if (!areaSettings.enabled) {
+        const areaReportEl = renderAreaReportDOM({ status: 'off' }, document);
+        pointsList.appendChild(areaReportEl);
+      }
+    }).catch(() => {});
+  } catch (e) {}
 }
 
 async function syncQuickTrackBtn() {

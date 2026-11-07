@@ -20,6 +20,7 @@
     const buyerUrl = chrome.runtime.getURL('lib/buyer.js');
     const investmentUrl = chrome.runtime.getURL('lib/investment.js');
     const settingsUrl = chrome.runtime.getURL('lib/settings.js');
+    const areaReportUrl = chrome.runtime.getURL('lib/area/report.js');
 
     const { extractListing, parsePeerListingsFromPage } = await import(parsersUrl);
     const { analyzeListing } = await import(signalsUrl);
@@ -47,6 +48,10 @@
       getAreaReportSettings,
       getFooterPrivacyText
     } = await import(settingsUrl);
+    const {
+      generateAreaReport,
+      renderAreaReportDOM
+    } = await import(areaReportUrl);
 
     let currentAnalysis = null;
     let badgeContainer = null;
@@ -901,6 +906,26 @@
         }
       }
       drawer.appendChild(pointsList);
+
+      // Area Report Section (Slice S8)
+      try {
+        const areaSettings = await getAreaReportSettings();
+        const cityCandidate = data.listing?.city || data.listing?.locality;
+        const latCandidate = data.listing?.lat;
+        const lngCandidate = data.listing?.lng;
+
+        if (latCandidate && lngCandidate) {
+          const areaReport = await generateAreaReport(
+            { lat: latCandidate, lng: lngCandidate, city: cityCandidate },
+            { settings: areaSettings }
+          );
+          const areaReportEl = renderAreaReportDOM(areaReport, document);
+          drawer.appendChild(areaReportEl);
+        } else if (!areaSettings.enabled) {
+          const areaReportEl = renderAreaReportDOM({ status: 'off' }, document);
+          drawer.appendChild(areaReportEl);
+        }
+      } catch (err) {}
 
       // Section: Protection / Due Diligence Checklist
       const safetyBox = document.createElement('div');
