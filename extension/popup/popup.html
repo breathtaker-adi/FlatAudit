@@ -171,6 +171,23 @@
           <li>For purchase listings, verify RERA disclosures and municipal title deed with an advocate.</li>
         </ul>
       </div>
+
+      <!-- Area Report & Privacy Settings (Slice S4) -->
+      <div class="settings-card" id="settings-card">
+        <div class="settings-header">
+          <div class="settings-title-group">
+            <span class="settings-title">Area Report</span>
+            <span class="settings-subtitle">OpenStreetMap • Off by default</span>
+          </div>
+          <label class="switch-toggle" for="toggle-area-report">
+            <input type="checkbox" id="toggle-area-report" aria-label="Toggle Area Report">
+            <span class="slider-round"></span>
+          </label>
+        </div>
+        <div class="consent-box" id="area-report-consent-box">
+          <p class="consent-text" id="area-report-consent-text">Area Report asks OpenStreetMap servers what is near this flat. This sends the flat's location, rounded to about 100 m, from your browser to the map servers. Nothing else is sent. Off by default; you can turn it off any time.</p>
+        </div>
+      </div>
     </main>
 
     <!-- Tab 2: Buyhatke Watchlist & Side-by-Side Compare -->
@@ -223,7 +240,7 @@
       <span class="footer-dot">•</span>
       <button type="button" class="footer-btn" id="popup-feedback-btn">Report Inaccuracy</button>
       <span class="footer-dot">•</span>
-      <span class="footer-badge">Zero PII</span>
+      <span class="footer-badge" id="popup-footer-privacy">🔒 Zero personal data transmitted</span>
     </footer>
   </div>
 

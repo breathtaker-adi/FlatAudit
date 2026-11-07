@@ -1,4 +1,5 @@
 import { computeDHashFromImageData } from './lib/dhash.js';
+import { getAreaReportSettings } from './lib/settings.js';
 
 const DEFAULT_BACKEND_URL = 'http://127.0.0.1:8000/api/v1';
 
@@ -213,6 +214,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.type === 'GET_CACHED_ANALYSIS') {
     chrome.storage.local.get(['lastAnalysis'], (result) => {
       sendResponse(result.lastAnalysis || null);
+    });
+    return true;
+  }
+
+  if (request.type === 'AREA_QUERY') {
+    getAreaReportSettings().then((settings) => {
+      if (!settings.enabled) {
+        sendResponse({ status: 'off', message: 'Area Report is off' });
+        return;
+      }
+      // When enabled, S5 client executes Overpass query
+      sendResponse({ status: 'ready' });
+    }).catch(() => {
+      sendResponse({ status: 'off' });
     });
     return true;
   }

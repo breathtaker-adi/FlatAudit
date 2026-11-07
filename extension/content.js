@@ -19,6 +19,7 @@
     const trackerUrl = chrome.runtime.getURL('lib/tracker.js');
     const buyerUrl = chrome.runtime.getURL('lib/buyer.js');
     const investmentUrl = chrome.runtime.getURL('lib/investment.js');
+    const settingsUrl = chrome.runtime.getURL('lib/settings.js');
 
     const { extractListing, parsePeerListingsFromPage } = await import(parsersUrl);
     const { analyzeListing } = await import(signalsUrl);
@@ -42,6 +43,10 @@
       calculateInvestmentForecast,
       formatIndianCurrencyAbbr
     } = await import(investmentUrl);
+    const {
+      getAreaReportSettings,
+      getFooterPrivacyText
+    } = await import(settingsUrl);
 
     let currentAnalysis = null;
     let badgeContainer = null;
@@ -1008,7 +1013,27 @@
 
       const privacyNote = document.createElement('span');
       privacyNote.className = 'flataudit-security-badge';
-      privacyNote.textContent = '🔒 Zero personal data transmitted • Local-first evaluation';
+      try {
+        const areaReportSettings = await getAreaReportSettings();
+        privacyNote.textContent = getFooterPrivacyText(areaReportSettings.enabled);
+      } catch (e) {
+        privacyNote.textContent = getFooterPrivacyText(false);
+      }
+
+      // Live update footer if user toggles Area Report in popup/settings
+      try {
+        if (typeof chrome !== 'undefined' && chrome?.storage?.onChanged) {
+          chrome.storage.onChanged.addListener((changes, area) => {
+            if (area === 'local' && (changes.flataudit_settings || changes['flataudit_settings.areaReport'])) {
+              getAreaReportSettings().then((st) => {
+                if (privacyNote) {
+                  privacyNote.textContent = getFooterPrivacyText(st.enabled);
+                }
+              }).catch(() => {});
+            }
+          });
+        }
+      } catch (err) {}
 
       securityRow.appendChild(privacyNote);
 

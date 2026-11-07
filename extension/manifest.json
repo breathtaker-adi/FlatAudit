@@ -6,6 +6,11 @@
   "permissions": [
     "storage"
   ],
+  "optional_host_permissions": [
+    "https://overpass-api.de/*",
+    "https://overpass.kumi.systems/*",
+    "https://lz4.overpass-api.de/*"
+  ],
   "host_permissions": [
     "http://127.0.0.1:8000/*",
     "http://localhost:8000/*",

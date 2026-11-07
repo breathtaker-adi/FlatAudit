@@ -24,6 +24,12 @@ import {
   calculateInvestmentForecast,
   formatIndianCurrencyAbbr
 } from '../lib/investment.js';
+import {
+  getAreaReportSettings,
+  setAreaReportSettings,
+  requestAreaReportPermissions,
+  getFooterPrivacyText
+} from '../lib/settings.js';
 
 let activeAnalysis = null;
 const selectedForCompare = new Set();
@@ -605,6 +611,51 @@ function initCompareEvents() {
   });
 }
 
+/**
+ * Initializes Area Report privacy settings switch and permission handling (Slice S4)
+ */
+async function initAreaReportSettings() {
+  const toggleEl = document.getElementById('toggle-area-report');
+  const footerBadge = document.getElementById('popup-footer-privacy');
+  if (!toggleEl) return;
+
+  try {
+    const currentSettings = await getAreaReportSettings();
+    toggleEl.checked = Boolean(currentSettings.enabled);
+    if (footerBadge) {
+      footerBadge.textContent = getFooterPrivacyText(currentSettings.enabled);
+    }
+  } catch (err) {
+    toggleEl.checked = false;
+  }
+
+  toggleEl.addEventListener('change', async () => {
+    if (toggleEl.checked) {
+      // User requested enabling: invoke permission request for Overpass origins
+      const granted = await requestAreaReportPermissions();
+      if (granted) {
+        await setAreaReportSettings({ enabled: true });
+        if (footerBadge) {
+          footerBadge.textContent = getFooterPrivacyText(true);
+        }
+      } else {
+        // Permission denied by user: switch remains OFF
+        toggleEl.checked = false;
+        await setAreaReportSettings({ enabled: false });
+        if (footerBadge) {
+          footerBadge.textContent = getFooterPrivacyText(false);
+        }
+      }
+    } else {
+      // User disabled Area Report
+      await setAreaReportSettings({ enabled: false });
+      if (footerBadge) {
+        footerBadge.textContent = getFooterPrivacyText(false);
+      }
+    }
+  });
+}
+
 // Initial boot
 document.addEventListener('DOMContentLoaded', async () => {
   initTabs();
@@ -612,6 +663,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initCompareEvents();
   checkBackendHealth();
   updateTrackedBadgeCount();
+  initAreaReportSettings();
 
   const feedbackBtn = document.getElementById('popup-feedback-btn');
   if (feedbackBtn) {
