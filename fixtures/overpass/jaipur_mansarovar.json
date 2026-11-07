@@ -1,0 +1,123 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-07T00:00:00Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "attribution": "Map data © OpenStreetMap contributors",
+  "query_center": { "lat": 26.853, "lng": 75.765 },
+  "date": "2026-11-07",
+  "elements": [
+    {
+      "type": "node",
+      "id": 4001,
+      "lat": 26.8580,
+      "lon": 75.7680,
+      "tags": { "amenity": "hospital", "name": "Metro MAS Hospital Mansarovar", "emergency": "yes" }
+    },
+    {
+      "type": "node",
+      "id": 4002,
+      "lat": 26.8510,
+      "lon": 75.7620,
+      "tags": { "amenity": "clinic", "name": "Saket Medical Clinic" }
+    },
+    {
+      "type": "node",
+      "id": 4003,
+      "lat": 26.8525,
+      "lon": 75.7645,
+      "tags": { "amenity": "pharmacy", "name": "Sanjivani Pharmacy Mansarovar" }
+    },
+    {
+      "type": "node",
+      "id": 4004,
+      "lat": 26.8535,
+      "lon": 75.7635,
+      "tags": { "shop": "supermarket", "name": "Reliance Smart Bazaar Mansarovar" }
+    },
+    {
+      "type": "node",
+      "id": 4005,
+      "lat": 26.8540,
+      "lon": 75.7655,
+      "tags": { "shop": "greengrocer", "name": "Mansarovar Subzi Mandi" }
+    },
+    {
+      "type": "node",
+      "id": 4006,
+      "lat": 26.8528,
+      "lon": 75.7652,
+      "tags": { "amenity": "atm", "name": "Bank of Baroda ATM" }
+    },
+    {
+      "type": "node",
+      "id": 4007,
+      "lat": 26.8527,
+      "lon": 75.7653,
+      "tags": { "amenity": "bank", "name": "Punjab National Bank" }
+    },
+    {
+      "type": "node",
+      "id": 4008,
+      "lat": 26.8550,
+      "lon": 75.7660,
+      "tags": { "highway": "bus_stop", "name": "Mansarovar Sector 3 Bus Stop" }
+    },
+    {
+      "type": "node",
+      "id": 4009,
+      "lat": 26.8610,
+      "lon": 75.7680,
+      "tags": { "railway": "station", "station": "subway", "name": "Mansarovar Metro Station" }
+    },
+    {
+      "type": "node",
+      "id": 4010,
+      "lat": 26.8505,
+      "lon": 75.7610,
+      "tags": { "amenity": "police", "name": "Mansarovar Police Station" }
+    },
+    {
+      "type": "way",
+      "id": 4011,
+      "center": { "lat": 26.8560, "lon": 75.7630 },
+      "tags": { "leisure": "park", "name": "City Park Mansarovar" }
+    },
+    {
+      "type": "way",
+      "id": 4012,
+      "center": { "lat": 26.8530, "lon": 75.7650 },
+      "tags": { "highway": "secondary", "name": "Madhyam Marg", "lit": "yes" }
+    },
+    {
+      "type": "node",
+      "id": 4013,
+      "lat": 26.8522,
+      "lon": 75.7640,
+      "tags": { "amenity": "cafe", "name": "Cafe Coffee Day Mansarovar" }
+    },
+    {
+      "type": "node",
+      "id": 4014,
+      "lat": 26.8545,
+      "lon": 75.7670,
+      "tags": { "leisure": "fitness_centre", "name": "Talwalkars Gym" }
+    },
+    {
+      "type": "node",
+      "id": 4015,
+      "lat": 26.8500,
+      "lon": 75.7600,
+      "tags": { "amenity": "school", "name": "Tagore Public School Mansarovar" }
+    },
+    {
+      "type": "node",
+      "id": 4016,
+      "lat": 26.8515,
+      "lon": 75.7625,
+      "tags": { "amenity": "place_of_worship", "name": "Hanuman Temple Mansarovar" }
+    }
+  ]
+}

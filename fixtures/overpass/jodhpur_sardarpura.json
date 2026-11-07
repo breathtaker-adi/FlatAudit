@@ -1,0 +1,123 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-07T00:00:00Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "attribution": "Map data © OpenStreetMap contributors",
+  "query_center": { "lat": 26.279, "lng": 73.013 },
+  "date": "2026-11-07",
+  "elements": [
+    {
+      "type": "node",
+      "id": 5001,
+      "lat": 26.2720,
+      "lon": 73.0080,
+      "tags": { "amenity": "hospital", "name": "MDM Hospital Jodhpur", "emergency": "yes" }
+    },
+    {
+      "type": "node",
+      "id": 5002,
+      "lat": 26.2810,
+      "lon": 73.0140,
+      "tags": { "amenity": "hospital", "name": "Goyal Hospital & Research Centre" }
+    },
+    {
+      "type": "node",
+      "id": 5003,
+      "lat": 26.2795,
+      "lon": 73.0120,
+      "tags": { "amenity": "pharmacy", "name": "Sardarpura Chemist" }
+    },
+    {
+      "type": "node",
+      "id": 5004,
+      "lat": 26.2788,
+      "lon": 73.0135,
+      "tags": { "shop": "supermarket", "name": "National Handloom Corporation" }
+    },
+    {
+      "type": "node",
+      "id": 5005,
+      "lat": 26.2790,
+      "lon": 73.0132,
+      "tags": { "shop": "greengrocer", "name": "Sardarpura Sabzi Market" }
+    },
+    {
+      "type": "node",
+      "id": 5006,
+      "lat": 26.2782,
+      "lon": 73.0128,
+      "tags": { "amenity": "atm", "name": "State Bank of India ATM" }
+    },
+    {
+      "type": "node",
+      "id": 5007,
+      "lat": 26.2781,
+      "lon": 73.0127,
+      "tags": { "amenity": "bank", "name": "Bank of Baroda Sardarpura" }
+    },
+    {
+      "type": "node",
+      "id": 5008,
+      "lat": 26.2800,
+      "lon": 73.0145,
+      "tags": { "highway": "bus_stop", "name": "Sardarpura 4th Road Bus Stop" }
+    },
+    {
+      "type": "node",
+      "id": 5009,
+      "lat": 26.2830,
+      "lon": 73.0220,
+      "tags": { "railway": "station", "name": "Jodhpur Junction Railway Station" }
+    },
+    {
+      "type": "node",
+      "id": 5010,
+      "lat": 26.2760,
+      "lon": 73.0110,
+      "tags": { "amenity": "police", "name": "Sardarpura Police Station" }
+    },
+    {
+      "type": "way",
+      "id": 5011,
+      "center": { "lat": 26.2815, "lon": 73.0160 },
+      "tags": { "leisure": "park", "name": "Nehru Park Jodhpur" }
+    },
+    {
+      "type": "way",
+      "id": 5012,
+      "center": { "lat": 26.2790, "lon": 73.0130 },
+      "tags": { "highway": "primary", "name": "Sardarpura Main Road", "lit": "yes" }
+    },
+    {
+      "type": "node",
+      "id": 5013,
+      "lat": 26.2792,
+      "lon": 73.0125,
+      "tags": { "amenity": "cafe", "name": "Cafe Jodhpur" }
+    },
+    {
+      "type": "node",
+      "id": 5014,
+      "lat": 26.2770,
+      "lon": 73.0150,
+      "tags": { "leisure": "fitness_centre", "name": "Fitness Zone Jodhpur" }
+    },
+    {
+      "type": "node",
+      "id": 5015,
+      "lat": 26.2805,
+      "lon": 73.0115,
+      "tags": { "amenity": "school", "name": "Saint Anne's School Sardarpura" }
+    },
+    {
+      "type": "node",
+      "id": 5016,
+      "lat": 26.2785,
+      "lon": 73.0138,
+      "tags": { "amenity": "place_of_worship", "name": "Ganesh Mandir Sardarpura" }
+    }
+  ]
+}

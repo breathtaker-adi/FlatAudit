@@ -1,0 +1,123 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-07T00:00:00Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "attribution": "Map data © OpenStreetMap contributors",
+  "query_center": { "lat": 26.271, "lng": 73.036 },
+  "date": "2026-11-07",
+  "elements": [
+    {
+      "type": "node",
+      "id": 6001,
+      "lat": 26.2650,
+      "lon": 73.0420,
+      "tags": { "amenity": "hospital", "name": "Military Hospital Jodhpur", "emergency": "yes" }
+    },
+    {
+      "type": "node",
+      "id": 6002,
+      "lat": 26.2730,
+      "lon": 73.0340,
+      "tags": { "amenity": "clinic", "name": "Ratanada Polyclinic" }
+    },
+    {
+      "type": "node",
+      "id": 6003,
+      "lat": 26.2715,
+      "lon": 73.0355,
+      "tags": { "amenity": "pharmacy", "name": "Ratanada Medical Store" }
+    },
+    {
+      "type": "node",
+      "id": 6004,
+      "lat": 26.2708,
+      "lon": 73.0365,
+      "tags": { "shop": "supermarket", "name": "Ratanada Daily Market" }
+    },
+    {
+      "type": "node",
+      "id": 6005,
+      "lat": 26.2712,
+      "lon": 73.0360,
+      "tags": { "shop": "greengrocer", "name": "Subzi Haat Ratanada" }
+    },
+    {
+      "type": "node",
+      "id": 6006,
+      "lat": 26.2705,
+      "lon": 73.0350,
+      "tags": { "amenity": "atm", "name": "Punjab National Bank ATM" }
+    },
+    {
+      "type": "node",
+      "id": 6007,
+      "lat": 26.2706,
+      "lon": 73.0348,
+      "tags": { "amenity": "bank", "name": "State Bank of India Ratanada Branch" }
+    },
+    {
+      "type": "node",
+      "id": 6008,
+      "lat": 26.2725,
+      "lon": 73.0370,
+      "tags": { "highway": "bus_stop", "name": "Ratanada Circle Bus Stop" }
+    },
+    {
+      "type": "node",
+      "id": 6009,
+      "lat": 26.2620,
+      "lon": 73.0480,
+      "tags": { "railway": "station", "station": "halt", "name": "Raikabagh Palace Junction" }
+    },
+    {
+      "type": "node",
+      "id": 6010,
+      "lat": 26.2740,
+      "lon": 73.0330,
+      "tags": { "amenity": "police", "name": "Ratanada Police Station" }
+    },
+    {
+      "type": "way",
+      "id": 6011,
+      "center": { "lat": 26.2720, "lon": 73.0390 },
+      "tags": { "leisure": "park", "name": "Ratanada Community Park" }
+    },
+    {
+      "type": "way",
+      "id": 6012,
+      "center": { "lat": 26.2710, "lon": 73.0360 },
+      "tags": { "highway": "secondary", "name": "Circuit House Road", "lit": "yes" }
+    },
+    {
+      "type": "node",
+      "id": 6013,
+      "lat": 26.2718,
+      "lon": 73.0352,
+      "tags": { "amenity": "cafe", "name": "On The Rocks Cafe" }
+    },
+    {
+      "type": "node",
+      "id": 6014,
+      "lat": 26.2690,
+      "lon": 73.0380,
+      "tags": { "leisure": "fitness_centre", "name": "Gold's Gym Ratanada" }
+    },
+    {
+      "type": "node",
+      "id": 6015,
+      "lat": 26.2680,
+      "lon": 73.0400,
+      "tags": { "amenity": "school", "name": "Air Force School Ratanada" }
+    },
+    {
+      "type": "node",
+      "id": 6016,
+      "lat": 26.2735,
+      "lon": 73.0325,
+      "tags": { "amenity": "place_of_worship", "name": "Shiv Mandir Ratanada" }
+    }
+  ]
+}

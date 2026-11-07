@@ -1,0 +1,61 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-07T00:00:00Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "attribution": "Map data © OpenStreetMap contributors",
+  "query_center": { "lat": 26.600, "lng": 73.600 },
+  "date": "2026-11-07",
+  "elements": [
+    {
+      "type": "node",
+      "id": 7001,
+      "lat": 26.6010,
+      "lon": 73.6015,
+      "tags": { "shop": "convenience" }
+    },
+    {
+      "type": "node",
+      "id": 7002,
+      "lat": 26.6025,
+      "lon": 73.6030,
+      "tags": { "highway": "bus_stop" }
+    },
+    {
+      "type": "node",
+      "id": 7003,
+      "lat": 26.6040,
+      "lon": 73.6050,
+      "tags": { "amenity": "atm" }
+    },
+    {
+      "type": "way",
+      "id": 7004,
+      "center": { "lat": 26.6005, "lon": 73.6008 },
+      "tags": { "highway": "secondary" }
+    },
+    {
+      "type": "node",
+      "id": 7005,
+      "lat": 26.6060,
+      "lon": 73.6070,
+      "tags": { "amenity": "place_of_worship" }
+    },
+    {
+      "type": "node",
+      "id": 7006,
+      "lat": 26.6070,
+      "lon": 73.6080,
+      "tags": { "shop": "general" }
+    },
+    {
+      "type": "node",
+      "id": 7007,
+      "lat": 26.6085,
+      "lon": 73.6095,
+      "tags": { "leisure": "park" }
+    }
+  ]
+}

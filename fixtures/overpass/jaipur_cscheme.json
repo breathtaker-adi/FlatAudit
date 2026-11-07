@@ -1,0 +1,123 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-07T00:00:00Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "attribution": "Map data © OpenStreetMap contributors",
+  "query_center": { "lat": 26.912, "lng": 75.802 },
+  "date": "2026-11-07",
+  "elements": [
+    {
+      "type": "node",
+      "id": 3001,
+      "lat": 26.9080,
+      "lon": 75.8090,
+      "tags": { "amenity": "hospital", "name": "SMS Hospital", "emergency": "yes" }
+    },
+    {
+      "type": "node",
+      "id": 3002,
+      "lat": 26.9130,
+      "lon": 75.8005,
+      "tags": { "amenity": "clinic", "name": "C-Scheme Medical Clinic" }
+    },
+    {
+      "type": "node",
+      "id": 3003,
+      "lat": 26.9118,
+      "lon": 75.8015,
+      "tags": { "amenity": "pharmacy", "name": "Apollo Pharmacy Ahinsa Circle" }
+    },
+    {
+      "type": "node",
+      "id": 3004,
+      "lat": 26.9125,
+      "lon": 75.8010,
+      "tags": { "shop": "supermarket", "name": "Reliance Fresh C-Scheme" }
+    },
+    {
+      "type": "node",
+      "id": 3005,
+      "lat": 26.9122,
+      "lon": 75.8018,
+      "tags": { "shop": "greengrocer", "name": "Sabzi Mandi Sub-Outlet" }
+    },
+    {
+      "type": "node",
+      "id": 3006,
+      "lat": 26.9110,
+      "lon": 75.8025,
+      "tags": { "amenity": "atm", "name": "State Bank of India ATM" }
+    },
+    {
+      "type": "node",
+      "id": 3007,
+      "lat": 26.9112,
+      "lon": 75.8024,
+      "tags": { "amenity": "bank", "name": "HDFC Bank C-Scheme Branch" }
+    },
+    {
+      "type": "node",
+      "id": 3008,
+      "lat": 26.9135,
+      "lon": 75.8030,
+      "tags": { "highway": "bus_stop", "name": "Ahinsa Circle Bus Stop" }
+    },
+    {
+      "type": "node",
+      "id": 26912001,
+      "lat": 26.9200,
+      "lon": 75.7950,
+      "tags": { "railway": "station", "station": "subway", "name": "Railway Station Metro Station Jaipur" }
+    },
+    {
+      "type": "node",
+      "id": 3010,
+      "lat": 26.9075,
+      "lon": 75.8040,
+      "tags": { "amenity": "police", "name": "Ashok Nagar Police Station" }
+    },
+    {
+      "type": "way",
+      "id": 3011,
+      "center": { "lat": 26.9050, "lon": 75.8070 },
+      "tags": { "leisure": "park", "name": "Central Park Jaipur" }
+    },
+    {
+      "type": "way",
+      "id": 3012,
+      "center": { "lat": 26.9122, "lon": 75.8020 },
+      "tags": { "highway": "primary", "name": "Prithviraj Road", "lit": "yes" }
+    },
+    {
+      "type": "node",
+      "id": 3013,
+      "lat": 26.9115,
+      "lon": 75.8012,
+      "tags": { "amenity": "cafe", "name": "Curious Life Coffee Roasters", "opening_hours": "08:00-23:00" }
+    },
+    {
+      "type": "node",
+      "id": 3014,
+      "lat": 26.9140,
+      "lon": 75.8000,
+      "tags": { "leisure": "fitness_centre", "name": "Anytime Fitness C-Scheme" }
+    },
+    {
+      "type": "node",
+      "id": 3015,
+      "lat": 26.9090,
+      "lon": 75.8050,
+      "tags": { "amenity": "school", "name": "St. Xavier's Senior Secondary School" }
+    },
+    {
+      "type": "node",
+      "id": 3016,
+      "lat": 26.9100,
+      "lon": 75.8060,
+      "tags": { "amenity": "place_of_worship", "name": "Birla Mandir Sub-shrine" }
+    }
+  ]
+}

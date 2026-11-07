@@ -1,0 +1,151 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API 0.7.62",
+  "osm3s": {
+    "timestamp_osm_base": "2026-11-07T00:00:00Z",
+    "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."
+  },
+  "attribution": "Map data © OpenStreetMap contributors",
+  "query_center": { "lat": 12.978, "lng": 77.641 },
+  "date": "2026-11-07",
+  "elements": [
+    {
+      "type": "node",
+      "id": 1001,
+      "lat": 12.9775,
+      "lon": 77.6385,
+      "tags": { "amenity": "hospital", "name": "Chinmaya Mission Hospital", "emergency": "yes" }
+    },
+    {
+      "type": "node",
+      "id": 1002,
+      "lat": 12.9810,
+      "lon": 77.6490,
+      "tags": { "amenity": "hospital", "name": "Sir CV Raman General Hospital" }
+    },
+    {
+      "type": "node",
+      "id": 1003,
+      "lat": 12.9760,
+      "lon": 77.6420,
+      "tags": { "amenity": "clinic", "name": "Apollo Clinic Indiranagar" }
+    },
+    {
+      "type": "node",
+      "id": 1004,
+      "lat": 12.9770,
+      "lon": 77.6415,
+      "tags": { "amenity": "pharmacy", "name": "MedPlus Pharmacy", "opening_hours": "07:00-23:00" }
+    },
+    {
+      "type": "node",
+      "id": 1005,
+      "lat": 12.9755,
+      "lon": 77.6430,
+      "tags": { "shop": "supermarket", "name": "Nature's Basket" }
+    },
+    {
+      "type": "node",
+      "id": 1006,
+      "lat": 12.9790,
+      "lon": 77.6395,
+      "tags": { "shop": "convenience", "name": "Daily Needs Grocery" }
+    },
+    {
+      "type": "node",
+      "id": 1007,
+      "lat": 12.9780,
+      "lon": 77.6400,
+      "tags": { "shop": "greengrocer", "name": "Fresh Fruit & Vegetables" }
+    },
+    {
+      "type": "node",
+      "id": 1008,
+      "lat": 12.9772,
+      "lon": 77.6405,
+      "tags": { "amenity": "atm", "name": "HDFC Bank ATM" }
+    },
+    {
+      "type": "node",
+      "id": 1009,
+      "lat": 12.9771,
+      "lon": 77.6403,
+      "tags": { "amenity": "bank", "name": "State Bank of India" }
+    },
+    {
+      "type": "node",
+      "id": 1010,
+      "lat": 12.9783,
+      "lon": 77.6387,
+      "tags": { "railway": "station", "station": "subway", "name": "Indiranagar Metro Station" }
+    },
+    {
+      "type": "node",
+      "id": 1011,
+      "lat": 12.9782,
+      "lon": 77.6410,
+      "tags": { "highway": "bus_stop", "name": "Indiranagar 100ft Road Bus Stop" }
+    },
+    {
+      "type": "node",
+      "id": 1012,
+      "lat": 12.9765,
+      "lon": 77.6440,
+      "tags": { "highway": "bus_stop", "name": "Defence Colony Bus Stop" }
+    },
+    {
+      "type": "node",
+      "id": 1013,
+      "lat": 12.9740,
+      "lon": 77.6370,
+      "tags": { "amenity": "police", "name": "Indiranagar Police Station" }
+    },
+    {
+      "type": "way",
+      "id": 1014,
+      "center": { "lat": 12.9760, "lon": 77.6450 },
+      "tags": { "leisure": "park", "name": "Defence Colony Park" }
+    },
+    {
+      "type": "way",
+      "id": 1015,
+      "center": { "lat": 12.9778, "lon": 77.6409 },
+      "tags": { "highway": "primary", "name": "100 Feet Road", "lit": "yes" }
+    },
+    {
+      "type": "node",
+      "id": 1016,
+      "lat": 12.9768,
+      "lon": 77.6418,
+      "tags": { "amenity": "cafe", "name": "Third Wave Coffee", "opening_hours": "07:30-23:30" }
+    },
+    {
+      "type": "node",
+      "id": 1017,
+      "lat": 12.9764,
+      "lon": 77.6419,
+      "tags": { "amenity": "restaurant", "name": "Toit Brewpub", "opening_hours": "12:00-00:30" }
+    },
+    {
+      "type": "node",
+      "id": 1018,
+      "lat": 12.9750,
+      "lon": 77.6435,
+      "tags": { "leisure": "fitness_centre", "name": "Cult.fit Indiranagar" }
+    },
+    {
+      "type": "node",
+      "id": 1019,
+      "lat": 12.9720,
+      "lon": 77.6480,
+      "tags": { "amenity": "school", "name": "National Public School Indiranagar" }
+    },
+    {
+      "type": "node",
+      "id": 1020,
+      "lat": 12.9785,
+      "lon": 77.6390,
+      "tags": { "amenity": "place_of_worship", "name": "Someshwara Temple" }
+    }
+  ]
+}
