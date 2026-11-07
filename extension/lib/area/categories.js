@@ -258,3 +258,98 @@ export function evaluateDailySupplies(elements, cityTier = 'metro', rules = defa
   const checks = [groceryCheck, greengrocerCheck, bankAtmCheck, pharmacyCheck];
   return gradeCategory(checks, 'daily_supplies', cityTier, rules);
 }
+
+// ============================================================================
+// Slice S7c: Commute & Transit Extractor
+// ============================================================================
+
+/**
+ * Extracts and grades Commute & Transit facilities.
+ * Checks: Bus stop/station, Metro/Rail station, Main Road access.
+ * @param {Array<object>} elements
+ * @param {'metro'|'smaller'} cityTier
+ * @param {object} [rules]
+ * @returns {object} Graded category result
+ */
+export function evaluateCommuteTransit(elements, cityTier = 'metro', rules = defaultRules) {
+  const catDef = rules.categories.commute_transit;
+  const checksDef = catDef.checks;
+
+  // 1. Bus Stop / Station / Platform
+  const nearestBusStop = findNearestElement(elements, (el) => {
+    const highway = el.tags?.highway;
+    const amenity = el.tags?.amenity;
+    const pt = el.tags?.public_transport;
+    return highway === 'bus_stop' || amenity === 'bus_station' || pt === 'platform';
+  });
+
+  const busScore = scoreCheck(
+    nearestBusStop?.distKm ?? null,
+    checksDef.bus_stop_km,
+    cityTier
+  );
+
+  const busCheck = {
+    key: 'bus_stop_km',
+    label: checksDef.bus_stop_km.label,
+    thing: checksDef.bus_stop_km.thing,
+    searchRadiusKm: checksDef.bus_stop_km.search_radius_km,
+    name: nearestBusStop?.tags?.name || (nearestBusStop ? 'Bus stop' : null),
+    km: nearestBusStop?.distKm ?? null,
+    score: busScore.score,
+    hasData: busScore.hasData
+  };
+
+  // 2. Metro / Rail Station
+  const nearestMetroRail = findNearestElement(elements, (el) => {
+    const railway = el.tags?.railway;
+    const station = el.tags?.station;
+    return (
+      station === 'subway' ||
+      (railway && ['station', 'subway', 'subway_entrance', 'halt'].includes(railway))
+    );
+  });
+
+  const metroScore = scoreCheck(
+    nearestMetroRail?.distKm ?? null,
+    checksDef.metro_rail_km,
+    cityTier
+  );
+
+  const metroCheck = {
+    key: 'metro_rail_km',
+    label: checksDef.metro_rail_km.label,
+    thing: checksDef.metro_rail_km.thing,
+    searchRadiusKm: checksDef.metro_rail_km.search_radius_km,
+    name: nearestMetroRail?.tags?.name || (nearestMetroRail ? 'Metro/Rail station' : null),
+    km: nearestMetroRail?.distKm ?? null,
+    score: metroScore.score,
+    hasData: metroScore.hasData
+  };
+
+  // 3. Main Road (Trunk / Primary / Secondary)
+  const nearestMainRoad = findNearestElement(elements, (el) => {
+    const highway = el.tags?.highway;
+    return highway && ['trunk', 'primary', 'secondary'].includes(highway);
+  });
+
+  const roadScore = scoreCheck(
+    nearestMainRoad?.distKm ?? null,
+    checksDef.main_road_km,
+    cityTier
+  );
+
+  const roadCheck = {
+    key: 'main_road_km',
+    label: checksDef.main_road_km.label,
+    thing: checksDef.main_road_km.thing,
+    searchRadiusKm: checksDef.main_road_km.search_radius_km,
+    name: nearestMainRoad?.tags?.name || (nearestMainRoad ? 'Main road' : null),
+    km: nearestMainRoad?.distKm ?? null,
+    score: roadScore.score,
+    hasData: roadScore.hasData
+  };
+
+  const checks = [busCheck, metroCheck, roadCheck];
+  return gradeCategory(checks, 'commute_transit', cityTier, rules);
+}
