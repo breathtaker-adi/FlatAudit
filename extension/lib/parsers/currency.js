@@ -124,8 +124,8 @@ export function parseAreaType(raw) {
   if (!raw || typeof raw !== 'string') return 'unknown';
   const lower = raw.toLowerCase();
   if (/carpet/i.test(lower)) return 'carpet';
-  if (/super[-\s]*built|sbua/i.test(lower)) return 'super_builtup';
-  if (/built[-\s]*up/i.test(lower)) return 'builtup';
+  if (/super[-_\s]*built|sbua/i.test(lower)) return 'super_builtup';
+  if (/built[-_\s]*up/i.test(lower)) return 'builtup';
   return 'unknown';
 }
 

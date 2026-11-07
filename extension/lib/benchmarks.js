@@ -399,3 +399,11 @@ export function getReraPortalUrl(reraId = '', locality = '') {
   };
 }
 
+// Re-export Price per Sq.Ft Check & Like-for-Like Matching Engine
+export {
+  normalizeAreaType,
+  filterLikeForLikeListings,
+  evaluatePricePerSqftCheck
+} from './price_check.js';
+
+

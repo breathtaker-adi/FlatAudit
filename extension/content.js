@@ -839,8 +839,10 @@
           cardTitle.textContent = `${item.icon} ${item.category}`;
 
           const statusPill = document.createElement('span');
-          statusPill.className = `flataudit-point-status ${item.fired ? 'status-flagged' : 'status-normal'}`;
-          statusPill.textContent = item.fired ? 'Flagged' : 'Verified';
+          const isBlocked = item.statusLabel === 'Blocked';
+          const isInfo = item.statusLabel === 'Info' || item.statusLabel === 'Action Required';
+          statusPill.className = `flataudit-point-status ${item.fired ? 'status-flagged' : (isBlocked ? 'status-blocked' : (isInfo ? 'status-info' : 'status-normal'))}`;
+          statusPill.textContent = item.statusLabel || (item.fired ? 'Flagged' : 'Verified');
 
           cardHeader.appendChild(cardTitle);
           cardHeader.appendChild(statusPill);
@@ -851,10 +853,12 @@
           pointText.textContent = item.point;
           pointCard.appendChild(pointText);
 
-          const reasonText = document.createElement('div');
-          reasonText.className = 'flataudit-point-reason';
-          reasonText.textContent = item.reason;
-          pointCard.appendChild(reasonText);
+          if (item.reason && item.reason.trim().toLowerCase() !== item.point.trim().toLowerCase()) {
+            const reasonText = document.createElement('div');
+            reasonText.className = 'flataudit-point-reason';
+            reasonText.textContent = item.reason;
+            pointCard.appendChild(reasonText);
+          }
 
           pointsList.appendChild(pointCard);
         }

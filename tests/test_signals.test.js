@@ -172,6 +172,40 @@ describe('Signal Evaluation Rules', () => {
       assert.match(analysis.signals.phrase.reason, /Demands booking token/i);
       assert.equal(analysis.badgeTone, 'bad');
     });
+
+    it('Piece 0 Safety Rule: blocks price per sq ft comparison and shows "Pick rent or sale first" when listingType is unknown', () => {
+      const unclearListing = {
+        listingType: 'unknown',
+        title: 'Spacious Multi-Storey Flat in Bangalore',
+        rawPrice: 5500000,
+        area_sqft: 1400,
+        bhk: 3,
+        locality: 'Koramangala, Bangalore'
+      };
+
+      const analysis = analyzeListing(unclearListing, {
+        peerListings: [
+          { bhk: 3, area_sqft: 1400, areaType: 'carpet', price: 5400000, listingType: 'sale' },
+          { bhk: 3, area_sqft: 1400, areaType: 'carpet', price: 5600000, listingType: 'sale' }
+        ]
+      });
+
+      assert.equal(analysis.listingType, 'unknown');
+      assert.equal(analysis.badgeLabel, 'Select Mode');
+      assert.equal(analysis.badgeTone, 'warn');
+
+      // Observation points must include blocked Price per Sq.Ft
+      const pricePoint = analysis.humanReadablePoints.find(p => p.category === 'Price per Sq.Ft');
+      assert.ok(pricePoint, 'Price per Sq.Ft observation must be present');
+      assert.equal(pricePoint.point, 'Pick rent or sale first');
+      assert.match(pricePoint.reason, /choose rent or sale/i);
+
+      // Verify no price signals or outlier alerts fired on unknown mode
+      assert.equal(analysis.firedCount, 0);
+      assert.equal(analysis.priceCheck.blocked, true);
+      assert.equal(analysis.priceCheck.ratePerSqft, null);
+      assert.equal(analysis.priceCheck.middleRate, null);
+    });
   });
 
   describe('Buying Checks & Official RERA Links', () => {

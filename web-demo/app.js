@@ -311,14 +311,21 @@ function renderResults(res) {
   const points = res.humanReadablePoints || [];
   for (const p of points) {
     const card = document.createElement('div');
-    card.className = `point-card ${p.fired ? 'flagged' : 'normal'}`;
+    const isBlocked = p.statusLabel === 'Blocked';
+    const isInfo = p.statusLabel === 'Info' || p.statusLabel === 'Action Required';
+    card.className = `point-card ${p.fired ? 'flagged' : (isBlocked ? 'warn' : 'normal')}`;
+    const statusClass = p.fired ? 'status-flagged' : (isBlocked ? 'status-warn' : (isInfo ? 'status-info' : 'status-normal'));
+    const statusText = p.statusLabel || (p.fired ? 'Flagged' : 'Verified');
+    const reasonHtml = (p.reason && p.reason.trim().toLowerCase() !== p.point.trim().toLowerCase())
+      ? `<div class="point-reason">${p.reason}</div>`
+      : '';
     card.innerHTML = `
       <div class="point-header">
-        <span class="point-cat">${p.category}</span>
-        <span class="point-status ${p.fired ? 'status-flagged' : 'status-normal'}">${p.fired ? 'Flagged' : 'Verified'}</span>
+        <span class="point-cat">${p.icon ? p.icon + ' ' : ''}${p.category}</span>
+        <span class="point-status ${statusClass}">${statusText}</span>
       </div>
       <div class="point-headline">${p.point}</div>
-      <div class="point-reason">${p.reason}</div>
+      ${reasonHtml}
     `;
     pointsGrid.appendChild(card);
 

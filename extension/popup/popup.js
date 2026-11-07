@@ -243,15 +243,24 @@ function updateTrustUI(analysis) {
     cat.textContent = item.category;
 
     const st = document.createElement('span');
-    st.className = `point-status ${item.fired ? 'status-flagged' : 'status-normal'}`;
-    st.textContent = item.fired ? 'Flagged' : 'Verified';
+    const isBlocked = item.statusLabel === 'Blocked';
+    const isInfo = item.statusLabel === 'Info' || item.statusLabel === 'Action Required';
+    st.className = `point-status ${item.fired ? 'status-flagged' : (isBlocked ? 'status-warn' : (isInfo ? 'status-info' : 'status-normal'))}`;
+    st.textContent = item.statusLabel || (item.fired ? 'Flagged' : 'Verified');
 
     head.appendChild(cat);
     head.appendChild(st);
 
     const body = document.createElement('div');
     body.className = 'point-body';
-    body.textContent = `${item.point}. ${item.reason}`;
+    const pointText = (item.point || '').trim();
+    const reasonText = (item.reason || '').trim();
+    if (pointText && reasonText && pointText.toLowerCase() === reasonText.toLowerCase()) {
+      body.textContent = pointText;
+    } else {
+      const sep = pointText.endsWith('.') ? ' ' : '. ';
+      body.textContent = `${pointText}${sep}${reasonText}`;
+    }
 
     card.appendChild(head);
     card.appendChild(body);

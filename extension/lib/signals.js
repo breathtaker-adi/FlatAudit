@@ -7,6 +7,7 @@
  */
 
 import { getBenchmark, robustZScore, getGuidanceValue, getReraPortalUrl } from './benchmarks.js';
+import { evaluatePricePerSqftCheck } from './price_check.js';
 import marketPacksData from './data/market_packs.json' with { type: 'json' };
 
 // Backwards-compatible export mapping for external tools & tests
@@ -495,8 +496,9 @@ export function analyzeListing(listing, options = {}) {
   const seenCount = options.seenCount || 1;
   const fullText = `${listing.title || ''} ${listing.description || ''}`;
 
-  // Handle explicit unknown mode: prompt user for mode toggle
+  // Handle explicit unknown mode: prompt user for mode toggle & block price comparisons
   if (listing.listingType === 'unknown') {
+    const priceCheck = evaluatePricePerSqftCheck(listing, options.peerListings || [], options);
     return {
       listingType: 'unknown',
       badgeLabel: 'Select Mode',
@@ -509,11 +511,23 @@ export function analyzeListing(listing, options = {}) {
           category: 'Listing Intent',
           icon: '❓',
           fired: false,
+          statusLabel: 'Action Required',
           point: 'Intent could not be determined automatically.',
           reason: 'Both rental and purchase signals are ambiguous or insufficient. Please choose whether this listing is for Rent or Sale using the switch in the companion drawer.'
+        },
+        {
+          category: priceCheck.category,
+          icon: priceCheck.icon,
+          fired: priceCheck.fired,
+          blocked: true,
+          statusLabel: priceCheck.statusLabel,
+          point: priceCheck.point,
+          reason: priceCheck.reason,
+          details: priceCheck
         }
       ],
       safetyAdvice: ['Select Rent or Sale to activate verified locality benchmarks.'],
+      priceCheck,
       signals: {}
     };
   }
@@ -580,6 +594,20 @@ export function analyzeListing(listing, options = {}) {
       }
     ];
 
+    let priceCheck = null;
+    if (options.peerListings || options.includePriceCheck) {
+      priceCheck = evaluatePricePerSqftCheck(listing, options.peerListings || [], options);
+      humanReadablePoints.push({
+        category: priceCheck.category,
+        icon: priceCheck.icon,
+        fired: priceCheck.fired,
+        statusLabel: priceCheck.statusLabel,
+        point: priceCheck.point,
+        reason: priceCheck.reason,
+        details: priceCheck
+      });
+    }
+
     const buyerDueDiligenceChecklist = [
       '1. 30-Year Title Search: Hire an independent property advocate to verify chain of title documents.',
       '2. Encumbrance Certificate (EC): Obtain Nil Encumbrance Certificate (Form 15) from Sub-Registrar.',
@@ -599,6 +627,7 @@ export function analyzeListing(listing, options = {}) {
       buyerDueDiligenceChecklist,
       safetyAdvice: buyerDueDiligenceChecklist,
       reraPortal: reraSignal.portalUrl,
+      priceCheck,
       disclaimer: 'Observable facts only. FlatAudit does not verify property title deeds or provide financial/legal advice. Always engage an independent advocate before transferring funds.',
       signals: {
         price: salePriceSignal,
@@ -681,6 +710,20 @@ export function analyzeListing(listing, options = {}) {
     }
   ];
 
+  let priceCheck = null;
+  if (options.peerListings || options.includePriceCheck) {
+    priceCheck = evaluatePricePerSqftCheck(listing, options.peerListings || [], options);
+    humanReadablePoints.push({
+      category: priceCheck.category,
+      icon: priceCheck.icon,
+      fired: priceCheck.fired,
+      statusLabel: priceCheck.statusLabel,
+      point: priceCheck.point,
+      reason: priceCheck.reason,
+      details: priceCheck
+    });
+  }
+
   const safetyAdvice = [
     'Never transfer any token fee, gate entry pass fee, or courier charge via UPI before you physically enter and tour the apartment.',
     'Always request to meet the owner, building security guard, or society manager in person at the property gate first.',
@@ -699,6 +742,7 @@ export function analyzeListing(listing, options = {}) {
     observableFacts,
     humanReadablePoints,
     safetyAdvice,
+    priceCheck,
     benchmark: {
       level: resolvedBenchmark.level,
       sourceLabel: resolvedBenchmark.sourceLabel,
