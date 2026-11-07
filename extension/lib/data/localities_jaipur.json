@@ -1,0 +1,172 @@
+[
+  {
+    "name": "Vaishali Nagar",
+    "aliases": [
+      "vaishali nagar",
+      "vaishali",
+      "amrapali circle",
+      "gandhi path"
+    ],
+    "lat": 26.908,
+    "lng": 75.7423,
+    "geohash5": "tsvc5"
+  },
+  {
+    "name": "Chitrakoot",
+    "aliases": [
+      "chitrakoot",
+      "chitrakoot stadium",
+      "vaishali west"
+    ],
+    "lat": 26.8992,
+    "lng": 75.7408,
+    "geohash5": "tsvc5"
+  },
+  {
+    "name": "Khatipura",
+    "aliases": [
+      "khatipura",
+      "khatipura road",
+      "sirsi road"
+    ],
+    "lat": 26.923,
+    "lng": 75.7445,
+    "geohash5": "tsvc5"
+  },
+  {
+    "name": "Mansarovar",
+    "aliases": [
+      "mansarovar",
+      "mansarovar metro",
+      "varun path",
+      "madhyam marg"
+    ],
+    "lat": 26.8532,
+    "lng": 75.7675,
+    "geohash5": "tsvbu"
+  },
+  {
+    "name": "Shyam Nagar",
+    "aliases": [
+      "shyam nagar",
+      "shyam nagar metro",
+      "janpath"
+    ],
+    "lat": 26.8872,
+    "lng": 75.7681,
+    "geohash5": "tsvbu"
+  },
+  {
+    "name": "Gopalpura Bypass",
+    "aliases": [
+      "gopalpura bypass",
+      "gopalpura",
+      "triveni nagar"
+    ],
+    "lat": 26.8625,
+    "lng": 75.782,
+    "geohash5": "tsvbu"
+  },
+  {
+    "name": "Malviya Nagar",
+    "aliases": [
+      "malviya nagar",
+      "gt central",
+      "wto",
+      "calgiri road"
+    ],
+    "lat": 26.8549,
+    "lng": 75.8243,
+    "geohash5": "tsvbv"
+  },
+  {
+    "name": "Jagatpura",
+    "aliases": [
+      "jagatpura",
+      "mahal road",
+      "ramnagariya",
+      "kiara ville"
+    ],
+    "lat": 26.8242,
+    "lng": 75.8398,
+    "geohash5": "tsvbt"
+  },
+  {
+    "name": "C-Scheme",
+    "aliases": [
+      "c-scheme",
+      "c scheme",
+      "ashok nagar",
+      "civil lines"
+    ],
+    "lat": 26.9112,
+    "lng": 75.7975,
+    "geohash5": "tsvch"
+  },
+  {
+    "name": "Raja Park",
+    "aliases": [
+      "raja park",
+      "tilak nagar",
+      "adarsh nagar"
+    ],
+    "lat": 26.895,
+    "lng": 75.827,
+    "geohash5": "tsvcj"
+  },
+  {
+    "name": "Bapu Nagar",
+    "aliases": [
+      "bapu nagar",
+      "jl n marg",
+      "rajasthan university"
+    ],
+    "lat": 26.888,
+    "lng": 75.808,
+    "geohash5": "tsvbv"
+  },
+  {
+    "name": "Tonk Road",
+    "aliases": [
+      "tonk road",
+      "durgapura",
+      "mahavir nagar"
+    ],
+    "lat": 26.868,
+    "lng": 75.805,
+    "geohash5": "tsvbu"
+  },
+  {
+    "name": "Vidhyadhar Nagar",
+    "aliases": [
+      "vidhyadhar nagar",
+      "sector 1 vidhyadhar",
+      "central spine"
+    ],
+    "lat": 26.962,
+    "lng": 75.779,
+    "geohash5": "tsvck"
+  },
+  {
+    "name": "Ajmer Road",
+    "aliases": [
+      "ajmer road",
+      "dcm",
+      "heerapura"
+    ],
+    "lat": 26.885,
+    "lng": 75.728,
+    "geohash5": "tsvbg"
+  },
+  {
+    "name": "Sanganer",
+    "aliases": [
+      "sanganer",
+      "pratap nagar jaipur",
+      "cheelgadi"
+    ],
+    "lat": 26.82,
+    "lng": 75.77,
+    "geohash5": "tsvbs"
+  }
+]

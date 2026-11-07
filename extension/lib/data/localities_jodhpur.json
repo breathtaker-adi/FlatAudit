@@ -1,0 +1,139 @@
+[
+  {
+    "name": "Shastri Nagar",
+    "aliases": [
+      "shastri nagar",
+      "shastri nagar jodhpur",
+      "sector c shastri"
+    ],
+    "lat": 26.273,
+    "lng": 73.008,
+    "geohash5": "tsevm"
+  },
+  {
+    "name": "Sardarpura",
+    "aliases": [
+      "sardarpura",
+      "c road sardarpura",
+      "jaljog circle"
+    ],
+    "lat": 26.2805,
+    "lng": 73.016,
+    "geohash5": "tsevt"
+  },
+  {
+    "name": "Pal Road",
+    "aliases": [
+      "pal road",
+      "pal balaji",
+      "mertiya garden",
+      "pal"
+    ],
+    "lat": 26.248,
+    "lng": 72.985,
+    "geohash5": "tsevk"
+  },
+  {
+    "name": "Khema Ka Kuwa",
+    "aliases": [
+      "khema ka kuwa",
+      "khema kuwa",
+      "shastri nagar ext"
+    ],
+    "lat": 26.255,
+    "lng": 72.995,
+    "geohash5": "tsevm"
+  },
+  {
+    "name": "Ratanada",
+    "aliases": [
+      "ratanada",
+      "circuit house",
+      "bhati circle",
+      "air force area"
+    ],
+    "lat": 26.269,
+    "lng": 73.036,
+    "geohash5": "tsevm"
+  },
+  {
+    "name": "Paota",
+    "aliases": [
+      "paota",
+      "paota b road",
+      "paota c road",
+      "mandore road"
+    ],
+    "lat": 26.302,
+    "lng": 73.045,
+    "geohash5": "tsevw"
+  },
+  {
+    "name": "Mandore",
+    "aliases": [
+      "mandore",
+      "mandore garden",
+      "nagaur road"
+    ],
+    "lat": 26.355,
+    "lng": 73.048,
+    "geohash5": "tsevy"
+  },
+  {
+    "name": "Basni Industrial Area",
+    "aliases": [
+      "basni",
+      "basni phase 1",
+      "basni phase 2",
+      "aiims jodhpur"
+    ],
+    "lat": 26.225,
+    "lng": 73.005,
+    "geohash5": "tsevj"
+  },
+  {
+    "name": "Kudi Bhagtasni",
+    "aliases": [
+      "kudi bhagtasni",
+      "kudi",
+      "kudirera",
+      "kudi housing board"
+    ],
+    "lat": 26.195,
+    "lng": 73.018,
+    "geohash5": "tsevj"
+  },
+  {
+    "name": "Chopasni Housing Board",
+    "aliases": [
+      "chopasni housing board",
+      "chopasni",
+      "chb"
+    ],
+    "lat": 26.268,
+    "lng": 72.965,
+    "geohash5": "tsevk"
+  },
+  {
+    "name": "BJS Colony",
+    "aliases": [
+      "bjs colony",
+      "bjs",
+      "bhadwasiya"
+    ],
+    "lat": 26.315,
+    "lng": 73.055,
+    "geohash5": "tsevw"
+  },
+  {
+    "name": "Pratap Nagar",
+    "aliases": [
+      "pratap nagar jodhpur",
+      "pratap nagar",
+      "suratpura"
+    ],
+    "lat": 26.285,
+    "lng": 72.998,
+    "geohash5": "tsevt"
+  }
+]

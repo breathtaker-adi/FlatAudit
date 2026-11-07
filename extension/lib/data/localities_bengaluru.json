@@ -1,0 +1,180 @@
+[
+  {
+    "name": "Indiranagar",
+    "aliases": [
+      "indiranagar",
+      "indira nagar",
+      "100 feet road",
+      "cmh road",
+      "defence colony"
+    ],
+    "lat": 12.9784,
+    "lng": 77.6408,
+    "geohash5": "tdr1y"
+  },
+  {
+    "name": "Domlur",
+    "aliases": [
+      "domlur",
+      "domlur layout",
+      "amarjyoti layout"
+    ],
+    "lat": 12.9609,
+    "lng": 77.6387,
+    "geohash5": "tdr1w"
+  },
+  {
+    "name": "Ulsoor",
+    "aliases": [
+      "ulsoor",
+      "halasuru",
+      "someshwarpura"
+    ],
+    "lat": 12.9817,
+    "lng": 77.6286,
+    "geohash5": "tdr1y"
+  },
+  {
+    "name": "Koramangala",
+    "aliases": [
+      "koramangala",
+      "kora",
+      "st bed",
+      "ejipura",
+      "sony world signal"
+    ],
+    "lat": 12.9352,
+    "lng": 77.6245,
+    "geohash5": "tdr1w"
+  },
+  {
+    "name": "HSR Layout",
+    "aliases": [
+      "hsr layout",
+      "hsr",
+      "sector 1 hsr",
+      "sector 2 hsr",
+      "sector 7 hsr"
+    ],
+    "lat": 12.9121,
+    "lng": 77.6446,
+    "geohash5": "tdr1q"
+  },
+  {
+    "name": "Bellandur",
+    "aliases": [
+      "bellandur",
+      "bellandur gate",
+      "green glen layout"
+    ],
+    "lat": 12.9304,
+    "lng": 77.6784,
+    "geohash5": "tdr1x"
+  },
+  {
+    "name": "Whitefield",
+    "aliases": [
+      "whitefield",
+      "itpl",
+      "hope farm",
+      "kadugodi"
+    ],
+    "lat": 12.9698,
+    "lng": 77.75,
+    "geohash5": "tdr3c"
+  },
+  {
+    "name": "Marathahalli",
+    "aliases": [
+      "marathahalli",
+      "spice garden",
+      "munnekollal"
+    ],
+    "lat": 12.9591,
+    "lng": 77.6974,
+    "geohash5": "tdr38"
+  },
+  {
+    "name": "Electronic City",
+    "aliases": [
+      "electronic city",
+      "electronic city phase 1",
+      "electronic city phase 2",
+      "neotown"
+    ],
+    "lat": 12.8452,
+    "lng": 77.6602,
+    "geohash5": "tdr1p"
+  },
+  {
+    "name": "Jayanagar",
+    "aliases": [
+      "jayanagar",
+      "jayanagar 4th block",
+      "jayanagar 3rd block",
+      "south end circle"
+    ],
+    "lat": 12.9308,
+    "lng": 77.5838,
+    "geohash5": "tdr1t"
+  },
+  {
+    "name": "BTM Layout",
+    "aliases": [
+      "btm layout",
+      "btm",
+      "btm 1st stage",
+      "btm 2nd stage",
+      "madiwala"
+    ],
+    "lat": 12.9166,
+    "lng": 77.6101,
+    "geohash5": "tdr1q"
+  },
+  {
+    "name": "JP Nagar",
+    "aliases": [
+      "jp nagar",
+      "jp nagar 1st phase",
+      "jp nagar 2nd phase",
+      "sarakki"
+    ],
+    "lat": 12.9063,
+    "lng": 77.5857,
+    "geohash5": "tdr1m"
+  },
+  {
+    "name": "Malleshwaram",
+    "aliases": [
+      "malleshwaram",
+      "malleswaram",
+      "margosa road",
+      "sampige road"
+    ],
+    "lat": 13.0031,
+    "lng": 77.5643,
+    "geohash5": "tdr1v"
+  },
+  {
+    "name": "Rajajinagar",
+    "aliases": [
+      "rajajinagar",
+      "rajaji nagar",
+      "navrang"
+    ],
+    "lat": 12.9982,
+    "lng": 77.553,
+    "geohash5": "tdr1u"
+  },
+  {
+    "name": "Hebbal",
+    "aliases": [
+      "hebbal",
+      "hebbal flyover",
+      "kempapura hebbal"
+    ],
+    "lat": 13.0358,
+    "lng": 77.597,
+    "geohash5": "tdr4j"
+  }
+]
