@@ -508,3 +508,147 @@ export function evaluateSafetyEnvironment(elements, cityTier = 'metro', rules = 
 
   return graded;
 }
+
+// ============================================================================
+// Slice S7e: Lifestyle & Community Extractor
+// ============================================================================
+
+/**
+ * Extracts and grades Lifestyle & Community facilities.
+ * Checks: Public Parks, Cafes/Restaurants, Gyms/Fitness, Schools/Colleges.
+ * Bonus: Places of worship, Libraries/Community centers, Shopping malls.
+ * @param {Array<object>} elements
+ * @param {'metro'|'smaller'} cityTier
+ * @param {object} [rules]
+ * @returns {object} Graded category result
+ */
+export function evaluateLifestyleCommunity(elements, cityTier = 'metro', rules = defaultRules) {
+  const catDef = rules.categories.lifestyle_community;
+  const checksDef = catDef.checks;
+
+  // 1. Public Park (leisure=park)
+  const nearestPark = findNearestElement(elements, (el) => {
+    return el.tags?.leisure === 'park';
+  });
+
+  const parkScore = scoreCheck(
+    nearestPark?.distKm ?? null,
+    checksDef.park_km,
+    cityTier
+  );
+
+  const parkCheck = {
+    key: 'park_km',
+    label: checksDef.park_km.label,
+    thing: checksDef.park_km.thing,
+    searchRadiusKm: checksDef.park_km.search_radius_km,
+    name: nearestPark?.tags?.name || (nearestPark ? 'Public park' : null),
+    km: nearestPark?.distKm ?? null,
+    score: parkScore.score,
+    hasData: parkScore.hasData
+  };
+
+  // 2. Cafe or Restaurant (amenity=cafe|restaurant)
+  const nearestDining = findNearestElement(elements, (el) => {
+    const amenity = el.tags?.amenity;
+    return amenity === 'cafe' || amenity === 'restaurant';
+  });
+
+  const diningScore = scoreCheck(
+    nearestDining?.distKm ?? null,
+    checksDef.cafe_restaurant_km,
+    cityTier
+  );
+
+  const diningCheck = {
+    key: 'cafe_restaurant_km',
+    label: checksDef.cafe_restaurant_km.label,
+    thing: checksDef.cafe_restaurant_km.thing,
+    searchRadiusKm: checksDef.cafe_restaurant_km.search_radius_km,
+    name: nearestDining?.tags?.name || (nearestDining ? 'Cafe or restaurant' : null),
+    km: nearestDining?.distKm ?? null,
+    score: diningScore.score,
+    hasData: diningScore.hasData
+  };
+
+  // 3. Gym / Fitness Centre (leisure=fitness_centre)
+  const nearestFitness = findNearestElement(elements, (el) => {
+    return el.tags?.leisure === 'fitness_centre';
+  });
+
+  const fitnessScore = scoreCheck(
+    nearestFitness?.distKm ?? null,
+    checksDef.fitness_km,
+    cityTier
+  );
+
+  const fitnessCheck = {
+    key: 'fitness_km',
+    label: checksDef.fitness_km.label,
+    thing: checksDef.fitness_km.thing,
+    searchRadiusKm: checksDef.fitness_km.search_radius_km,
+    name: nearestFitness?.tags?.name || (nearestFitness ? 'Gym or fitness centre' : null),
+    km: nearestFitness?.distKm ?? null,
+    score: fitnessScore.score,
+    hasData: fitnessScore.hasData
+  };
+
+  // 4. School or College (amenity=school|college)
+  const nearestSchool = findNearestElement(elements, (el) => {
+    const amenity = el.tags?.amenity;
+    return amenity === 'school' || amenity === 'college';
+  });
+
+  const schoolScore = scoreCheck(
+    nearestSchool?.distKm ?? null,
+    checksDef.school_km,
+    cityTier
+  );
+
+  const schoolCheck = {
+    key: 'school_km',
+    label: checksDef.school_km.label,
+    thing: checksDef.school_km.thing,
+    searchRadiusKm: checksDef.school_km.search_radius_km,
+    name: nearestSchool?.tags?.name || (nearestSchool ? 'School or college' : null),
+    km: nearestSchool?.distKm ?? null,
+    score: schoolScore.score,
+    hasData: schoolScore.hasData
+  };
+
+  // 5. Bonus Community Facilities (Section 6.3)
+  const nearestWorship = findNearestElement(elements, (el) => el.tags?.amenity === 'place_of_worship');
+  const nearestCommunity = findNearestElement(
+    elements,
+    (el) => el.tags?.amenity === 'library' || el.tags?.amenity === 'community_centre'
+  );
+  const nearestMall = findNearestElement(elements, (el) => el.tags?.shop === 'mall');
+
+  const checks = [parkCheck, diningCheck, fitnessCheck, schoolCheck];
+  const graded = gradeCategory(checks, 'lifestyle_community', cityTier, rules);
+
+  graded.communityBonus = {
+    worship: nearestWorship ? { name: nearestWorship.tags?.name || 'Place of worship', km: nearestWorship.distKm } : null,
+    communityCentre: nearestCommunity ? { name: nearestCommunity.tags?.name || 'Community facility', km: nearestCommunity.distKm } : null,
+    mall: nearestMall ? { name: nearestMall.tags?.name || 'Shopping mall', km: nearestMall.distKm } : null
+  };
+
+  return graded;
+}
+
+/**
+ * Orchestrates evaluation of all 5 categories from an element array.
+ * @param {Array<object>} elements
+ * @param {'metro'|'smaller'} cityTier
+ * @param {object} [rules]
+ * @returns {Record<string, object>}
+ */
+export function evaluateAllCategories(elements, cityTier = 'metro', rules = defaultRules) {
+  return {
+    emergency_healthcare: evaluateEmergencyHealthcare(elements, cityTier, rules),
+    daily_supplies: evaluateDailySupplies(elements, cityTier, rules),
+    commute_transit: evaluateCommuteTransit(elements, cityTier, rules),
+    safety_environment: evaluateSafetyEnvironment(elements, cityTier, rules),
+    lifestyle_community: evaluateLifestyleCommunity(elements, cityTier, rules)
+  };
+}
