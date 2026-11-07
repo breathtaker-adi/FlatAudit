@@ -10,6 +10,9 @@
  * - CSV export for user shortlist
  */
 
+import { calculateEMI } from './investment.js';
+export { calculateEMI };
+
 /**
  * Strips tracking parameters, hashes, and referral tags from rental URLs.
  * @param {string} rawUrl 
@@ -164,7 +167,10 @@ export const StorageAdapter = {
           try {
             chrome.storage.local.set({ [key]: value }, () => {
               try {
-                if (chrome?.runtime?.lastError) {}
+                if (chrome?.runtime?.lastError) {
+                  // shortcut: warn on quota or storage errors without crashing the caller
+                  console.warn('[FlatAudit Storage] Failed writing key:', key, chrome.runtime.lastError.message);
+                }
               } catch (innerErr) {}
               resolve();
             });
@@ -233,6 +239,7 @@ export async function trackListing(listing) {
       reraId: listing.reraId || null,
       projectName: listing.projectName || '',
       areaSqft: listing.areaSqft || listing.area_sqft || null,
+      area_sqft: listing.area_sqft || listing.areaSqft || null,
       floor: listing.floor !== undefined ? listing.floor : null,
       firstSeen: now,
       lastSeen: now,
@@ -293,6 +300,10 @@ export async function trackListing(listing) {
         pricePerSqft: listing.pricePerSqft || null,
         listed: true
       });
+      // shortcut: cap snapshots at 30 to prevent unbounded local storage growth
+      if (item.snapshots.length > 30) {
+        item.snapshots = item.snapshots.slice(-30);
+      }
     }
   }
 
@@ -408,24 +419,7 @@ export function computePriceHistoryStats(snapshots = []) {
   };
 }
 
-/**
- * Calculates monthly Equated Monthly Installment (EMI) for property purchase.
- * Uses exact standard banking amortization formula.
- * @param {number} principal - Loan principal in INR
- * @param {number} [annualRate=8.5] - Annual interest percentage
- * @param {number} [tenureYears=20] - Loan duration in years
- * @returns {{ monthlyEmi: number, totalPayment: number, totalInterest: number }}
- */
-export function calculateEMI(principal, annualRate = 8.5, tenureYears = 20) {
-  if (!principal || principal <= 0) return { monthlyEmi: 0, totalPayment: 0, totalInterest: 0 };
-  const monthlyRate = (annualRate / 12) / 100;
-  const totalMonths = tenureYears * 12;
-  const factor = Math.pow(1 + monthlyRate, totalMonths);
-  const monthlyEmi = Math.round((principal * monthlyRate * factor) / (factor - 1));
-  const totalPayment = monthlyEmi * totalMonths;
-  const totalInterest = totalPayment - principal;
-  return { monthlyEmi, totalPayment, totalInterest };
-}
+
 
 /**
  * Formats time on market in plain English (e.g., "First seen by you 3 days ago")

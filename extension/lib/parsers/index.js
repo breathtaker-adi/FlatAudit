@@ -94,12 +94,17 @@ export function extractListing(document, url = '') {
   const rawAmount = listing.price || listing.salePrice || listing.rent || null;
   listing.rawPrice = rawAmount;
 
+  // Standardize naming: keep both camelCase and snake_case populated
+  const normArea = listing.area_sqft || listing.areaSqft || listing.area || null;
+  listing.area_sqft = normArea;
+  listing.areaSqft = normArea;
+
   if (listing.listingType === 'sale') {
     listing.price = listing.price || rawAmount;
     listing.salePrice = listing.salePrice || rawAmount;
     listing.rent = null;
-    if (listing.price && listing.area_sqft && !listing.pricePerSqft) {
-      listing.pricePerSqft = Math.round(listing.price / listing.area_sqft);
+    if (listing.price && normArea && !listing.pricePerSqft) {
+      listing.pricePerSqft = Math.round(listing.price / normArea);
     }
   } else if (listing.listingType === 'rent') {
     listing.rent = listing.rent || rawAmount;

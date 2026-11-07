@@ -245,7 +245,10 @@ def count_seen_hashes(target_hash: str, threshold: int = 10, db_file: str = DB_P
 
     target_clean = target_hash.strip().lower()
     conn = get_connection(db_file)
-    cursor = conn.execute("SELECT id, url_hash, listing_key, image_hash FROM observations WHERE image_hash IS NOT NULL")
+    # shortcut: candidate pool bounded to latest 2000 observations to prevent unbounded table scan memory spikes
+    cursor = conn.execute(
+        "SELECT id, url_hash, listing_key, image_hash FROM observations WHERE image_hash IS NOT NULL ORDER BY id DESC LIMIT 2000"
+    )
     rows = cursor.fetchall()
     conn.close()
 

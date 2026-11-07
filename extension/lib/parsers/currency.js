@@ -180,20 +180,6 @@ import { classifyListingType } from './classifier.js';
 export { classifyListingType };
 
 /**
- * Determines whether a listing represents a property for sale or rent.
- * Uses classifyListingType internally. If classification is unknown, defaults to 'rent'
- * for backward compatibility with legacy single-mode callers.
- * 
- * @param {string} rawText
- * @param {string} [url='']
- * @returns {'sale'|'rent'|'unknown'}
- */
-export function parseListingType(rawText, url = '') {
-  const result = classifyListingType(null, rawText, url);
-  return result.mode;
-}
-
-/**
  * Filters out ad trackers, video player thumbnails, svgs, and icons,
  * leaving authentic property listing photos.
  * @param {string[]} images

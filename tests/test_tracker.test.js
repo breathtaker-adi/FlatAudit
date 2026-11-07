@@ -16,6 +16,7 @@ import {
   calculateEMI,
   StorageAdapter
 } from '../extension/lib/tracker.js';
+import { formatCurrencyINR, formatIndianCurrencyAbbr } from '../extension/lib/utils/format.js';
 import { parseArea, parseFloor } from '../extension/lib/parsers/currency.js';
 
 describe('Tracker & Buyhatke Features', () => {
@@ -256,6 +257,34 @@ describe('Tracker & Buyhatke Features', () => {
       const emi = calculateEMI(0);
       assert.equal(emi.monthlyEmi, 0);
       assert.equal(emi.totalPayment, 0);
+    });
+
+    it('caps snapshots at 30 entries to protect local storage quota', async () => {
+      const listing = {
+        listingKey: 'nobroker:cap-test',
+        title: 'Quota Cap Flat',
+        rent: 50000
+      };
+      await trackListing(listing);
+
+      // Simulate 35 consecutive price shifts
+      for (let i = 1; i <= 35; i++) {
+        await trackListing({
+          ...listing,
+          rent: 50000 - i * 100
+        });
+      }
+
+      const all = await getTrackedListings();
+      const item = all['nobroker:cap-test'];
+      assert.equal(item.snapshots.length, 30);
+    });
+
+    it('formats currency consistently with standard Indian denominations', () => {
+      assert.equal(formatCurrencyINR(12500000, { abbr: true }), '₹ 1.25 Cr');
+      assert.equal(formatCurrencyINR(8500000, { abbr: true }), '₹ 85 L');
+      assert.equal(formatCurrencyINR(45000), '₹ 45,000');
+      assert.equal(formatIndianCurrencyAbbr(15000000), '₹ 1.5 Cr');
     });
   });
 });

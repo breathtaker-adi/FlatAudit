@@ -8,25 +8,29 @@
  * - Cumulative capital gain & asset equity projection
  */
 
+import { formatCurrencyINR, formatIndianCurrencyAbbr } from './utils/format.js';
+
+export { formatCurrencyINR, formatIndianCurrencyAbbr };
+
 export const DEFAULT_ANNUAL_APPRECIATION_RATE = 0.075; // 7.5% p.a. normal condition baseline
 export const DEFAULT_RENTAL_YIELD_RATE = 0.035; // 3.5% gross annual rental yield
 
 /**
- * Formats monetary amounts in standard Indian denomination (Crores, Lakhs, Thousands).
- * @param {number} val 
- * @returns {string} e.g. "₹ 1.25 Cr" or "₹ 85.0 L" or "₹ 42,000"
+ * Standard reducing-balance EMI calculation for home loans.
+ * @param {number} principal - Loan principal in INR
+ * @param {number} [annualRate=8.5] - Annual interest percentage
+ * @param {number} [tenureYears=20] - Loan duration in years
+ * @returns {{ monthlyEmi: number, totalPayment: number, totalInterest: number }}
  */
-export function formatIndianCurrencyAbbr(val) {
-  if (!val || typeof val !== 'number' || isNaN(val) || val <= 0) return '₹ --';
-  if (val >= 10000000) {
-    const cr = (val / 10000000).toFixed(2);
-    return `₹ ${cr.replace(/\.00$/, '')} Cr`;
-  }
-  if (val >= 100000) {
-    const l = (val / 100000).toFixed(2);
-    return `₹ ${l.replace(/\.00$/, '')} L`;
-  }
-  return `₹ ${val.toLocaleString('en-IN')}`;
+export function calculateEMI(principal, annualRate = 8.5, tenureYears = 20) {
+  if (!principal || principal <= 0) return { monthlyEmi: 0, totalPayment: 0, totalInterest: 0 };
+  const monthlyRate = (annualRate / 12) / 100;
+  const totalMonths = tenureYears * 12;
+  const factor = Math.pow(1 + monthlyRate, totalMonths);
+  const monthlyEmi = Math.round((principal * monthlyRate * factor) / (factor - 1));
+  const totalPayment = monthlyEmi * totalMonths;
+  const totalInterest = totalPayment - principal;
+  return { monthlyEmi, totalPayment, totalInterest };
 }
 
 /**

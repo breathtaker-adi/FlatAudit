@@ -34,6 +34,8 @@ import {
   generateAreaReport,
   renderAreaReportDOM
 } from '../lib/area/report.js';
+import { DEFAULT_BACKEND_URL } from '../lib/config.js';
+import { formatCurrencyINR } from '../lib/utils/format.js';
 
 let activeAnalysis = null;
 const selectedForCompare = new Set();
@@ -47,7 +49,7 @@ async function getBackendApiUrl() {
       return url;
     }
   } catch (e) {}
-  return 'http://127.0.0.1:8000/api/v1';
+  return DEFAULT_BACKEND_URL;
 }
 
 async function checkBackendHealth() {

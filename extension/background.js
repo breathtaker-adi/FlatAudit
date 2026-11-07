@@ -1,7 +1,6 @@
 import { computeDHashFromImageData } from './lib/dhash.js';
 import { getAreaReportSettings } from './lib/settings.js';
-
-const DEFAULT_BACKEND_URL = 'http://127.0.0.1:8000/api/v1';
+import { DEFAULT_BACKEND_URL } from './lib/config.js';
 
 async function getBackendUrl() {
   try {

@@ -3,6 +3,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = os.getenv("FLATAUDIT_DB_PATH", str(BASE_DIR / "flataudit.db"))
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL", "")
 
 CORS_ORIGINS = [
     "http://localhost:8080",

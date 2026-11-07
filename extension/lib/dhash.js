@@ -64,29 +64,6 @@ export function computeDHashFromImageData(imageData) {
   return computeDHashFromGrayscale72(grayPixels);
 }
 
-/**
- * Browser/Canvas helper to calculate dHash from an HTMLImageElement or ImageBitmap
- * @param {CanvasImageSource} imageSource
- * @returns {string}
- */
-export function dhashFromCanvas(imageSource) {
-  let canvas;
-  if (typeof OffscreenCanvas !== 'undefined') {
-    canvas = new OffscreenCanvas(9, 8);
-  } else if (typeof document !== 'undefined') {
-    canvas = document.createElement('canvas');
-    canvas.width = 9;
-    canvas.height = 8;
-  } else {
-    throw new Error('No canvas implementation available in current environment');
-  }
-
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  ctx.drawImage(imageSource, 0, 0, 9, 8);
-  const imgData = ctx.getImageData(0, 0, 9, 8);
-  return computeDHashFromImageData(imgData);
-}
-
 const NIBBLE_BITS = [0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4];
 
 /**

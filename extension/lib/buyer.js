@@ -17,7 +17,7 @@ import guidanceValuesData from './data/guidance_values.json' with { type: 'json'
 import rajasthanCostsData from './data/rajasthan_costs.json' with { type: 'json' };
 import rajasthanPilotProjectsData from './data/rajasthan_pilot_projects.json' with { type: 'json' };
 import { getGuidanceValue, getReraPortalUrl } from './benchmarks.js';
-import { calculateEMI } from './tracker.js';
+import { calculateEMI } from './investment.js';
 
 /**
  * Normalizes RERA registration IDs for consistent dictionary lookup.

@@ -32,19 +32,8 @@ export const EXACT_STRINGS = {
   FOOTER_ON: 'Area Report on: rounded location sent to OpenStreetMap'
 };
 
-/**
- * Normalizes raw area type string to canonical tokens.
- * @param {string} raw 
- * @returns {'carpet'|'super_builtup'|'builtup'|'unknown'}
- */
-export function normalizeAreaType(raw) {
-  if (!raw || typeof raw !== 'string') return 'unknown';
-  const lower = raw.trim().toLowerCase();
-  if (/carpet/i.test(lower)) return 'carpet';
-  if (/super[-_\s]*built|sbua/i.test(lower)) return 'super_builtup';
-  if (/built[-_\s]*up/i.test(lower)) return 'builtup';
-  return 'unknown';
-}
+import { normalizeAreaType } from './price_check.js';
+export { normalizeAreaType };
 
 /**
  * Checks if city is supported in the current pilot.

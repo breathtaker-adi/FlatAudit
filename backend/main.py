@@ -1,6 +1,8 @@
 import re
 import os
+import json
 import time
+from pathlib import Path
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional
 from contextlib import asynccontextmanager
@@ -8,7 +10,7 @@ from fastapi import FastAPI, Query, HTTPException, status, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from backend.config import CORS_ORIGINS, DB_PATH
+from backend.config import CORS_ORIGINS, DB_PATH, DISCORD_WEBHOOK_URL
 from backend.db import (
     init_db,
     record_observation,
@@ -100,21 +102,46 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
         }
     )
 
-LOCALITY_BENCHMARKS = {
-    'indiranagar': {'bhk1': 22000, 'bhk2': 40000, 'bhk3': 65000, 'deposit_months': (3, 6), 'city': 'Bangalore'},
-    'hsr layout': {'bhk1': 18000, 'bhk2': 32000, 'bhk3': 52000, 'deposit_months': (3, 6), 'city': 'Bangalore'},
-    'koramangala': {'bhk1': 22000, 'bhk2': 42000, 'bhk3': 68000, 'deposit_months': (3, 6), 'city': 'Bangalore'},
-    'whitefield': {'bhk1': 16000, 'bhk2': 28000, 'bhk3': 45000, 'deposit_months': (2, 5), 'city': 'Bangalore'},
-    'bellandur': {'bhk1': 18000, 'bhk2': 32000, 'bhk3': 50000, 'deposit_months': (2, 5), 'city': 'Bangalore'},
-    'powai': {'bhk1': 34000, 'bhk2': 55000, 'bhk3': 85000, 'deposit_months': (2, 4), 'city': 'Mumbai'},
-    'andheri': {'bhk1': 30000, 'bhk2': 50000, 'bhk3': 75000, 'deposit_months': (2, 4), 'city': 'Mumbai'},
-    'bandra': {'bhk1': 45000, 'bhk2': 75000, 'bhk3': 130000, 'deposit_months': (2, 5), 'city': 'Mumbai'},
-    'cyber city': {'bhk1': 25000, 'bhk2': 42000, 'bhk3': 62000, 'deposit_months': (1, 3), 'city': 'Gurgaon'},
-    'dlf phase 2': {'bhk1': 24000, 'bhk2': 40000, 'bhk3': 60000, 'deposit_months': (1, 3), 'city': 'Gurgaon'},
-    'sector 56': {'bhk1': 16000, 'bhk2': 28000, 'bhk3': 42000, 'deposit_months': (1, 2), 'city': 'Gurgaon'},
-    'hinjawadi': {'bhk1': 14000, 'bhk2': 23000, 'bhk3': 35000, 'deposit_months': (1, 3), 'city': 'Pune'},
-    'wakad': {'bhk1': 15000, 'bhk2': 24000, 'bhk3': 36000, 'deposit_months': (1, 3), 'city': 'Pune'}
-}
+def _load_locality_benchmarks() -> Dict[str, Any]:
+    # Default baseline locality benchmarks
+    benchmarks = {
+        'indiranagar': {'bhk1': 22000, 'bhk2': 40000, 'bhk3': 65000, 'deposit_months': (3, 6), 'city': 'Bangalore'},
+        'hsr layout': {'bhk1': 18000, 'bhk2': 32000, 'bhk3': 52000, 'deposit_months': (3, 6), 'city': 'Bangalore'},
+        'koramangala': {'bhk1': 22000, 'bhk2': 42000, 'bhk3': 68000, 'deposit_months': (3, 6), 'city': 'Bangalore'},
+        'whitefield': {'bhk1': 16000, 'bhk2': 28000, 'bhk3': 45000, 'deposit_months': (2, 5), 'city': 'Bangalore'},
+        'bellandur': {'bhk1': 18000, 'bhk2': 32000, 'bhk3': 50000, 'deposit_months': (2, 5), 'city': 'Bangalore'},
+        'powai': {'bhk1': 34000, 'bhk2': 55000, 'bhk3': 85000, 'deposit_months': (2, 4), 'city': 'Mumbai'},
+        'andheri': {'bhk1': 30000, 'bhk2': 50000, 'bhk3': 75000, 'deposit_months': (2, 4), 'city': 'Mumbai'},
+        'bandra': {'bhk1': 45000, 'bhk2': 75000, 'bhk3': 130000, 'deposit_months': (2, 5), 'city': 'Mumbai'},
+        'cyber city': {'bhk1': 25000, 'bhk2': 42000, 'bhk3': 62000, 'deposit_months': (1, 3), 'city': 'Gurgaon'},
+        'dlf phase 2': {'bhk1': 24000, 'bhk2': 40000, 'bhk3': 60000, 'deposit_months': (1, 3), 'city': 'Gurgaon'},
+        'sector 56': {'bhk1': 16000, 'bhk2': 28000, 'bhk3': 42000, 'deposit_months': (1, 2), 'city': 'Gurgaon'},
+        'hinjawadi': {'bhk1': 14000, 'bhk2': 23000, 'bhk3': 35000, 'deposit_months': (1, 3), 'city': 'Pune'},
+        'wakad': {'bhk1': 15000, 'bhk2': 24000, 'bhk3': 36000, 'deposit_months': (1, 3), 'city': 'Pune'}
+    }
+    # shortcut: load dynamic market packs when available on filesystem
+    packs_path = Path(__file__).resolve().parent.parent / "extension" / "lib" / "data" / "market_packs.json"
+    if packs_path.exists():
+        try:
+            with open(packs_path, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                for pack in data.get('packs', []):
+                    bhk = pack.get('bhk', {})
+                    dep = pack.get('deposit_multiple', {})
+                    entry = {
+                        'bhk1': bhk.get('1', {}).get('median', 20000),
+                        'bhk2': bhk.get('2', {}).get('median', 35000),
+                        'bhk3': bhk.get('3', {}).get('median', 55000),
+                        'deposit_months': (int(dep.get('min', 2)), int(dep.get('max', 6))),
+                        'city': pack.get('city', 'Unknown')
+                    }
+                    for alias in pack.get('aliases', []):
+                        benchmarks[alias.strip().lower()] = entry
+        except Exception:
+            pass
+    return benchmarks
+
+LOCALITY_BENCHMARKS = _load_locality_benchmarks()
 
 PHRASE_PATTERNS = [
     {
@@ -561,7 +588,7 @@ def enforce_ip_rate_limit(request: Request, max_per_minute: int = 60):
     _ip_request_timestamps[client_ip] = valid_timestamps
 
 def maybe_dispatch_discord_webhook(title: str, description: str, fields: Dict[str, Any]):
-    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL")
+    webhook_url = DISCORD_WEBHOOK_URL or os.environ.get("DISCORD_WEBHOOK_URL")
     if not webhook_url:
         return
     try:

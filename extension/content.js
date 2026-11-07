@@ -148,6 +148,7 @@
     let lastEvaluatedKey = null;
     let lastEvaluatedPrice = null;
     let isEvaluating = false;
+    let activeEvaluationToken = 0;
 
     async function evaluatePage(force = false) {
       if (!isExtensionValid()) {
@@ -155,7 +156,8 @@
         return;
       }
 
-      if (isEvaluating) return;
+      const evaluationToken = ++activeEvaluationToken;
+      if (isEvaluating && !force) return;
       isEvaluating = true;
 
       try {
@@ -332,11 +334,18 @@
         });
       }
 
+        if (evaluationToken !== activeEvaluationToken || window.location.href !== currentUrl) {
+          // Stale evaluation from prior SPA page navigation
+          return;
+        }
+
         await renderTrustBadge(currentAnalysis);
       } catch (err) {
         console.warn('[FlatAudit] Page evaluation encountered error:', err);
       } finally {
-        isEvaluating = false;
+        if (evaluationToken === activeEvaluationToken) {
+          isEvaluating = false;
+        }
       }
     }
 
@@ -1197,9 +1206,10 @@
 
       // Real navigation occurred on SPA (e.g. clicked to next property)
       if (window.location.href !== lastEvaluatedUrl) {
+        activeEvaluationToken++; // Invalidate any in-flight evaluation immediately
         clearTimeout(mutationTimeoutId);
         mutationTimeoutId = setTimeout(() => {
-          evaluatePage();
+          evaluatePage(true);
         }, 300);
         return;
       }
