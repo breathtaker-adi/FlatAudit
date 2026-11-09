@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlatAudit — Audit the flat before you pay</title>
+<meta name="description" content="FlatAudit is a privacy-preserving browser companion that audits Indian property listings in-page: scam signals, price benchmarks, RERA & circle-rate checks, and price tracking. Zero PII.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2338bdf8' stroke-width='2'%3E%3Cpath d='M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#020617; --bg2:#0b1220; --card:rgba(15,23,42,.55);
+  --line:rgba(148,163,184,.14); --line2:rgba(148,163,184,.24);
+  --text:#e2e8f0; --muted:#94a3b8; --faint:#64748b;
+  --cyan:#38bdf8; --cyan2:#7dd3fc; --emerald:#34d399; --amber:#fbbf24; --rose:#fb7185;
+  --font:'Inter',system-ui,sans-serif; --mono:'JetBrains Mono',ui-monospace,monospace;
+  --r:20px; --nav-h:72px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{color-scheme:dark;scroll-padding-top:90px}
+body{background:var(--bg);color:var(--text);font-family:var(--font);line-height:1.6;overflow-x:hidden;
+  background-image:radial-gradient(1200px 600px at 70% -10%,rgba(56,189,248,.06),transparent 60%)}
+::selection{background:rgba(56,189,248,.3)}
+::-webkit-scrollbar{width:10px}::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:#1e293b;border-radius:5px}::-webkit-scrollbar-thumb:hover{background:#334155}
+a{color:inherit;text-decoration:none}
+img{max-width:100%}
+button{font-family:inherit;cursor:pointer}
+.container{max-width:1200px;margin:0 auto;padding:0 24px}
+.mono{font-family:var(--mono)}
+noscript style{display:none}
+
+#preloader{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;gap:22px;align-items:center;justify-content:center}
+.pre-word{font-family:var(--mono);font-weight:700;font-size:clamp(22px,4vw,34px);letter-spacing:.28em;color:var(--text)}
+.pre-word span{color:var(--cyan)}
+.pre-bar{width:180px;height:2px;background:rgba(148,163,184,.15);border-radius:2px;overflow:hidden}
+.pre-bar i{display:block;height:100%;width:40%;background:var(--cyan);border-radius:2px}
+
+#glow{position:fixed;width:520px;height:520px;border-radius:50%;pointer-events:none;z-index:1;
+  background:radial-gradient(circle,rgba(56,189,248,.07),transparent 65%);transform:translate(-50%,-50%);left:-999px;top:-999px}
+@media(hover:none){#glow{display:none}}
+#scrollProgress{position:fixed;top:0;left:0;height:2px;width:100%;z-index:120;transform-origin:0 50%;transform:scaleX(0);
+  background:linear-gradient(90deg,var(--cyan),var(--emerald))}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;height:var(--nav-h);transition:.35s;
+  background:rgba(2,6,23,.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid transparent}
+nav.scrolled{border-bottom-color:var(--line);height:60px}
+.nav-inner{max-width:1200px;margin:0 auto;padding:0 24px;height:100%;display:flex;align-items:center;gap:28px}
+.logo{display:flex;align-items:center;gap:10px;font-family:var(--mono);font-weight:700;font-size:17px;letter-spacing:.02em}
+.logo svg{color:var(--cyan)}
+.logo b{color:var(--cyan);font-weight:700}
+.nav-links{display:flex;gap:4px;margin-left:auto}
+.nav-links a{font-size:13.5px;color:var(--muted);padding:8px 13px;border-radius:9px;transition:.25s;font-weight:500}
+.nav-links a:hover{color:var(--text);background:rgba(148,163,184,.08)}
+.nav-links a.active{color:var(--cyan2);background:rgba(56,189,248,.09)}
+.nav-cta{display:flex;align-items:center;gap:10px;margin-left:6px}
+.icon-btn{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;border:1px solid var(--line);
+  background:transparent;color:var(--muted);transition:.25s}
+.icon-btn:hover{color:var(--text);border-color:var(--line2);background:rgba(148,163,184,.08)}
+#navToggle{display:none}
+#mobileMenu{position:fixed;inset:0;z-index:99;background:rgba(2,6,23,.96);backdrop-filter:blur(20px);
+  display:flex;flex-direction:column;justify-content:center;gap:8px;padding:32px;opacity:0;pointer-events:none;transition:.3s}
+#mobileMenu.open{opacity:1;pointer-events:auto}
+#mobileMenu a{font-size:24px;font-weight:600;padding:14px 8px;border-bottom:1px solid var(--line);color:var(--text)}
+#mobileMenu a:last-child{border:none}
+
+.btn{display:inline-flex;align-items:center;gap:9px;padding:13px 22px;border-radius:12px;font-size:14.5px;font-weight:600;
+  border:1px solid transparent;transition:.25s;white-space:nowrap}
+.btn-primary{background:var(--cyan);color:#04121f}
+.btn-primary:hover{background:var(--cyan2);transform:translateY(-2px);box-shadow:0 10px 30px -8px rgba(56,189,248,.5)}
+.btn-ghost{border-color:var(--line2);color:var(--text);background:rgba(148,163,184,.04)}
+.btn-ghost:hover{border-color:var(--cyan);color:var(--cyan2);background:rgba(56,189,248,.06)}
+.btn-sm{padding:9px 16px;font-size:13px;border-radius:10px}
+.pill{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;
+  padding:7px 14px;border-radius:999px;border:1px solid var(--line2);color:var(--muted);text-transform:uppercase}
+.pill .dot{width:6px;height:6px;border-radius:50%;background:var(--emerald);box-shadow:0 0 10px var(--emerald)}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--cyan);margin-bottom:14px}
+.fine{font-size:12.5px;color:var(--faint);line-height:1.55}
+.fine code{font-family:var(--mono);color:var(--cyan2);background:rgba(56,189,248,.08);padding:1px 6px;border-radius:5px;font-size:11.5px}
+
+section{position:relative}
+.section{padding:84px 0}
+.section-head{max-width:720px;margin-bottom:34px}
+.section-head h2{font-size:clamp(30px,4.6vw,50px);font-weight:800;letter-spacing:-.03em;line-height:1.08}
+.section-head p{color:var(--muted);font-size:16.5px;margin-top:12px;max-width:600px}
+
+#hero{min-height:100vh;display:flex;align-items:center;position:relative;overflow:hidden;
+  background:radial-gradient(900px 500px at 25% 30%,rgba(56,189,248,.07),transparent 60%)}
+#heroCanvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-fade{position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(180deg,transparent 40%,var(--bg) 96%),linear-gradient(90deg,rgba(2,6,23,.55),transparent 45%)}
+.hero-content{position:relative;z-index:2;padding:96px 0 70px}
+.hero-content h1{font-size:clamp(40px,6.4vw,78px);font-weight:800;letter-spacing:-.04em;line-height:1.02;max-width:850px}
+.hero-content h1 em{font-style:normal;color:var(--cyan);position:relative}
+.hero-content h1 em::after{content:"";position:absolute;left:0;bottom:6px;height:3px;width:100%;
+  background:linear-gradient(90deg,var(--cyan),transparent);border-radius:3px}
+.hero-sub{color:var(--muted);font-size:clamp(15.5px,1.6vw,18px);max-width:620px;margin:18px 0 24px}
+.hero-sub b{color:var(--text);font-weight:600}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap}
+.hero-stats{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px}
+.stat-chip{font-family:var(--mono);font-size:11.5px;color:var(--muted);border:1px solid var(--line);
+  border-radius:8px;padding:8px 12px;background:rgba(15,23,42,.5)}
+.stat-chip b{color:var(--cyan2);font-weight:500}
+.scroll-hint{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);z-index:2;
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.3em;color:var(--faint);display:flex;flex-direction:column;align-items:center;gap:8px}
+.scroll-hint::after{content:"";width:1px;height:34px;background:linear-gradient(180deg,var(--cyan),transparent);animation:drip 2s infinite}
+@keyframes drip{0%{opacity:0;transform:scaleY(.2)}40%{opacity:1;transform:scaleY(1)}100%{opacity:0;transform:scaleY(1) translateY(12px)}}
+
+.marquee{overflow:hidden;border-block:1px solid var(--line);padding:14px 0;background:rgba(11,18,32,.4);
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+.marquee-track{display:flex;width:max-content;animation:mq 30s linear infinite}
+.marquee:hover .marquee-track{animation-play-state:paused}
+@keyframes mq{to{transform:translateX(-50%)}}
+.mq-group{display:flex;align-items:center;gap:54px;padding-right:54px}
+.mq-item{font-family:var(--mono);font-size:13px;letter-spacing:.18em;color:var(--muted);white-space:nowrap;display:flex;align-items:center;gap:54px}
+.mq-item::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--cyan);opacity:.6}
+
+#threat{background:linear-gradient(180deg,var(--bg),#0a0f1d 50%,var(--bg))}
+.kill-pin{min-height:100vh;display:flex;flex-direction:column;justify-content:center;overflow:hidden;padding:70px 0 50px}
+.kill-viewport{margin-top:24px}
+.kill-track{display:flex;gap:22px;padding-inline:max(24px,calc((100vw - 1200px)/2));align-items:stretch}
+.kill-stage{min-width:min(390px,84vw);background:linear-gradient(160deg,rgba(30,15,25,.5),rgba(15,23,42,.55));
+  border:1px solid rgba(244,63,94,.22);border-radius:var(--r);padding:26px;display:flex;flex-direction:column;gap:12px;backdrop-filter:blur(8px)}
+.kill-num{font-family:var(--mono);font-size:44px;font-weight:700;color:var(--rose);opacity:.9;letter-spacing:-.04em}
+.kill-stage h3{font-size:21px;font-weight:700;letter-spacing:-.02em}
+.kill-stage p{color:var(--muted);font-size:14.5px;flex:1}
+.kill-chip{align-self:flex-start;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--rose);border:1px solid rgba(244,63,94,.35);background:rgba(244,63,94,.08);padding:6px 12px;border-radius:8px}
+
+/* SOLUTION CARD (distinct from scams) */
+.kill-solution{min-width:min(420px,86vw);border:2px solid rgba(56,189,248,.5);border-radius:var(--r);padding:30px;
+  background:radial-gradient(120% 80% at 30% 0%,rgba(56,189,248,.18),rgba(15,23,42,.6) 60%);
+  display:flex;flex-direction:column;gap:13px;position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(56,189,248,.15),0 20px 60px -20px rgba(56,189,248,.4)}
+.kill-solution::before{content:"";position:absolute;inset:0;border-radius:var(--r);padding:2px;
+  background:linear-gradient(135deg,rgba(56,189,248,.6),transparent 40%,rgba(52,211,153,.5));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.6}
+.sol-pill{align-self:flex-start;font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--bg);background:var(--cyan);padding:6px 12px;border-radius:7px;font-weight:700}
+.sol-ic{width:52px;height:52px;border-radius:15px;display:grid;place-items:center;color:var(--cyan);
+  background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.4);position:relative}
+.sol-ic::after{content:"";position:absolute;inset:-6px;border-radius:19px;border:1px solid rgba(56,189,248,.3);animation:solpulse 2.4s infinite}
+@keyframes solpulse{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:.75;transform:scale(1.14)}}
+.sol-body>*+*{margin-top:0}
+.kill-solution h3{font-size:22px;font-weight:800;letter-spacing:-.02em;color:#fff}
+.kill-solution p{color:var(--muted);font-size:14.5px}
+@media(max-width:899px){
+  .kill-pin{min-height:0;padding:84px 0}
+  .kill-track{flex-direction:column;padding-inline:24px}
+  .kill-stage,.kill-solution{min-width:0;width:100%}
+}
+
+.bento{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+.bento-card{position:relative;border:1px solid var(--line);border-radius:var(--r);padding:22px;
+  background:var(--card);backdrop-filter:blur(12px);overflow:hidden;transition:border-color .3s}
+.bento-card:hover{border-color:var(--line2)}
+.bento-card::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .4s;
+  background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(56,189,248,.08),transparent 60%)}
+.bento-card:hover::after{opacity:1}
+.bento-card h3{font-size:18px;font-weight:700;letter-spacing:-.01em;margin-top:4px}
+.card-audit{grid-column:span 4;grid-row:span 2}
+.card-track,.card-rera{grid-column:span 2}
+.card-dupe,.card-deposit,.card-areagrades{grid-column:span 2}
+@media(max-width:980px){.bento{grid-template-columns:1fr 1fr}.card-audit{grid-column:span 2;grid-row:auto}.card-track,.card-rera,.card-dupe,.card-deposit,.card-areagrades{grid-column:span 2}}
+@media(max-width:640px){.bento{grid-template-columns:1fr}.bento-card{grid-column:span 1!important}}
+
+.verdict{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+  padding:8px 14px;border-radius:999px;border:1px solid var(--line2);color:var(--muted);text-transform:uppercase;white-space:nowrap}
+.v-dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.v-idle{color:var(--faint)}
+.v-scan{color:var(--cyan2);border-color:rgba(56,189,248,.4);animation:pulse 1s infinite}
+.v-many{color:var(--rose);border-color:rgba(244,63,94,.45);background:rgba(244,63,94,.08)}
+.v-some{color:var(--amber);border-color:rgba(251,191,36,.45);background:rgba(251,191,36,.08)}
+.v-normal{color:var(--emerald);border-color:rgba(52,211,153,.45);background:rgba(52,211,153,.08)}
+@keyframes pulse{50%{opacity:.45}}
+
+.card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.preset-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.preset-tabs button{font-family:var(--mono);font-size:11.5px;padding:8px 13px;border-radius:9px;border:1px solid var(--line);
+  background:transparent;color:var(--muted);transition:.25s;letter-spacing:.03em}
+.preset-tabs button.on{color:var(--cyan2);border-color:rgba(56,189,248,.5);background:rgba(56,189,248,.08)}
+.mock-listing{border:1px solid var(--line2);border-radius:14px;padding:16px;background:rgba(2,6,23,.6);margin-bottom:14px}
+.mock-top{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+.mock-top h4{font-size:15.5px;font-weight:600}
+.mock-meta{font-family:var(--mono);font-size:11.5px;color:var(--faint);margin-top:4px}
+.mock-price{text-align:right}
+.mock-price .rent{font-family:var(--mono);font-size:22px;font-weight:700;color:var(--cyan2)}
+.mock-price .dep{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:2px}
+.mock-desc{margin-top:10px;font-size:12.5px;color:var(--muted);font-style:italic;border-left:2px solid var(--line2);padding-left:12px}
+.signal-log{list-style:none;display:flex;flex-direction:column;gap:9px;margin-top:16px;min-height:170px}
+.signal-log li{display:flex;align-items:center;gap:12px;border:1px solid var(--line);border-radius:11px;
+  padding:11px 14px;background:rgba(2,6,23,.45);font-size:13.5px}
+.sig-ic{display:grid;place-items:center;width:28px;height:28px;border-radius:8px;flex-shrink:0}
+.sev-high .sig-ic{color:var(--rose);background:rgba(244,63,94,.1)}
+.sev-med .sig-ic{color:var(--amber);background:rgba(251,191,36,.1)}
+.sev-ok .sig-ic{color:var(--emerald);background:rgba(52,211,153,.1)}
+.sig-text{flex:1;color:var(--text)}
+.sev-ok .sig-text{color:var(--muted)}
+.sig-tag{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);
+  border:1px solid var(--line);padding:4px 9px;border-radius:7px;white-space:nowrap}
+.sev-high .sig-tag{color:var(--rose);border-color:rgba(244,63,94,.3)}
+
+.spark-wrap{margin:16px 0 10px}
+.spark-svg{width:100%;height:auto;display:block;overflow:visible}
+.spark-drop{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:12px;color:var(--emerald);
+  border:1px solid rgba(52,211,153,.35);background:rgba(52,211,153,.07);padding:7px 12px;border-radius:9px;margin-top:12px}
+.card-foot{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+.mini-chip{font-family:var(--mono);font-size:10.5px;color:var(--faint);border:1px solid var(--line);border-radius:7px;padding:5px 9px}
+
+.dhash-row{display:flex;gap:14px;align-items:center;margin:16px 0 12px;flex-wrap:wrap}
+.dgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;padding:9px;border:1px solid var(--line2);border-radius:10px;background:rgba(2,6,23,.6)}
+.dcell{width:11px;height:11px;border-radius:3px;background:rgba(148,163,184,.14)}
+.dcell.on{background:rgba(56,189,248,.55)}
+.dcell.diff{background:var(--amber);box-shadow:0 0 8px rgba(251,191,36,.5)}
+.dhash-eq{font-family:var(--mono);color:var(--faint);font-size:15px}
+
+.gauge{margin:18px 0 8px}
+.gauge-bar{position:relative;height:9px;border-radius:6px;background:rgba(148,163,184,.12);overflow:visible}
+.gauge-band{position:absolute;top:0;bottom:0;border-radius:6px;background:linear-gradient(90deg,rgba(52,211,153,.16),rgba(52,211,153,.34));
+  left:55%;width:32%;border:1px solid rgba(52,211,153,.35)}
+.gauge-mark{position:absolute;top:50%;width:15px;height:15px;border-radius:50%;transform:translate(-50%,-50%);
+  background:var(--rose);border:3px solid var(--bg);box-shadow:0 0 14px rgba(244,63,94,.6);left:9%}
+.gauge-labels{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;color:var(--faint);margin-top:10px}
+
+.grade-list{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:16px}
+.grade-list li{display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--muted)}
+.grade-list .cat{flex:1}
+.grade-list .m{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.grade{font-family:var(--mono);font-weight:700;font-size:13px;width:34px;height:34px;display:grid;place-items:center;border-radius:9px;flex-shrink:0}
+.g-A{color:var(--emerald);background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.35)}
+.g-B{color:var(--cyan2);background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.35)}
+.g-C{color:var(--amber);background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35)}
+.g-D{color:var(--rose);background:rgba(244,63,94,.1);border:1px solid rgba(244,63,94,.35)}
+
+.rera-row{display:flex;gap:9px;margin:16px 0 12px}
+.rera-row input{flex:1;min-width:0;font-family:var(--mono);font-size:12.5px;color:var(--text);background:rgba(2,6,23,.6);
+  border:1px solid var(--line2);border-radius:10px;padding:12px 14px;outline:none;transition:.25s}
+.rera-row input:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(56,189,248,.12)}
+.rera-result{min-height:52px;display:flex;flex-direction:column;gap:10px}
+.rera-ok{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--emerald)}
+.rera-bad{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--rose)}
+.rera-portal{align-self:flex-start;margin-top:2px}
+.ex-chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.ex-chips button{font-family:var(--mono);font-size:10px;color:var(--faint);border:1px dashed var(--line2);
+  background:transparent;border-radius:7px;padding:5px 9px;transition:.2s}
+.ex-chips button:hover{color:var(--cyan2);border-color:var(--cyan)}
+
+#ladder{background:linear-gradient(180deg,var(--bg),rgba(11,18,32,.5))}
+.ladder-wrap{display:grid;grid-template-columns:1.5fr 1fr;gap:28px;align-items:start}
+.ladder-list{list-style:none;position:relative;padding-left:0;display:flex;flex-direction:column;gap:12px}
+.ladder-line{position:absolute;left:22px;top:14px;bottom:14px;width:2px;background:rgba(148,163,184,.15);border-radius:2px;overflow:hidden}
+.ladder-fill{display:block;width:100%;height:100%;background:linear-gradient(180deg,var(--cyan),var(--emerald));transform-origin:top}
+.ladder-step{display:flex;gap:20px;align-items:flex-start;position:relative;z-index:1}
+.lvl{font-family:var(--mono);font-weight:700;font-size:12px;width:44px;height:44px;border-radius:13px;display:grid;place-items:center;flex-shrink:0;
+  color:var(--cyan2);background:var(--bg);border:1px solid rgba(56,189,248,.4);box-shadow:0 0 0 5px var(--bg)}
+.ladder-step.silence .lvl{color:var(--amber);border-color:rgba(251,191,36,.4)}
+.ladder-step h4{font-size:16.5px;font-weight:700;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.ladder-step .n{font-family:var(--mono);font-size:10.5px;font-weight:500;color:var(--cyan2);border:1px solid rgba(56,189,248,.35);padding:3px 9px;border-radius:7px}
+.ladder-step.silence .n{color:var(--amber);border-color:rgba(251,191,36,.35)}
+.ladder-step p{color:var(--muted);font-size:13.5px;margin-top:5px;max-width:460px}
+.ladder-note{border:1px solid var(--line);border-radius:var(--r);padding:24px;background:var(--card);backdrop-filter:blur(10px)}
+.formula{font-family:var(--mono);font-size:13px;color:var(--cyan2);background:rgba(56,189,248,.07);border:1px solid rgba(56,189,248,.22);
+  border-radius:11px;padding:14px 17px;margin:14px 0;display:block;overflow-x:auto;white-space:nowrap}
+.ladder-note ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+.ladder-note li{display:flex;gap:10px;font-size:13.5px;color:var(--muted)}
+.ladder-note li svg{color:var(--emerald);flex-shrink:0;margin-top:3px}
+@media(max-width:900px){.ladder-wrap{grid-template-columns:1fr}}
+
+.buyer-wrap{display:grid;grid-template-columns:1.15fr 1fr;gap:22px;align-items:start}
+.buyer-card,.side-card{border:1px solid var(--line);border-radius:var(--r);padding:24px;background:var(--card);backdrop-filter:blur(12px)}
+.buyer-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 20px}
+.buyer-tabs button{font-size:13px;font-weight:600;padding:10px 16px;border-radius:10px;border:1px solid var(--line);
+  background:transparent;color:var(--muted);transition:.25s}
+.buyer-tabs button.on{color:var(--cyan2);border-color:rgba(56,189,248,.5);background:rgba(56,189,248,.08)}
+.check-list{list-style:none;display:flex;flex-direction:column;gap:12px}
+.check-list li{display:flex;gap:12px;align-items:flex-start;font-size:14.5px;color:var(--text)}
+.check-list li svg{color:var(--emerald);flex-shrink:0;margin-top:3px}
+.side-stack{display:flex;flex-direction:column;gap:18px}
+.emi-grid label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:16px 0 8px}
+.emi-grid label:first-child{margin-top:6px}
+.emi-val{float:right;color:var(--cyan2);letter-spacing:0;text-transform:none}
+input[type=range]{width:100%;accent-color:var(--cyan);height:22px;cursor:pointer}
+.emi-out{margin-top:22px;border-top:1px dashed var(--line2);padding-top:18px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.emi-out .big{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--cyan2);letter-spacing:-.02em}
+.emi-out .sub{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:4px}
+.report-mock{border:1px solid var(--line2);border-radius:14px;background:rgba(2,6,23,.6);margin-top:16px;overflow:hidden}
+.report-mock-head{font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:var(--cyan);padding:12px 18px;
+  border-bottom:1px solid var(--line);background:rgba(56,189,248,.05);text-transform:uppercase}
+.report-row{display:flex;justify-content:space-between;gap:12px;padding:11px 18px;font-size:13px;border-bottom:1px solid var(--line)}
+.report-row:last-child{border:none}
+.report-row .k{color:var(--muted)}
+.report-row .v{font-family:var(--mono);color:var(--text);text-align:right}
+.report-row .v.ok{color:var(--emerald)}
+.report-row .v.warn{color:var(--amber)}
+@media(max-width:940px){.buyer-wrap{grid-template-columns:1fr}}
+
+/* AREA REPORT — full rebuild */
+.area-wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:22px;align-items:start}
+.area-card-big,.area-side-card{border:1px solid var(--line);border-radius:var(--r);padding:24px;background:var(--card);backdrop-filter:blur(12px)}
+.area-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.area-card-head h3{font-size:18px;font-weight:700}
+.mini-map{position:relative;height:190px;border-radius:14px;background:radial-gradient(circle at 50% 50%,rgba(56,189,248,.07),transparent 70%),rgba(2,6,23,.5);border:1px solid var(--line2);overflow:hidden;margin-bottom:16px}
+.mm-rings{position:absolute;inset:0}
+.mm-rings::before,.mm-rings::after{content:"";position:absolute;left:50%;top:50%;border:1px dashed rgba(148,163,184,.2);border-radius:50%;transform:translate(-50%,-50%)}
+.mm-rings::before{width:110px;height:110px}
+.mm-rings::after{width:170px;height:170px}
+.mm-pin{position:absolute;left:50%;top:50%;width:12px;height:12px;border-radius:50%;background:var(--cyan);transform:translate(-50%,-50%);box-shadow:0 0 0 4px rgba(56,189,248,.25),0 0 18px var(--cyan)}
+.mm-dot{position:absolute;left:50%;top:50%;width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:11px;background:rgba(15,23,42,.92);border:1px solid var(--line2);transform:translate(-50%,-50%) rotate(var(--a)) translate(var(--d)) rotate(calc(-1*var(--a)))}
+.mm-label{position:absolute;left:10px;bottom:10px;font-family:var(--mono);font-size:10px;color:var(--faint)}
+.area-rows{list-style:none;display:flex;flex-direction:column;gap:9px}
+.area-rows li{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:rgba(2,6,23,.4)}
+.ar-main{display:flex;align-items:center;gap:12px}
+.ar-name{font-size:14px;font-weight:600}
+.ar-sub{font-size:11.5px;color:var(--faint);font-family:var(--mono);margin-top:2px}
+.ar-score{font-family:var(--mono);font-size:13px;color:var(--cyan2)}
+.area-foot{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.area-side{display:flex;flex-direction:column;gap:18px}
+.area-side-card h4{font-size:14px;font-weight:700;margin-bottom:13px}
+.area-how{list-style:none;display:flex;flex-direction:column;gap:11px}
+.area-how li{display:flex;gap:10px;font-size:13px;color:var(--muted)}
+.area-how li svg{color:var(--emerald);flex-shrink:0;margin-top:3px}
+.area-how code{font-family:var(--mono);font-size:11px;color:var(--cyan2);background:rgba(56,189,248,.08);padding:1px 5px;border-radius:4px}
+.tier-toggle{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.tier-toggle button{font-size:12px;font-weight:600;padding:8px 12px;border-radius:9px;border:1px solid var(--line);background:transparent;color:var(--muted);transition:.25s}
+.tier-toggle button.on{color:var(--cyan2);border-color:rgba(56,189,248,.5);background:rgba(56,189,248,.08)}
+.tier-rows{list-style:none;display:flex;flex-direction:column;gap:8px}
+.tier-rows li{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;color:var(--muted);border-bottom:1px dashed var(--line);padding-bottom:8px}
+.tier-rows b{font-family:var(--mono);color:var(--cyan2);font-weight:500}
+.legend-row{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);margin-bottom:8px}
+.legend-row .grade{width:28px;height:28px;font-size:12px}
+@media(max-width:900px){.area-wrap{grid-template-columns:1fr}}
+
+#privacy{background:linear-gradient(180deg,var(--bg),#071021 55%,var(--bg))}
+.priv-wrap{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center}
+.priv-list{list-style:none;display:flex;flex-direction:column;gap:16px}
+.priv-list li{display:flex;gap:14px;font-size:15.5px;color:var(--text)}
+.priv-list li svg{color:var(--emerald);flex-shrink:0;margin-top:3px}
+.priv-list li b{font-weight:600}
+.flow{display:flex;flex-direction:column;align-items:stretch}
+.flow-node{border:1px solid rgba(56,189,248,.3);background:rgba(15,23,42,.7);border-radius:16px;padding:16px 20px;
+  display:flex;align-items:center;gap:14px;font-size:14px}
+.flow-node svg{color:var(--cyan);flex-shrink:0}
+.flow-node .fn-sub{font-family:var(--mono);font-size:10.5px;color:var(--faint);display:block;margin-top:2px}
+.flow-node.bad{border-color:rgba(244,63,94,.35);color:var(--rose);opacity:.85}
+.flow-node.bad svg{color:var(--rose)}
+.flow-line{width:2px;height:38px;margin:4px auto;position:relative;background:repeating-linear-gradient(180deg,var(--line2) 0 5px,transparent 5px 11px)}
+.flow-line::after{content:"";position:absolute;left:50%;width:7px;height:7px;border-radius:50%;background:var(--cyan);
+  transform:translate(-50%,-3px);box-shadow:0 0 10px var(--cyan);animation:flowdot 2.2s infinite}
+@keyframes flowdot{0%{top:0;opacity:0}15%{opacity:1}85%{opacity:1}100%{top:calc(100% - 4px);opacity:0}}
+@media(max-width:900px){.priv-wrap{grid-template-columns:1fr;gap:36px}}
+
+.num-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.num-cell{border:1px solid var(--line);border-radius:18px;padding:24px 20px;background:var(--card);text-align:left}
+.num-cell .val{font-family:var(--mono);font-size:clamp(34px,4vw,48px);font-weight:700;color:var(--cyan2);letter-spacing:-.03em}
+.num-cell:nth-child(2) .val{color:var(--emerald)}
+.num-cell .lbl{font-size:13px;color:var(--muted);margin-top:8px}
+@media(max-width:900px){.num-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:520px){.num-grid{grid-template-columns:1fr}}
+
+#cta{text-align:center;padding:100px 0}
+#cta h2{font-size:clamp(38px,6vw,72px);font-weight:800;letter-spacing:-.04em;line-height:1.05}
+#cta h2 span{color:var(--cyan)}
+#cta p{color:var(--muted);font-size:17px;max-width:520px;margin:20px auto 32px}
+footer{border-top:1px solid var(--line);padding:48px 0 28px;background:rgba(11,18,32,.35)}
+.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px;margin-bottom:30px}
+.foot-grid h5{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}
+.foot-grid ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.foot-grid a{color:var(--muted);font-size:13.5px;transition:.2s}
+.foot-grid a:hover{color:var(--cyan2)}
+.foot-brand p{color:var(--muted);font-size:13.5px;margin-top:12px;max-width:340px}
+.foot-bottom{border-top:1px solid var(--line);padding-top:22px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  font-family:var(--mono);font-size:11px;color:var(--faint)}
+@media(max-width:800px){.foot-grid{grid-template-columns:1fr}}
+
+#toast{position:fixed;bottom:28px;left:50%;transform:translate(-50%,20px);z-index:150;opacity:0;pointer-events:none;transition:.35s;
+  background:rgba(15,23,42,.92);border:1px solid rgba(56,189,248,.4);color:var(--text);font-size:13.5px;
+  padding:13px 20px;border-radius:12px;backdrop-filter:blur(12px);max-width:90vw;text-align:center}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<div id="preloader"><div class="pre-word">FLAT<span>AUDIT</span></div><div class="pre-bar"><i id="preBar"></i></div></div>
+<noscript><style>#preloader{display:none}</style></noscript>
+<div id="glow"></div>
+<div id="scrollProgress"></div>
+
+<nav id="nav">
+  <div class="nav-inner">
+    <a href="#hero" class="logo" aria-label="FlatAudit home">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>
+      Flat<b>Audit</b>
+    </a>
+    <div class="nav-links">
+      <a href="#threat" data-nav="threat">Threat</a>
+      <a href="#features" data-nav="features">Features</a>
+      <a href="#buyer" data-nav="buyer">Buyer Mode</a>
+      <a href="#area" data-nav="area">Area Report</a>
+      <a href="#privacy" data-nav="privacy">Privacy</a>
+    </div>
+    <div class="nav-cta">
+      <a class="icon-btn" href="https://github.com/breathtaker-adi/FlatAudit" target="_blank" rel="noopener" aria-label="GitHub">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.17c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.7 1.25 3.35.96.1-.75.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.05 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.76.11 3.05.73.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.66.41.35.77 1.05.77 2.12v3.15c0 .3.21.67.8.55A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+      </a>
+      <a href="#install" class="btn btn-primary btn-sm js-install">Add to Chrome</a>
+      <button id="navToggle" class="icon-btn" aria-label="Menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </div>
+  </div>
+</nav>
+<div id="mobileMenu">
+  <a href="#threat">Threat</a><a href="#features">Features</a><a href="#buyer">Buyer Mode</a><a href="#area">Area Report</a><a href="#privacy">Privacy</a>
+</div>
+
+<main>
+<section id="hero">
+  <canvas id="heroCanvas"></canvas>
+  <div class="hero-fade"></div>
+  <div class="container hero-content">
+    <div class="pill" data-reveal><span class="dot"></span>Open source · MIT · Zero PII</div>
+    <h1 data-reveal data-delay="0.08" style="margin-top:22px">Don't get scammed.<br><em>Audit the flat</em> before you pay.</h1>
+    <p class="hero-sub" data-reveal data-delay="0.16">FlatAudit reads the listing <b>right inside your browser</b> — benchmarks the rent against the neighbourhood, flags advance-fee pretexts, catches stolen photos, checks RERA &amp; circle rates, and tracks price history like a shopping companion. <b>Nothing you see leaves your device.</b></p>
+    <div class="hero-ctas" data-reveal data-delay="0.24">
+      <a href="#install" class="btn btn-primary js-install">Add to Chrome — Free
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a href="#threat" class="btn btn-ghost">See the scam playbook</a>
+    </div>
+    <div class="hero-stats" data-reveal data-delay="0.32">
+      <span class="stat-chip"><b>4</b> portals audited</span>
+      <span class="stat-chip"><b>5-level</b> benchmark ladder</span>
+      <span class="stat-chip"><b>300+</b> tests passing</span>
+      <span class="stat-chip"><b>0</b> bytes of PII stored</span>
+    </div>
+  </div>
+  <div class="scroll-hint">SCROLL</div>
+</section>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track">
+    <div class="mq-group">
+      <span class="mq-item">NOBROKER</span><span class="mq-item">MAGICBRICKS</span><span class="mq-item">99ACRES</span>
+      <span class="mq-item">HOUSING.COM</span><span class="mq-item">K-RAERA · RAJ-RERA</span><span class="mq-item">OSM OVERPASS</span>
+    </div>
+    <div class="mq-group">
+      <span class="mq-item">NOBROKER</span><span class="mq-item">MAGICBRICKS</span><span class="mq-item">99ACRES</span>
+      <span class="mq-item">HOUSING.COM</span><span class="mq-item">K-RAERA · RAJ-RERA</span><span class="mq-item">OSM OVERPASS</span>
+    </div>
+  </div>
+</div>
+
+<section id="threat">
+  <div class="kill-pin">
+    <div class="container">
+      <div class="section-head">
+        <div class="kicker">01 — Threat model</div>
+        <h2>The rental scam kill chain</h2>
+        <p>Five moves. The same script, city after city. FlatAudit breaks it at step one — before money ever moves.</p>
+      </div>
+    </div>
+    <div class="kill-viewport">
+      <div class="kill-track">
+        <div class="kill-stage"><div class="kill-num">01</div><h3>Fake listing</h3><p>Scraped photos and stock interiors reposted as a brand-new “owner” flat. Fresh account, fresh phone number.</p><span class="kill-chip">Stolen photos</span></div>
+        <div class="kill-stage"><div class="kill-num">02</div><h3>Bait pricing</h3><p>40–70% under market. The cheapest flat in the locality is the hook — priced so well you stop asking questions.</p><span class="kill-chip">−62% vs median</span></div>
+        <div class="kill-stage"><div class="kill-num">03</div><h3>The pretext</h3><p>An army officer at a border posting. An NRI landlord in London. Someone who can never physically show you the flat.</p><span class="kill-chip">Impersonation</span></div>
+        <div class="kill-stage"><div class="kill-num">04</div><h3>Advance fee</h3><p>₹1,500–₹5,000 by UPI before you’re allowed to visit: a “gate pass”, “cantonment entry slip”, “refundable viewing token”.</p><span class="kill-chip">Pay-to-view</span></div>
+        <div class="kill-stage"><div class="kill-num">05</div><h3>Vanish</h3><p>The transfer lands. The “owner” blocks you. A week later the same photos reappear under a new listing.</p><span class="kill-chip">Repeat ∞</span></div>
+        <div class="kill-solution">
+          <span class="sol-pill">The solution</span>
+          <div class="sol-ic"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg></div>
+          <div class="sol-body">
+            <h3>FlatAudit breaks the chain at step 1</h3>
+            <p>Median/MAD price audit, deposit-ratio checks, advance-fee phrase regexes and photo fingerprints — evaluated locally in milliseconds, before you ever message the “owner”.</p>
+            <a href="#features" class="btn btn-primary btn-sm" style="margin-top:6px">See the audit
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features" class="section">
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <div class="kicker">02 — The companion</div>
+      <h2>Everything the listing won't tell you</h2>
+      <p>A passive trust audit, a Buyhatke-style price tracker, and a buyer’s due-diligence desk — living quietly in a drawer on the listing page.</p>
+    </div>
+
+    <div class="bento">
+      <div class="bento-card card-audit" data-reveal>
+        <div class="card-head">
+          <div><div class="kicker" style="margin-bottom:6px">Live demo</div><h3>Trust audit, in-page</h3></div>
+          <div class="verdict v-idle" id="verdict"><span class="v-dot"></span><span id="verdictText">IDLE</span></div>
+        </div>
+        <div class="preset-tabs" id="presetTabs">
+          <button data-preset="scam" class="on">Scam — army token</button>
+          <button data-preset="bait">Bait price</button>
+          <button data-preset="clean">Clean 2BHK</button>
+        </div>
+        <div class="mock-listing">
+          <div class="mock-top">
+            <div><h4 id="mockTitle">2BHK · Indiranagar 100ft Rd</h4><div class="mock-meta" id="mockMeta">2 BHK · 950 sq.ft · 3rd floor · Semi-furn</div></div>
+            <div class="mock-price"><div class="rent" id="mockRent">₹11,000/mo</div><div class="dep" id="mockDeposit">Deposit ₹11,000</div></div>
+          </div>
+          <div class="mock-desc" id="mockDesc">“ARMY OFFICER shifting to border posting urgently. Flat seen via video only. Pay ₹2,500 gate-pass token on UPI to block visiting slot.”</div>
+        </div>
+        <button class="btn btn-primary btn-sm" id="runAudit">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          Run audit
+        </button>
+        <ul class="signal-log" id="signalLog"></ul>
+        <p class="fine" style="margin-top:12px">Demo runs the real rule families — price vs <code>median</code>, deposit ratio, advance-fee regexes — on sample listings. On a real portal this happens passively in <code>&lt;300 ms</code>, with a non-defamatory badge: <em>Looks normal · Some signals · Many signals</em>.</p>
+      </div>
+
+      <div class="bento-card card-track" data-reveal data-delay="0.08">
+        <div class="kicker" style="margin-bottom:6px">Price tracking</div>
+        <h3>Landlords blink. You see it.</h3>
+        <div class="spark-wrap">
+          <svg class="spark-svg" viewBox="0 0 260 74" fill="none" aria-hidden="true">
+            <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="rgba(56,189,248,.28)"/><stop offset="1" stop-color="rgba(56,189,248,0)"/>
+            </linearGradient></defs>
+            <path id="sparkArea" fill="url(#sg)" d=""/>
+            <polyline id="sparkPath" stroke="#38bdf8" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" points=""/>
+            <circle id="sparkDot" r="4.5" fill="#34d399" stroke="#020617" stroke-width="2"/>
+          </svg>
+        </div>
+        <span class="spark-drop">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>
+          ₹2,000 (−5.0%)
+        </span>
+        <div class="card-foot">
+          <span class="mini-chip">Listed 14 days ago</span><span class="mini-chip">Local snapshots</span><span class="mini-chip">CSV export</span>
+        </div>
+      </div>
+
+      <div class="bento-card card-rera" data-reveal data-delay="0.14">
+        <div class="kicker" style="margin-bottom:6px">Buyer mode</div>
+        <h3>RERA ID validator</h3>
+        <div class="rera-row">
+          <input id="reraInput" placeholder="PRM/KA/RERA/1250/…" spellcheck="false" autocomplete="off">
+          <button class="btn btn-primary btn-sm" id="reraRun">Check</button>
+        </div>
+        <div class="rera-result" id="reraResult"></div>
+        <div class="ex-chips">
+          <button data-ex="PRM/KA/RERA/1250/303/PR/180925/005263">↳ K-RERA example</button>
+          <button data-ex="RAJ/P/2024/1234">↳ Raj-RERA example</button>
+          <button data-ex="KA-RERA-12345">↳ bad format</button>
+        </div>
+      </div>
+
+      <div class="bento-card card-dupe" data-reveal>
+        <div class="kicker" style="margin-bottom:6px">Cross-portal</div>
+        <h3>Same photo, two listings</h3>
+        <div class="dhash-row">
+          <div class="dgrid" id="dupeA"></div><span class="dhash-eq">≠</span><div class="dgrid" id="dupeB"></div>
+        </div>
+        <p class="fine">Each photo is reduced to a <code>64-bit dHash</code> on a local <code>OffscreenCanvas(9×8)</code>. Hamming distance <b style="color:var(--amber)">≤ 10</b> ⇒ duplicate. <span id="dupeInfo"></span></p>
+      </div>
+
+      <div class="bento-card card-deposit" data-reveal data-delay="0.08">
+        <div class="kicker" style="margin-bottom:6px">Deposit ratio</div>
+        <h3>Too cheap to be true</h3>
+        <div class="gauge">
+          <div class="gauge-bar"><div class="gauge-band"></div><div class="gauge-mark" id="gaugeMark"></div></div>
+          <div class="gauge-labels"><span>0×</span><span>6–10× typical</span><span>12×</span></div>
+        </div>
+        <p class="fine" style="margin-top:10px">A 1× deposit with a below-median rent is the classic bait combination — scored locally against the area’s deposit-multiple distribution.</p>
+      </div>
+
+      <div class="bento-card card-areagrades" data-reveal data-delay="0.14">
+        <div class="kicker" style="margin-bottom:6px">Area report · opt-in</div>
+        <h3>Grade the neighbourhood</h3>
+        <ul class="grade-list">
+          <li><span class="cat">Emergency healthcare</span><span class="m">Hospital · 0.8 km</span><span class="grade g-A">A</span></li>
+          <li><span class="cat">Daily supplies</span><span class="m">Supermarket · 350 m</span><span class="grade g-A">A</span></li>
+          <li><span class="cat">Commute &amp; transit</span><span class="m">Metro · 1.4 km</span><span class="grade g-B">B</span></li>
+          <li><span class="cat">Safety &amp; environment</span><span class="m">Park · 600 m</span><span class="grade g-B">B</span></li>
+          <li><span class="cat">Lifestyle &amp; community</span><span class="m">Cafés · 500 m</span><span class="grade g-A">A</span></li>
+        </ul>
+        <p class="fine" style="margin-top:10px"><a href="#area" style="color:var(--cyan2);border-bottom:1px dotted var(--cyan2)">See the full area report ↓</a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ladder" class="section">
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <div class="kicker">Benchmarks without hardcoding</div>
+      <h2>The every-city fallback ladder</h2>
+      <p>No rigid rupee thresholds. Every rent is scored against the strongest evidence available — falling back gracefully, and staying silent rather than guessing.</p>
+    </div>
+    <div class="ladder-wrap">
+      <ol class="ladder-list" id="ladderList" data-reveal-group>
+        <li class="ladder-line"><span class="ladder-fill" id="ladderFill"></span></li>
+        <li class="ladder-step"><span class="lvl">L1</span><div><h4>Peer page <span class="n">n ≥ 6</span></h4><p>Search-result cards and “similar properties” on the very page you’re reading. Works day one, in any Indian city, with zero server dependency.</p></div></li>
+        <li class="ladder-step"><span class="lvl">L2</span><div><h4>Area cell <span class="n">n ≥ 10</span></h4><p>Fine geohash cell (~1–5 km) or locality pack, aggregated anonymously from the hash index.</p></div></li>
+        <li class="ladder-step"><span class="lvl">L3</span><div><h4>District cell <span class="n">n ≥ 8</span></h4><p>Parent geohash prefix (~20–40 km) when the locality itself is too thin.</p></div></li>
+        <li class="ladder-step"><span class="lvl">L4</span><div><h4>City baseline <span class="n">n ≥ 5</span></h4><p>Metro aggregate by BHK — the last rung before silence.</p></div></li>
+        <li class="ladder-step silence"><span class="lvl">L5</span><div><h4>Silence mode <span class="n">n &lt; 5</span></h4><p>Fewer than five comparable observations? Price flags are suppressed entirely. Non-price signals — advance-fee phrases, stolen photos, zero-deposit traps — keep working.</p></div></li>
+      </ol>
+      <aside class="ladder-note" data-reveal data-delay="0.1">
+        <div class="kicker" style="margin-bottom:8px">Robust statistics</div>
+        <h3 style="font-size:17px;font-weight:700">Median &amp; MAD, not averages</h3>
+        <span class="formula">z = 0.6745 × (x − median) / MAD</span>
+        <ul>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>One ₹90,000 outlier can’t poison a median.</span></li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>Trimmed aggregation happens server-side on anonymous primitives only.</span></li>
+          <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>Packs cached with ETag → <b style="color:var(--cyan2)">304 Not Modified</b>, no compute per visit.</span></li>
+        </ul>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<section id="buyer" class="section">
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <div class="kicker">03 — Buyer mode</div>
+      <h2>Flip to buying without flipping your guard</h2>
+      <p>Bengaluru &amp; Rajasthan pilot: circle-rate under-valuation checks, RERA dossiers, escrow &amp; QPR compliance, statutory closing costs, and a printable 1-page report for your lawyer.</p>
+    </div>
+    <div class="buyer-wrap">
+      <div class="buyer-card" data-reveal>
+        <h3 style="font-size:18px;font-weight:700">Due-diligence checklist</h3>
+        <div class="buyer-tabs" id="buyerTabs">
+          <button data-tab="resale" class="on">Individual resale</button>
+          <button data-tab="builder">Builder floor</button>
+          <button data-tab="dev">Developer project</button>
+        </div>
+        <ul class="check-list" id="buyerList"></ul>
+        <p class="fine" style="margin-top:14px">Checklists adapt to what the listing actually is — detected automatically from the page’s structure.</p>
+      </div>
+      <div class="side-stack">
+        <div class="side-card" data-reveal data-delay="0.08">
+          <h3 style="font-size:18px;font-weight:700">Loan EMI calculator</h3>
+          <div class="emi-grid">
+            <label>Property price <span class="emi-val" id="emiPriceVal">₹85.0 L</span><input type="range" id="emiPrice" min="2000000" max="30000000" step="100000" value="8500000"></label>
+            <label>Interest rate <span class="emi-val" id="emiRateVal">8.50%</span><input type="range" id="emiRate" min="7" max="12" step="0.05" value="8.5"></label>
+            <label>Tenure <span class="emi-val" id="emiTenVal">20 yrs</span><input type="range" id="emiTen" min="5" max="30" step="1" value="20"></label>
+          </div>
+          <div class="emi-out">
+            <div><div class="big" id="emiOut">₹58,606</div><div class="sub">monthly EMI · 80% LTV</div></div>
+            <div style="text-align:right"><div class="sub" style="color:var(--text)"><span id="emiPrincipal">₹68 L</span> loan</div><div class="sub"><span id="emiInterest">₹72.1 L</span> interest</div></div>
+          </div>
+        </div>
+        <div class="side-card" data-reveal data-delay="0.14">
+          <h3 style="font-size:18px;font-weight:700">Buyer report</h3>
+          <div class="report-mock">
+            <div class="report-mock-head">FlatAudit · Buyer Report · 1 page</div>
+            <div class="report-row"><span class="k">Property</span><span class="v">2BHK · Koramangala</span></div>
+            <div class="report-row"><span class="k">Asking</span><span class="v">₹94 L · ₹9,785/sq.ft</span></div>
+            <div class="report-row"><span class="k">Circle-rate gap</span><span class="v ok">−3% · in range</span></div>
+            <div class="report-row"><span class="k">RERA</span><span class="v ok">K-RERA · verified</span></div>
+            <div class="report-row"><span class="k">All-in cost</span><span class="v warn">₹1.01 Cr incl. duty</span></div>
+          </div>
+          <p class="fine" style="margin-top:12px">Printable HTML, generated locally — hand it to your lawyer for review.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AREA REPORT — rebuilt -->
+<section id="area" class="section">
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <div class="kicker">04 — Area report</div>
+      <h2>Grade the neighbourhood, not just the flat</h2>
+      <p>Strictly opt-in OpenStreetMap scoring across five categories. Coordinates are rounded to a ~100 m grid before a single byte leaves the browser.</p>
+    </div>
+    <div class="area-wrap">
+      <div class="area-card-big" data-reveal>
+        <div class="area-card-head">
+          <div><div class="kicker" style="margin-bottom:4px">Sample area report</div><h3>Indiranagar, Bengaluru</h3></div>
+          <span class="pill"><span class="dot" style="background:var(--amber);box-shadow:0 0 10px var(--amber)"></span>OFF by default</span>
+        </div>
+        <div class="mini-map">
+          <div class="mm-rings"></div>
+          <div class="mm-pin"></div>
+          <span class="mm-dot" style="--a:35deg;--d:42px">🏥</span>
+          <span class="mm-dot" style="--a:160deg;--d:30px">🛒</span>
+          <span class="mm-dot" style="--a:250deg;--d:55px">🚇</span>
+          <span class="mm-dot" style="--a:300deg;--d:38px">🌳</span>
+          <span class="mm-dot" style="--a:90deg;--d:62px">☕</span>
+          <div class="mm-label">~100 m grid · coords rounded for privacy</div>
+        </div>
+        <ul class="area-rows">
+          <li><div class="ar-main"><span class="grade g-A">A</span><div><div class="ar-name">Emergency healthcare</div><div class="ar-sub">Multispecialty 0.8 km · 24×7 pharmacy 1.1 km</div></div></div><div class="ar-score">9.0/10</div></li>
+          <li><div class="ar-main"><span class="grade g-A">A</span><div><div class="ar-name">Daily supplies</div><div class="ar-sub">Supermarket 350 m · Pharmacy 220 m</div></div></div><div class="ar-score">8.6/10</div></li>
+          <li><div class="ar-main"><span class="grade g-B">B</span><div><div class="ar-name">Commute &amp; transit</div><div class="ar-sub">Metro 1.4 km · Bus stop 180 m</div></div></div><div class="ar-score">7.4/10</div></li>
+          <li><div class="ar-main"><span class="grade g-B">B</span><div><div class="ar-name">Safety &amp; environment</div><div class="ar-sub">Park 600 m · Police stn 1.0 km · no flood-zone tag</div></div></div><div class="ar-score">7.1/10</div></li>
+          <li><div class="ar-main"><span class="grade g-A">A</span><div><div class="ar-name">Lifestyle &amp; community</div><div class="ar-sub">Café cluster 500 m · Gym 300 m</div></div></div><div class="ar-score">8.2/10</div></li>
+        </ul>
+        <div class="area-foot">
+          <span class="mini-chip">14-day TTL · 50-entry LRU</span>
+          <span class="mini-chip">© OpenStreetMap · ODbL</span>
+          <span class="mini-chip">Nearest-distance + neutral map facts</span>
+        </div>
+      </div>
+
+      <div class="area-side" data-reveal data-delay="0.08">
+        <div class="area-side-card">
+          <h4>How it works</h4>
+          <ul class="area-how">
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>Strictly opt-in.</b> Toggling it on requests Chrome’s optional host permission for <code>overpass-api.de</code>.</span></li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>~100 m grid.</b> Coordinates rounded to 3 decimals before querying.</span></li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>14-day TTL + 50-entry LRU</b> cache in <code>chrome.storage.local</code> — repeat visits never re-query.</span></li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>City-tier tuned.</b> Metro vs tier-2/3 thresholds — see the toggle below.</span></li>
+            <li><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>Neutral map facts only.</b> No subjective “good/bad area” wording — distances and grades.</span></li>
+          </ul>
+        </div>
+        <div class="area-side-card">
+          <h4>City-tier thresholds</h4>
+          <div class="tier-toggle" id="tierToggle">
+            <button class="on" data-tier="metro">Metro · Bengaluru</button>
+            <button data-tier="tier2">Tier-2 · Jodhpur</button>
+          </div>
+          <ul class="tier-rows" id="tierRows">
+            <li><span>Emergency healthcare · grade A ≤</span><b id="t1">1.5 km</b></li>
+            <li><span>Daily supplies · grade A ≤</span><b id="t2">400 m</b></li>
+            <li><span>Commute · grade A ≤</span><b id="t3">0.8 km</b></li>
+            <li><span>Park (safety/env) · grade A ≤</span><b id="t4">500 m</b></li>
+            <li><span>Lifestyle cluster · grade A ≤</span><b id="t5">600 m</b></li>
+          </ul>
+          <p class="fine" style="margin-top:10px">Same OSM data, different cut-offs — so a “B” in Jodhpur isn’t unfairly a “C”.</p>
+        </div>
+        <div class="area-side-card">
+          <h4>Grade legend</h4>
+          <div class="legend-row"><span class="grade g-A">A</span><span>Good — amenities well within threshold</span></div>
+          <div class="legend-row"><span class="grade g-B">B</span><span>Okay — present, a little further</span></div>
+          <div class="legend-row"><span class="grade g-C">C</span><span>Weak — sparse or distant</span></div>
+          <div class="legend-row"><span class="grade g-D">D</span><span>None observed on the map</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="privacy" class="section">
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <div class="kicker">05 — Privacy by design</div>
+      <h2>Trust that never asks for your data</h2>
+    </div>
+    <div class="priv-wrap">
+      <ul class="priv-list" data-reveal-group>
+        <li><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>No accounts, no phone numbers, no emails.</b> There is nothing to leak.</span></li>
+        <li><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>Listing photos are hashed locally</b> to a 64-bit fingerprint — raw pixels are never uploaded, cached, or stored.</span></li>
+        <li><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>No listing URLs in the index</b> — only anonymous structural primitives: BHK, rent, geohash, hash, day.</span></li>
+        <li><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>innerHTML is forbidden</b> across all production scripts — DOM inputs are sanitised via <code class="mono" style="font-size:.85em;color:var(--cyan2)">textContent</code>.</span></li>
+        <li><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span><b>Telemetry is opt-in and anonymous</b> — a random UUID, verdict labels, nothing else.</span></li>
+      </ul>
+      <div class="flow" data-reveal data-delay="0.12">
+        <div class="flow-node"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span>Listing photos<span class="fn-sub">fetched in the MV3 service worker</span></span></div>
+        <div class="flow-line"></div>
+        <div class="flow-node"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg><span>OffscreenCanvas 9×8<span class="fn-sub">grayscale reduction, in-memory only</span></span></div>
+        <div class="flow-line"></div>
+        <div class="flow-node"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4l16 16M20 4L4 20"/></svg><span>64-bit dHash<span class="fn-sub">e.g. a4c2e1f0b8d7e6a5</span></span></div>
+        <div class="flow-line"></div>
+        <div class="flow-node bad"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg><span>Raw pixels — never uploaded, never cached</span></div>
+        <div class="flow-line"></div>
+        <div class="flow-node"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg><span>Anonymous hash index<span class="fn-sub">portal · locality · BHK · rent · geohash · day</span></span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="numbers">
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <div class="kicker">06 — Evidence</div>
+      <h2>Measured, not marketed</h2>
+    </div>
+    <div class="num-grid">
+      <div class="num-cell" data-reveal><div class="val"><span data-count="97.3" data-decimals="1" data-suffix="%">0%</span></div><div class="lbl">Detection accuracy — 250-listing synthetic eval</div></div>
+      <div class="num-cell" data-reveal data-delay="0.07"><div class="val"><span data-count="100" data-suffix="%">0%</span></div><div class="lbl">Precision &amp; recall — 30 real multi-city listings</div></div>
+      <div class="num-cell" data-reveal data-delay="0.14"><div class="val"><span data-count="300" data-suffix="+">0+</span></div><div class="lbl">Unit &amp; integration tests across JS and Python</div></div>
+      <div class="num-cell" data-reveal data-delay="0.21"><div class="val"><span data-count="0">0</span></div><div class="lbl">PII stored. Ever. Independently verifiable — MIT source.</div></div>
+    </div>
+  </div>
+</section>
+
+<section id="cta">
+  <div class="container">
+    <h2 data-reveal>Audit <span>before</span> you pay.</h2>
+    <p data-reveal data-delay="0.08">Ten seconds to install. Every listing, every portal, every city — a quiet second opinion that never sees your data.</p>
+    <div class="hero-ctas" style="justify-content:center" data-reveal data-delay="0.16">
+      <a href="#install" class="btn btn-primary js-install">Add to Chrome — Free
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <a href="https://github.com/breathtaker-adi/FlatAudit" target="_blank" rel="noopener" class="btn btn-ghost">Star on GitHub ↗</a>
+    </div>
+    <p class="fine mono" style="margin-top:26px" data-reveal data-delay="0.22">MIT · no account · no telemetry unless you opt in</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="container">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#hero" class="logo"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg>Flat<b>Audit</b></a>
+        <p>A privacy-preserving companion for Indian home seekers. Reads the listing, questions the listing, never reads you.</p>
+      </div>
+      <div><h5>Product</h5><ul>
+        <li><a href="#features">Features</a></li><li><a href="#buyer">Buyer mode</a></li><li><a href="#area">Area report</a></li><li><a href="#privacy">Privacy</a></li>
+      </ul></div>
+      <div><h5>Resources</h5><ul>
+        <li><a href="https://github.com/breathtaker-adi/FlatAudit" target="_blank" rel="noopener">GitHub repository</a></li>
+        <li><a href="https://github.com/breathtaker-adi/FlatAudit/blob/main/docs/threat-model.md" target="_blank" rel="noopener">Threat model</a></li>
+        <li><a href="https://github.com/breathtaker-adi/FlatAudit/blob/main/docs/privacy-policy.md" target="_blank" rel="noopener">Privacy policy</a></li>
+        <li><a href="https://github.com/breathtaker-adi/FlatAudit/blob/main/LICENSE" target="_blank" rel="noopener">MIT license</a></li>
+      </ul></div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 FlatAudit · MIT</span>
+      <span>Map data © OpenStreetMap contributors (ODbL)</span>
+      <span>Grades are heuristics &amp; observable facts — not legal advice.</span>
+    </div>
+  </div>
+</footer>
+
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/lenis@1.1.14/dist/lenis.min.js"></script>
+<script>
+(function(){
+'use strict';
+const q=(s,c)=>(c||document).querySelector(s), qa=(s,c)=>[...(c||document).querySelectorAll(s)];
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+gsap.registerPlugin(ScrollTrigger); gsap.config({nullTargetWarn:false});
+
+let toastT;
+function toast(msg){const t=q('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3400);}
+qa('.js-install').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();toast('Chrome Web Store listing is in review — meanwhile, load the unpacked extension from the GitHub repo.');}));
+
+(function(){
+  const p=q('#preloader'); if(!p) return;
+  if(RM){p.remove();return;}
+  const tl=gsap.timeline({onComplete:()=>p.remove()});
+  tl.from('.pre-word',{y:24,opacity:0,duration:.55,ease:'power3.out'})
+    .to('#preBar',{width:'100%',duration:.55,ease:'power2.inOut'},'-=.2')
+    .to(p,{clipPath:'inset(0 0 100% 0)',duration:.65,ease:'power4.inOut',delay:.1})
+    .set(p,{display:'none'});
+})();
+
+let lenis=null;
+if(window.Lenis && !RM){
+  lenis=new Lenis({lerp:.09,smoothWheel:true});
+  lenis.on('scroll',ScrollTrigger.update);
+  gsap.ticker.add(t=>lenis.raf(t*1000));
+  gsap.ticker.lagSmoothing(0);
+}
+const bar=q('#scrollProgress');
+function setProg(p){bar.style.transform='scaleX('+p+')';}
+if(lenis){lenis.on('scroll',e=>setProg(e.progress||0));}
+else addEventListener('scroll',()=>{const h=document.documentElement;setProg(h.scrollTop/(h.scrollHeight-h.clientHeight||1));},{passive:true});
+
+qa('a[href^="#"]').forEach(a=>a.addEventListener('click',e=>{
+  const id=a.getAttribute('href');
+  if(id.length>1&&q(id)){e.preventDefault();lenis?lenis.scrollTo(id,{offset:-70}):q(id).scrollIntoView({behavior:RM?'auto':'smooth'});}
+  else if(id==='#')e.preventDefault();
+  q('#mobileMenu').classList.remove('open');
+}));
+
+const nav=q('#nav');
+addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>40),{passive:true});
+q('#navToggle').addEventListener('click',()=>q('#mobileMenu').classList.toggle('open'));
+['threat','features','buyer','area','privacy'].forEach(id=>{
+  ScrollTrigger.create({trigger:'#'+id,start:'top 45%',end:'bottom 45%',
+    onToggle:s=>qa('[data-nav="'+id+'"]').forEach(l=>l.classList.toggle('active',s.isActive))});
+});
+
+(function(){
+  const g=q('#glow'); if(!g||RM)return;
+  const xTo=gsap.quickTo(g,'left',{duration:.5,ease:'power3'}), yTo=gsap.quickTo(g,'top',{duration:.5,ease:'power3'});
+  addEventListener('mousemove',e=>{xTo(e.clientX);yTo(e.clientY);});
+})();
+
+(function(){
+  const cv=q('#heroCanvas'),hero=q('#hero'); if(!cv)return;
+  const ctx=cv.getContext('2d'); let W,H,dots=[];
+  const mouse={x:-9e3,y:-9e3}; let scanY=-160;
+  function resize(){
+    const dpr=Math.min(devicePixelRatio||1,2);
+    W=hero.clientWidth;H=hero.clientHeight;
+    cv.width=W*dpr;cv.height=H*dpr;cv.style.width=W+'px';cv.style.height=H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    dots=[];const sp=W<720?42:54;
+    for(let y=sp/2;y<H;y+=sp)for(let x=sp/2;x<W;x+=sp)dots.push({x,y});
+  }
+  hero.addEventListener('mousemove',e=>{const r=cv.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top;});
+  hero.addEventListener('mouseleave',()=>{mouse.x=-9e3;mouse.y=-9e3;});
+  function frame(){
+    if(!RM)scanY+=(H+320)/240;
+    if(scanY>H+160)scanY=-160;
+    ctx.clearRect(0,0,W,H);
+    const g=ctx.createLinearGradient(0,scanY-90,0,scanY+90);
+    g.addColorStop(0,'rgba(56,189,248,0)');g.addColorStop(.5,'rgba(56,189,248,.10)');g.addColorStop(1,'rgba(56,189,248,0)');
+    ctx.fillStyle=g;ctx.fillRect(0,scanY-90,W,180);
+    ctx.strokeStyle='rgba(56,189,248,.32)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(0,scanY);ctx.lineTo(W,scanY);ctx.stroke();
+    for(let i=0;i<dots.length;i++){const d=dots[i];
+      let ox=0,oy=0,a=.12,r=1.1;
+      const dx=d.x-mouse.x,dy=d.y-mouse.y,dd=dx*dx+dy*dy,R=140;
+      if(dd<R*R){const dist=Math.sqrt(dd)||1,f=1-dist/R;ox=dx/dist*f*26;oy=dy/dist*f*26;a+=f*.55;r+=f*1.2;}
+      const ds=Math.abs(d.y+oy-scanY);
+      if(ds<80){a+=(1-ds/80)*.6;r+=(1-ds/80)*.9;}
+      ctx.beginPath();ctx.arc(d.x+ox,d.y+oy,r,0,6.2832);
+      ctx.fillStyle='rgba(125,211,252,'+Math.min(a,.95)+')';ctx.fill();
+    }
+    if(!RM)requestAnimationFrame(frame);
+  }
+  resize();addEventListener('resize',resize);
+  if(RM){frame();}else requestAnimationFrame(frame);
+})();
+
+qa('[data-reveal]').forEach(el=>gsap.from(el,{y:RM?0:36,opacity:0,duration:RM?.01:.9,ease:'power3.out',delay:+(el.dataset.delay||0),
+  scrollTrigger:{trigger:el,start:'top 88%',once:true}}));
+qa('[data-reveal-group]').forEach(g=>gsap.from(g.children,{y:RM?0:26,opacity:0,duration:RM?.01:.7,stagger:.09,ease:'power3.out',
+  scrollTrigger:{trigger:g,start:'top 86%',once:true}}));
+qa('[data-count]').forEach(el=>{
+  const target=parseFloat(el.dataset.count),dec=+(el.dataset.decimals||0),suf=el.dataset.suffix||'',o={v:0};
+  gsap.to(o,{v:target,duration:RM?.01:1.8,ease:'power2.out',
+    scrollTrigger:{trigger:el,start:'top 88%',once:true},
+    onUpdate(){el.textContent=o.v.toFixed(dec)+suf;}});
+});
+
+/* KILL CHAIN — horizontal + solution pop */
+const mm=gsap.matchMedia();
+mm.add('(min-width: 900px)',()=>{
+  const track=q('.kill-track'); if(!track)return;
+  const dist=()=>track.scrollWidth-innerWidth+40;
+  const hTween=gsap.to(track,{x:()=>-dist(),ease:'none',
+    scrollTrigger:{trigger:'#threat',start:'top top',end:()=>'+='+dist(),scrub:1,pin:true,invalidateOnRefresh:true,anticipatePin:1}});
+  /* solution card — distinct pop */
+  gsap.from('.kill-solution',{scale:.9,opacity:0,duration:1,ease:'power3.out',
+    scrollTrigger:{trigger:'.kill-solution',start:'left 75%',containerAnimation:hTween,once:true}});
+  gsap.from('.sol-pill',{y:-12,opacity:0,duration:.5,ease:'power2.out',
+    scrollTrigger:{trigger:'.kill-solution',start:'left 75%',containerAnimation:hTween,once:true}});
+  gsap.from('.sol-ic',{scale:0,rotate:-25,duration:.7,ease:'back.out(2)',delay:.15,
+    scrollTrigger:{trigger:'.kill-solution',start:'left 75%',containerAnimation:hTween,once:true}});
+  gsap.from('.sol-body>*',{y:18,opacity:0,duration:.55,stagger:.12,ease:'power2.out',delay:.25,
+    scrollTrigger:{trigger:'.kill-solution',start:'left 75%',containerAnimation:hTween,once:true}});
+  return ()=>{};
+});
+mm.add('(max-width: 899px)',()=>{
+  gsap.from('.kill-solution',{scale:.92,opacity:0,duration:.8,ease:'power3.out',
+    scrollTrigger:{trigger:'.kill-solution',start:'top 85%',once:true}});
+  gsap.from('.sol-body>*',{y:16,opacity:0,duration:.5,stagger:.1,ease:'power2.out',
+    scrollTrigger:{trigger:'.kill-solution',start:'top 85%',once:true}});
+});
+
+if(q('#ladderFill'))gsap.fromTo('#ladderFill',{scaleY:0},{scaleY:1,ease:'none',
+  scrollTrigger:{trigger:'#ladderList',start:'top 78%',end:'bottom 55%',scrub:.5}});
+
+(function(){
+  const poly=q('#sparkPath'),area=q('#sparkArea'),dot=q('#sparkDot'); if(!poly)return;
+  const data=[40,40,40,40,40,39.5,39,38],n=data.length,w=260,h=74;
+  const X=i=>i/(n-1)*w, Y=v=>h-((v-37.2)/(40.8-37.2))*(h-14)-7;
+  const pts=data.map((v,i)=>X(i)+','+Y(v)).join(' ');
+  poly.setAttribute('points',pts);
+  area.setAttribute('d','M0,'+h+' L'+pts.replace(/ /g,' L')+' L'+w+','+h+' Z');
+  const lx=X(n-1),ly=Y(data[n-1]); dot.setAttribute('cx',lx);dot.setAttribute('cy',ly);
+  const len=poly.getTotalLength();
+  gsap.set(poly,{strokeDasharray:len,strokeDashoffset:len});gsap.set(dot,{opacity:0,scale:0,transformOrigin:'center'});
+  gsap.set(area,{opacity:0});
+  ScrollTrigger.create({trigger:poly,start:'top 88%',once:true,onEnter:()=>{
+    gsap.to(poly,{strokeDashoffset:0,duration:RM?.01:1.6,ease:'power2.inOut'});
+    gsap.to(area,{opacity:1,duration:RM?.01:1.2,delay:.5});
+    gsap.to(dot,{opacity:1,scale:1,duration:RM?.01:.5,delay:1.4,ease:'back.out(3)'});
+  }});
+})();
+
+(function(){
+  const A=q('#dupeA'),B=q('#dupeB'); if(!A)return;
+  const bits=Array.from({length:64},(_,i)=>((i*7+3)%5)>2?1:0);
+  const flip=[3,9,14,22,30,37,45,52,58,61];
+  const bits2=bits.map((b,i)=>flip.includes(i)?1-b:b);
+  function render(el,arr){el.innerHTML='';arr.forEach(b=>{const c=document.createElement('span');c.className='dcell'+(b?' on':'');el.appendChild(c);});}
+  render(A,bits);render(B,bits2);
+  qa('.dcell',B).forEach((c,i)=>{if(flip.includes(i))c.classList.add('diff');});
+  q('#dupeInfo').textContent='Hamming 10/64 ⇒ cross-portal duplicate.';
+  gsap.from(qa('.dcell'),{opacity:0,scale:0,duration:RM?.01:.4,stagger:.006,ease:'power2.out',
+    scrollTrigger:{trigger:A,start:'top 88%',once:true}});
+})();
+
+if(q('#gaugeMark'))gsap.from('#gaugeMark',{left:'60%',duration:RM?.01:1.2,ease:'power3.inOut',
+  scrollTrigger:{trigger:'#gaugeMark',start:'top 90%',once:true}});
+
+const buyerTabs={
+  resale:['30-year Encumbrance Certificate (EC) chain','Parent deed &amp; sale-trail verification','Occupancy Certificate (OC) possession check','Physical carpet-area measurement vs sale deed','Society NOC &amp; transfer charges'],
+  builder:['Sanctioned floor plan &amp; violation scan','Joint Development Agreement (JDA) audit','Undivided Share (UDS) allocation maths','Khata / mutation status','Layout approval scope (BDA / JDA)'],
+  dev:['RERA Form B affidavit disclosures','Quarterly Progress Report (QPR) cadence','Designated escrow account compliance','Promoter completion track record','Circle-rate under-valuation check (&gt;35%)']
+};
+function renderBuyer(key){
+  const list=q('#buyerList');
+  list.innerHTML=buyerTabs[key].map(t=>'<li><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>'+t+'</span></li>').join('');
+  gsap.from(list.children,{y:RM?0:16,opacity:0,duration:RM?.01:.45,stagger:.06,ease:'power2.out'});
+}
+qa('#buyerTabs button').forEach(b=>b.addEventListener('click',()=>{
+  qa('#buyerTabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderBuyer(b.dataset.tab);
+}));
+renderBuyer('resale');
+
+/* AREA tier toggle */
+const tiers={
+ metro:{t1:'1.5 km',t2:'400 m',t3:'0.8 km',t4:'500 m',t5:'600 m'},
+ tier2:{t1:'2.5 km',t2:'700 m',t3:'1.6 km',t4:'900 m',t5:'1.2 km'}
+};
+qa('#tierToggle button').forEach(b=>b.addEventListener('click',()=>{
+  qa('#tierToggle button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  const t=tiers[b.dataset.tier];
+  Object.keys(t).forEach(k=>q('#'+k).textContent=t[k]);
+  gsap.from('#tierRows b',{y:6,opacity:0,duration:RM?.01:.3,stagger:.05,ease:'power2.out'});
+}));
+
+/* RERA validator — real portal handoff */
+const ICONS={
+  ok:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  bad:'<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>'
+};
+function validateRera(raw){
+  const v=(raw||'').trim().toUpperCase();
+  if(!v)return null;
+  if(/^PRM\/KA\/RERA\/\d+\/\d+\/PR\/\d+\/\d+$/.test(v))return{ok:true,state:'Karnataka · K-RERA',portalName:'Karnataka',url:'https://rera.karnataka.gov.in/home?language=en'};
+  if(/^RAJ\/P\/\d{4}\/\d+$/.test(v))return{ok:true,state:'Rajasthan · Raj-RERA',portalName:'Rajasthan',url:'https://rera.rajasthan.gov.in/'};
+  return{ok:false,msg:'Unrecognised format — treat as unverified. Open the state portal and search manually.'};
+}
+function runRera(){
+  const res=q('#reraResult'),r=validateRera(q('#reraInput').value);
+  if(r===null){res.innerHTML='<span class="fine">Paste a project RERA ID — e.g. PRM/KA/RERA/… or RAJ/P/…</span>';return;}
+  if(r.ok){
+    res.innerHTML='<div class="rera-ok">'+ICONS.ok+'<span>'+r.state+' · format valid.</span></div>'+
+      '<a class="btn btn-primary btn-sm rera-portal" href="'+r.url+'" target="_blank" rel="noopener">Verify on '+r.portalName+' RERA portal ↗</a>'+
+      '<span class="fine">Browsers can’t fetch the portals directly (CORS), so this opens the official search. The extension additionally cross-checks a curated pilot-project dossier — Form B, QPRs, escrow, revised completion — for Bengaluru &amp; Rajasthan.</span>';
+  }else{
+    res.innerHTML='<div class="rera-bad">'+ICONS.bad+'<span>'+r.msg+'</span></div>';
+  }
+  gsap.from(res.children,{y:RM?0:10,opacity:0,duration:RM?.01:.4,stagger:.08});
+}
+q('#reraRun').addEventListener('click',runRera);
+q('#reraInput').addEventListener('keydown',e=>{if(e.key==='Enter')runRera();});
+qa('.ex-chips button').forEach(b=>b.addEventListener('click',()=>{q('#reraInput').value=b.dataset.ex;runRera();}));
+
+(function(){
+  const P=q('#emiPrice'),R=q('#emiRate'),T=q('#emiTen'); if(!P)return;
+  const inr=v=>new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',maximumFractionDigits:0}).format(v);
+  const abbr=v=>v>=1e7?'₹'+(v/1e7).toFixed(2)+' Cr':v>=1e5?'₹'+(v/1e5).toFixed(1)+' L':inr(v);
+  function calc(){
+    const price=+P.value,rate=+R.value,ten=+T.value;
+    const principal=price*.8,r=rate/1200,n=ten*12;
+    const emi=r?principal*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1):principal/n;
+    q('#emiPriceVal').textContent=abbr(price);
+    q('#emiRateVal').textContent=rate.toFixed(2)+'%';
+    q('#emiTenVal').textContent=ten+' yrs';
+    q('#emiOut').textContent=inr(emi);
+    q('#emiPrincipal').textContent=abbr(principal);
+    q('#emiInterest').textContent=abbr(emi*n-principal);
+  }
+  [P,R,T].forEach(i=>i.addEventListener('input',calc)); calc();
+})();
+
+const presets={
+  scam:{title:'2BHK · Indiranagar 100ft Rd',meta:'2 BHK · 950 sq.ft · 3rd floor · Semi-furn',rent:11000,dep:11000,
+    desc:'“ARMY OFFICER shifting to border posting urgently. Flat seen via video only. Pay ₹2,500 gate-pass token on UPI to block visiting slot.”',
+    signals:[
+      {sev:'high',ic:'trend',text:'₹11,000 is <b>62% below</b> area median (₹29,000)',tag:'Bait price'},
+      {sev:'high',ic:'alert',text:'Deposit is <b>1× rent</b> — typical here is 6–10×',tag:'Deposit ratio'},
+      {sev:'high',ic:'alert',text:'Advance-fee phrases: “gate pass”, “token”, “army officer”',tag:'Pretext'},
+      {sev:'med',ic:'clock',text:'Zero price history · first seen today',tag:'Freshness'}],
+    verdict:{cls:'many',label:'MANY SIGNALS'}},
+  bait:{title:'1BHK · Koramangala 5th Block',meta:'1 BHK · 620 sq.ft · 2nd floor',rent:18000,dep:108000,
+    desc:'“Prime location, owner-occupied building, available immediately. Serious enquiries only.”',
+    signals:[
+      {sev:'high',ic:'trend',text:'₹18,000 is <b>38% below</b> area median (₹29,000)',tag:'Bait price'},
+      {sev:'med',ic:'copy',text:'Photo fingerprint matches a ₹21,000 MagicBricks listing',tag:'Duplicate'},
+      {sev:'ok',ic:'check',text:'Deposit 6× rent — within the normal band',tag:'OK'}],
+    verdict:{cls:'some',label:'SOME SIGNALS'}},
+  clean:{title:'2BHK · HSR Layout Sector 2',meta:'2 BHK · 1,050 sq.ft · 4th floor · Park-facing',rent:28000,dep:224000,
+    desc:'“Family-owned flat, 8-year-old building, 24×7 water, 5 min to NIFT bus stop. Visit any evening.”',
+    signals:[
+      {sev:'ok',ic:'trend',text:'₹28,000 vs median ₹29,000 — <b>within −3%</b>',tag:'In range'},
+      {sev:'ok',ic:'check',text:'Deposit 8× rent — typical for this area',tag:'OK'},
+      {sev:'ok',ic:'check',text:'No advance-fee phrases detected',tag:'OK'},
+      {sev:'ok',ic:'clock',text:'Listed 14 days · one tracked price drop',tag:'History'}],
+    verdict:{cls:'normal',label:'LOOKS NORMAL'}}
+};
+const SIG_IC={
+  trend:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/></svg>',
+  alert:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+  clock:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>',
+  copy:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>',
+  check:'<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'
+};
+let curPreset='scam';
+const verdict=q('#verdict'),verdictText=q('#verdictText'),log=q('#signalLog');
+function loadPreset(key){
+  curPreset=key;const p=presets[key];
+  q('#mockTitle').textContent=p.title;q('#mockMeta').textContent=p.meta;
+  q('#mockRent').textContent='₹'+p.rent.toLocaleString('en-IN')+'/mo';
+  q('#mockDeposit').textContent='Deposit ₹'+p.dep.toLocaleString('en-IN');
+  q('#mockDesc').textContent=p.desc;
+  log.innerHTML='';verdict.className='verdict v-idle';verdictText.textContent='IDLE';
+}
+qa('#presetTabs button').forEach(b=>b.addEventListener('click',()=>{
+  qa('#presetTabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');loadPreset(b.dataset.preset);
+}));
+q('#runAudit').addEventListener('click',()=>{
+  const p=presets[curPreset];
+  verdict.className='verdict v-scan';verdictText.textContent='ANALYZING';log.innerHTML='';
+  const tl=gsap.timeline();
+  p.signals.forEach((s,i)=>{
+    const li=document.createElement('li');li.className='sev-'+s.sev;
+    li.innerHTML='<span class="sig-ic">'+SIG_IC[s.ic]+'</span><span class="sig-text">'+s.text+'</span><span class="sig-tag">'+s.tag+'</span>';
+    log.appendChild(li);
+    tl.fromTo(li,{opacity:0,x:-14},{opacity:1,x:0,duration:RM?.01:.35},RM?0:.4+i*.3);
+  });
+  tl.call(()=>{verdict.className='verdict v-'+p.verdict.cls;verdictText.textContent=p.verdict.label;},null,RM?0:'+=.15');
+  tl.fromTo(verdict,{scale:.85},{scale:1,duration:RM?.01:.45,ease:'back.out(2.5)'},'<');
+});
+loadPreset('scam');
+
+qa('.bento-card').forEach(c=>c.addEventListener('mousemove',e=>{
+  const r=c.getBoundingClientRect();
+  c.style.setProperty('--mx',(e.clientX-r.left)+'px');
+  c.style.setProperty('--my',(e.clientY-r.top)+'px');
+}));
+
+addEventListener('load',()=>ScrollTrigger.refresh());
+})();
+</script>
+</body>
+</html>
