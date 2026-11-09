@@ -1,0 +1,95 @@
+name: CI/CD Pipeline & GitHub Pages Deployment
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # -------------------------------------------------------------
+  # Job 1: Automated Unit & Backend Integration Testing
+  # -------------------------------------------------------------
+  test:
+    name: Run Test Suite (Node.js & Python)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Node Dependencies
+        run: npm install
+
+      - name: Run JavaScript Unit Tests (272 Tests)
+        run: npm test
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt pytest pytest-asyncio anyio
+
+      - name: Run Python Backend Tests (30 Tests)
+        run: pytest backend/tests
+
+  # -------------------------------------------------------------
+  # Job 2: Build and Deploy to GitHub Pages
+  # -------------------------------------------------------------
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: test
+    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Build / Stage Static Site
+        run: |
+          mkdir -p _site
+          # Copy root entrypoint
+          cp index.html _site/
+          # Copy web-demo directory (contains index2.html showcase, index.html studio, styles and assets)
+          cp -r web-demo _site/
+          # Copy extension directory (required for in-browser client evaluation modules)
+          cp -r extension _site/
+          # Create .nojekyll to prevent Jekyll filtering
+          touch _site/.nojekyll
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

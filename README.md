@@ -5,16 +5,20 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/breathtaker-adi/FlatAudit/actions/workflows/ci-cd.yml"><img src="https://github.com/breathtaker-adi/FlatAudit/actions/workflows/ci-cd.yml/badge.svg" alt="CI/CD Status" /></a>
+  <a href="https://breathtaker-adi.github.io/FlatAudit/"><img src="https://img.shields.io/badge/Live%20Showcase-breathtaker--adi.github.io%2FFlatAudit-0ea5e9.svg?style=flat" alt="Live Showcase" /></a>
   <a href="tests/"><img src="https://img.shields.io/badge/Unit%20Tests-272%2F272%20Passing-brightgreen.svg" alt="Unit Tests" /></a>
   <a href="backend/tests/"><img src="https://img.shields.io/badge/API%20Tests-30%2F30%20Passing-brightgreen.svg" alt="API Tests" /></a>
   <a href="tests/"><img src="https://img.shields.io/badge/Total%20Automated%20Tests-302%2F302%20Passing-brightgreen.svg" alt="Total Tests" /></a>
   <a href="tests/test_classifier_bulk.test.js"><img src="https://img.shields.io/badge/Intent%20Classifier-120%2F120%20(100%25)-brightgreen.svg" alt="Classifier" /></a>
-  <a href="eval/evaluation_results.md"><img src="https://img.shields.io/badge/Synthetic%20Baseline-97.3%25-blue.svg" alt="Synthetic Eval" /></a>
-  <a href="eval/evaluation_real_results.md"><img src="https://img.shields.io/badge/Real--World%20Eval-100%25%20(5%20Cities)-brightgreen.svg" alt="Real-World Eval" /></a>
-  <a href="extension/icons/logo.svg"><img src="https://img.shields.io/badge/Design-Apple%20HIG%20%7C%20Verified%20Shield-0B36FE.svg" alt="Design" /></a>
+  <a href="extension/icons/logo.svg"><img src="https://img.shields.io/badge/Design-Apple%20HIG%20%7C%20Verified%20Shield-38bdf8.svg" alt="Design" /></a>
   <a href="extension/manifest.json"><img src="https://img.shields.io/badge/Chrome%20Extension-Manifest%20V3-orange.svg" alt="Manifest" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-purple.svg" alt="License" /></a>
 </p>
+
+> 🌐 **Live Website & Interactive Studio**:  
+> • **Showcase Experience**: [https://breathtaker-adi.github.io/FlatAudit/](https://breathtaker-adi.github.io/FlatAudit/)  
+> • **Interactive Studio & Evaluation Lab**: [https://breathtaker-adi.github.io/FlatAudit/web-demo/index.html](https://breathtaker-adi.github.io/FlatAudit/web-demo/index.html)  
 
 > **A privacy-preserving browser extension and explainable API that flags advance-fee scam signals on Indian rentals, features comprehensive Buyer Mode to evaluate the flat, project, and builder from official RERA records (Karnataka & Rajasthan pilots), projects 3Y/5Y/10Y capital appreciation, and acts as a "Buyhatke for property" — tracking price history sparklines, price-drop alerts, all-in closing costs, side-by-side comparisons, and printable advocate reports.**  
 > Built as an advanced cybersecurity & consumer utility portfolio project, threat-modeled with STRIDE, and evaluated on benchmark listings with zero rule drift.

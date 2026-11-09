@@ -153,30 +153,48 @@ section{position:relative}
 .kill-chip{align-self:flex-start;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
   color:var(--rose);border:1px solid rgba(244,63,94,.35);background:rgba(244,63,94,.08);padding:6px 12px;border-radius:8px}
 
-/* SOLUTION CARD (occupies 60% of screen & pops to center) */
-.kill-solution{width:60vw;min-width:min(600px,86vw);max-width:920px;border:2px solid rgba(56,189,248,.65);border-radius:24px;padding:36px 42px;
-  background:radial-gradient(130% 90% at 20% 0%,rgba(56,189,248,.22),rgba(11,18,32,.95) 65%);
-  display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden;
-  box-shadow:0 0 0 1px rgba(56,189,248,.25),0 30px 90px -20px rgba(56,189,248,.45),0 0 100px rgba(56,189,248,.18);
-  backdrop-filter:blur(24px);transform-origin:center center;z-index:10}
-.kill-solution::before{content:"";position:absolute;inset:0;border-radius:24px;padding:2px;
-  background:linear-gradient(135deg,rgba(56,189,248,.7),transparent 40%,rgba(52,211,153,.6));
+/* SOLUTION CARD (occupies >70% of screen & pops to center stage) */
+.kill-solution{width:76vw;min-width:min(840px,94vw);max-width:1380px;border:2px solid rgba(56,189,248,.75);border-radius:28px;padding:44px 50px;
+  background:radial-gradient(130% 90% at 20% 0%,rgba(56,189,248,.25),rgba(11,18,32,.97) 65%);
+  display:flex;flex-direction:column;gap:22px;position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(56,189,248,.3),0 35px 120px -20px rgba(56,189,248,.5),0 0 140px rgba(56,189,248,.22);
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);transform-origin:center center;z-index:10}
+.kill-solution::before{content:"";position:absolute;inset:0;border-radius:28px;padding:2px;
+  background:linear-gradient(135deg,rgba(56,189,248,.8),transparent 40%,rgba(52,211,153,.7));
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.7}
-.sol-pill{align-self:flex-start;font-family:var(--mono);font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;
-  color:#020617;background:var(--cyan);padding:7px 14px;border-radius:8px;font-weight:700;box-shadow:0 0 16px rgba(56,189,248,.5)}
-.sol-ic{width:56px;height:56px;border-radius:16px;display:grid;place-items:center;color:var(--cyan);
-  background:rgba(56,189,248,.12);border:1px solid rgba(56,189,248,.45);position:relative}
-.sol-ic::after{content:"";position:absolute;inset:-6px;border-radius:20px;border:1px solid rgba(56,189,248,.35);animation:solpulse 2.4s infinite}
+  -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.8}
+.sol-header-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.sol-pill{align-self:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;
+  color:#020617;background:var(--cyan);padding:8px 16px;border-radius:9px;font-weight:800;box-shadow:0 0 20px rgba(56,189,248,.6)}
+.sol-status-chip{font-family:var(--mono);font-size:11.5px;color:var(--emerald);background:rgba(52,211,153,.1);
+  border:1px solid rgba(52,211,153,.35);padding:6px 14px;border-radius:9999px;display:inline-flex;align-items:center;gap:8px}
+.sol-status-chip .live-dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 8px var(--emerald);animation:solpulse 2s infinite}
+.sol-hero{display:flex;gap:22px;align-items:flex-start}
+.sol-ic{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;color:var(--cyan);
+  background:rgba(56,189,248,.14);border:1px solid rgba(56,189,248,.5);position:relative;flex-shrink:0}
+.sol-ic::after{content:"";position:absolute;inset:-8px;border-radius:22px;border:1px solid rgba(56,189,248,.4);animation:solpulse 2.4s infinite}
 @keyframes solpulse{0%,100%{opacity:.25;transform:scale(1)}50%{opacity:.85;transform:scale(1.14)}}
-.sol-body>*+*{margin-top:0}
-.kill-solution h3{font-size:24px;font-weight:800;letter-spacing:-.02em;color:#fff;line-height:1.25}
-.kill-solution p{color:var(--muted);font-size:15px;line-height:1.6}
+.kill-solution h3{font-size:clamp(26px,3.2vw,36px);font-weight:800;letter-spacing:-.03em;color:#fff;line-height:1.18}
+.kill-solution p.sol-lead{color:var(--text-secondary,#cbd5e1);font-size:clamp(15px,1.3vw,17px);line-height:1.6;max-width:880px;margin-top:6px}
+.sol-pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:4px}
+.sol-pillar-card{background:rgba(2,6,23,.55);border:1px solid rgba(148,163,184,.15);border-radius:14px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:5px;transition:border-color .25s,transform .25s}
+.sol-pillar-card:hover{border-color:rgba(56,189,248,.45);transform:translateY(-2px)}
+.sol-pillar-icon{font-size:18px;margin-bottom:2px}
+.sol-pillar-card h4{font-size:13px;font-weight:700;color:#fff;letter-spacing:-.01em}
+.sol-pillar-card p{font-size:11.5px;line-height:1.45;color:var(--muted)}
+.sol-action-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:14px;border-top:1px solid rgba(148,163,184,.14)}
+.sol-metrics-strip{display:flex;gap:16px;flex-wrap:wrap}
+.sol-metric-item{font-family:var(--mono);font-size:11px;color:var(--faint);display:inline-flex;align-items:center;gap:6px}
+.sol-metric-item b{color:var(--cyan2);font-weight:600}
+@media(max-width:1100px){.sol-pillars{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:899px){
   .kill-pin{min-height:0;padding:84px 0}
   .kill-track{flex-direction:column;padding-inline:24px}
   .kill-stage{min-width:0;width:100%}
   .kill-solution{width:100%;min-width:0;padding:28px 22px}
+  .sol-hero{flex-direction:column}
+  .sol-pillars{grid-template-columns:1fr}
 }
 
 .bento{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
@@ -295,33 +313,45 @@ section{position:relative}
 .ladder-note li svg{color:var(--emerald);flex-shrink:0;margin-top:3px}
 @media(max-width:900px){.ladder-wrap{grid-template-columns:1fr}}
 
-.buyer-wrap{display:grid;grid-template-columns:1.15fr 1fr;gap:22px;align-items:start}
-.buyer-card,.side-card{border:1px solid var(--line);border-radius:var(--r);padding:24px;background:var(--card);backdrop-filter:blur(12px)}
-.buyer-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 20px}
-.buyer-tabs button{font-size:13px;font-weight:600;padding:10px 16px;border-radius:10px;border:1px solid var(--line);
+.buyer-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;align-items:stretch}
+.buyer-card,.side-card{border:1px solid var(--line);border-radius:var(--r);padding:24px;background:var(--card);backdrop-filter:blur(12px);display:flex;flex-direction:column;justify-content:space-between}
+.buyer-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 18px}
+.buyer-tabs button{font-size:12.5px;font-weight:600;padding:8px 14px;border-radius:9px;border:1px solid var(--line);
   background:transparent;color:var(--muted);transition:.25s}
 .buyer-tabs button.on{color:var(--cyan2);border-color:rgba(56,189,248,.5);background:rgba(56,189,248,.08)}
-.check-list{list-style:none;display:flex;flex-direction:column;gap:12px}
-.check-list li{display:flex;gap:12px;align-items:flex-start;font-size:14.5px;color:var(--text)}
-.check-list li svg{color:var(--emerald);flex-shrink:0;margin-top:3px}
-.side-stack{display:flex;flex-direction:column;gap:18px}
-.emi-grid label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:16px 0 8px}
-.emi-grid label:first-child{margin-top:6px}
+.check-list{list-style:none;display:flex;flex-direction:column;gap:11px}
+.check-list li{display:flex;gap:11px;align-items:flex-start;font-size:13.5px;color:var(--text)}
+.check-list li svg{color:var(--emerald);flex-shrink:0;margin-top:2px}
+
+/* Circle Rate / Guidance Value Gap Analyzer (Balances 2x2 Buyer Suite) */
+.circle-select-row{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 14px}
+.circle-btn{font-size:11.5px;font-weight:600;padding:6px 11px;border-radius:8px;border:1px solid var(--line);background:transparent;color:var(--muted);transition:.2s}
+.circle-btn.on{color:var(--cyan2);border-color:rgba(56,189,248,.5);background:rgba(56,189,248,.08)}
+.circle-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.circle-stat-box{background:rgba(2,6,23,.55);border:1px solid var(--line2);border-radius:10px;padding:10px 12px}
+.circle-stat-lbl{font-family:var(--mono);font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.06em}
+.circle-stat-val{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);margin-top:2px}
+.circle-tax-badge{margin-top:12px;border-radius:9px;padding:10px 12px;display:flex;align-items:center;gap:10px;font-size:12px;line-height:1.45}
+.circle-tax-badge.ok{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.3);color:var(--emerald)}
+.circle-tax-badge.warn{background:rgba(244,63,94,.08);border:1px solid rgba(244,63,94,.35);color:var(--rose)}
+
+.emi-grid label{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin:14px 0 6px}
+.emi-grid label:first-child{margin-top:4px}
 .emi-val{float:right;color:var(--cyan2);letter-spacing:0;text-transform:none}
 input[type=range]{width:100%;accent-color:var(--cyan);height:22px;cursor:pointer}
-.emi-out{margin-top:22px;border-top:1px dashed var(--line2);padding-top:18px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
-.emi-out .big{font-family:var(--mono);font-size:30px;font-weight:700;color:var(--cyan2);letter-spacing:-.02em}
-.emi-out .sub{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:4px}
-.report-mock{border:1px solid var(--line2);border-radius:14px;background:rgba(2,6,23,.6);margin-top:16px;overflow:hidden}
-.report-mock-head{font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:var(--cyan);padding:12px 18px;
+.emi-out{margin-top:18px;border-top:1px dashed var(--line2);padding-top:14px;display:flex;justify-content:space-between;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.emi-out .big{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--cyan2);letter-spacing:-.02em}
+.emi-out .sub{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:3px}
+.report-mock{border:1px solid var(--line2);border-radius:14px;background:rgba(2,6,23,.6);margin-top:12px;overflow:hidden}
+.report-mock-head{font-family:var(--mono);font-size:10px;letter-spacing:.24em;color:var(--cyan);padding:10px 16px;
   border-bottom:1px solid var(--line);background:rgba(56,189,248,.05);text-transform:uppercase}
-.report-row{display:flex;justify-content:space-between;gap:12px;padding:11px 18px;font-size:13px;border-bottom:1px solid var(--line)}
+.report-row{display:flex;justify-content:space-between;gap:12px;padding:9.5px 16px;font-size:12.5px;border-bottom:1px solid var(--line)}
 .report-row:last-child{border:none}
 .report-row .k{color:var(--muted)}
 .report-row .v{font-family:var(--mono);color:var(--text);text-align:right}
 .report-row .v.ok{color:var(--emerald)}
 .report-row .v.warn{color:var(--amber)}
-@media(max-width:940px){.buyer-wrap{grid-template-columns:1fr}}
+@media(max-width:960px){.buyer-grid{grid-template-columns:1fr}}
 
 /* AREA REPORT — full rebuild */
 .area-wrap{display:grid;grid-template-columns:1.2fr 1fr;gap:22px;align-items:start}
@@ -505,19 +535,58 @@ footer{border-top:1px solid var(--line);padding:48px 0 28px;background:rgba(11,1
         <div class="kill-stage"><div class="kill-num">04</div><h3>Advance fee</h3><p>₹1,500–₹5,000 by UPI before you’re allowed to visit: a “gate pass”, “cantonment entry slip”, “refundable viewing token”.</p><span class="kill-chip">Pay-to-view</span></div>
         <div class="kill-stage"><div class="kill-num">05</div><h3>Vanish</h3><p>The transfer lands. The “owner” blocks you. A week later the same photos reappear under a new listing.</p><span class="kill-chip">Repeat ∞</span></div>
         <div class="kill-solution">
-          <span class="sol-pill">The solution</span>
-          <div class="sol-ic">
-            <svg width="32" height="32" viewBox="28 -6 350 350" fill="none" aria-hidden="true">
-              <path fill="#0B36FE" fill-rule="evenodd" d="M 127 179 L 124 179 L 123 180 L 119 181 L 118 186 L 119 196 L 121 196 L 124 194 L 125 195 L 127 193 Z M 207 151 L 205 152 L 206 164 L 205 165 L 206 167 L 211 169 L 213 168 L 213 153 L 211 153 Z M 126 150 L 120 152 L 118 156 L 120 168 L 127 165 Z M 347 131 L 344 131 L 321 142 L 304 152 L 285 165 L 279 171 L 268 179 L 252 193 L 222 223 L 213 234 L 210 236 L 193 255 L 190 255 L 179 243 L 155 220 L 150 224 L 139 236 L 155 252 L 167 266 L 171 269 L 176 276 L 184 283 L 188 289 L 192 292 L 200 283 L 207 273 L 216 263 L 223 253 L 239 235 L 243 229 L 249 222 L 252 220 L 267 202 L 287 181 L 311 158 L 317 154 L 318 152 L 322 150 L 336 138 Z M 142 130 L 139 131 L 140 149 L 139 159 L 140 164 L 140 215 L 144 212 L 147 208 L 147 133 L 145 131 Z M 205 124 L 206 139 L 209 139 L 210 140 L 213 139 L 213 125 L 211 124 Z M 243 109 L 241 109 L 240 182 L 241 185 L 251 177 L 258 170 L 271 160 L 274 156 L 274 154 L 273 153 L 274 149 L 274 128 L 273 125 L 270 122 L 264 120 L 260 117 L 249 113 Z M 252 129 L 259 130 L 263 133 L 261 151 L 253 148 L 251 146 Z M 207 94 L 205 96 L 206 110 L 212 112 L 212 96 Z M 189 60 L 163 75 L 161 75 L 158 77 L 157 79 L 157 200 L 159 204 L 167 211 L 187 233 L 191 235 L 191 60 Z M 178 120 L 180 122 L 180 138 L 176 141 L 172 142 L 168 141 L 169 123 L 171 122 L 172 123 L 175 122 L 176 120 Z M 193 6 L 190 6 L 177 15 L 167 21 L 165 21 L 163 23 L 161 23 L 159 25 L 157 25 L 155 27 L 148 29 L 136 35 L 118 41 L 95 47 L 90 47 L 86 49 L 64 52 L 63 54 L 62 63 L 60 100 L 60 116 L 62 148 L 64 156 L 64 164 L 68 186 L 70 190 L 70 194 L 78 219 L 83 231 L 91 246 L 96 254 L 99 257 L 100 260 L 112 275 L 130 292 L 133 296 L 158 315 L 166 320 L 171 322 L 176 326 L 178 326 L 188 332 L 191 332 L 191 313 L 189 311 L 184 309 L 174 303 L 154 289 L 149 284 L 144 281 L 141 277 L 127 264 L 112 245 L 111 242 L 105 233 L 95 212 L 95 209 L 93 207 L 93 204 L 91 201 L 91 197 L 89 193 L 89 189 L 87 186 L 83 165 L 83 159 L 81 153 L 81 141 L 79 132 L 79 80 L 80 70 L 82 68 L 86 68 L 91 66 L 97 66 L 108 62 L 113 62 L 127 58 L 129 56 L 133 56 L 141 52 L 144 52 L 149 50 L 151 48 L 158 46 L 160 44 L 168 41 L 176 36 L 178 36 L 190 28 L 193 28 L 205 36 L 207 36 L 215 41 L 223 44 L 225 46 L 245 54 L 254 56 L 256 58 L 260 58 L 263 60 L 270 62 L 275 62 L 279 64 L 283 64 L 287 66 L 294 66 L 301 68 L 303 70 L 304 78 L 303 136 L 305 136 L 312 131 L 318 129 L 322 125 L 323 116 L 323 86 L 321 77 L 321 61 L 320 54 L 319 52 L 310 51 L 304 49 L 297 49 L 293 47 L 288 47 L 285 45 L 280 45 L 276 43 L 272 43 L 242 33 L 224 25 L 222 23 L 220 23 L 211 18 Z"/>
-              <path fill="#FFFFFF" fill-rule="evenodd" d="M 317 172 L 303 184 L 293 194 L 289 209 L 278 233 L 270 246 L 252 268 L 242 278 L 225 292 L 207 304 L 192 312 L 192 333 L 214 322 L 238 306 L 259 288 L 277 268 L 291 248 L 305 220 L 313 195 L 317 177 Z M 253 131 L 253 146 L 261 149 L 261 133 L 256 131 Z M 137 129 L 127 134 L 125 134 L 109 142 L 108 206 L 121 232 L 130 225 L 138 216 Z M 127 176 L 128 194 L 126 196 L 121 198 L 117 197 L 118 179 Z M 128 149 L 127 167 L 123 169 L 117 169 L 118 151 L 122 149 Z M 178 122 L 170 125 L 170 140 L 173 140 L 178 138 Z M 192 59 L 192 236 L 206 222 L 226 200 L 226 77 L 219 74 Z M 207 150 L 214 152 L 214 171 L 205 169 L 203 167 L 203 153 Z M 204 121 L 207 121 L 215 124 L 214 142 L 210 142 L 205 140 L 203 138 Z M 203 94 L 207 93 L 213 94 L 215 96 L 215 112 L 213 114 L 207 112 L 203 109 Z"/>
-            </svg>
+          <div class="sol-header-row">
+            <span class="sol-pill">The Solution</span>
+            <div class="sol-status-chip">
+              <span class="live-dot"></span>
+              <span>Active In-Page Protection</span>
+            </div>
           </div>
-          <div class="sol-body">
-            <h3>FlatAudit breaks the chain at step 1</h3>
-            <p>Median/MAD price audit, deposit-ratio checks, advance-fee phrase regexes and photo fingerprints — evaluated locally in milliseconds, before you ever message the “owner”.</p>
-            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
-              <a href="index.html" class="btn btn-primary btn-sm" target="_blank" rel="noopener">Launch Interactive Studio ↗</a>
-              <a href="#features" class="btn btn-ghost btn-sm">Explore Core Engine ↓</a>
+          <div class="sol-hero">
+            <div class="sol-ic">
+              <svg width="36" height="36" viewBox="28 -6 350 350" fill="none" aria-hidden="true">
+                <path fill="#0B36FE" fill-rule="evenodd" d="M 127 179 L 124 179 L 123 180 L 119 181 L 118 186 L 119 196 L 121 196 L 124 194 L 125 195 L 127 193 Z M 207 151 L 205 152 L 206 164 L 205 165 L 206 167 L 211 169 L 213 168 L 213 153 L 211 153 Z M 126 150 L 120 152 L 118 156 L 120 168 L 127 165 Z M 347 131 L 344 131 L 321 142 L 304 152 L 285 165 L 279 171 L 268 179 L 252 193 L 222 223 L 213 234 L 210 236 L 193 255 L 190 255 L 179 243 L 155 220 L 150 224 L 139 236 L 155 252 L 167 266 L 171 269 L 176 276 L 184 283 L 188 289 L 192 292 L 200 283 L 207 273 L 216 263 L 223 253 L 239 235 L 243 229 L 249 222 L 252 220 L 267 202 L 287 181 L 311 158 L 317 154 L 318 152 L 322 150 L 336 138 Z M 142 130 L 139 131 L 140 149 L 139 159 L 140 164 L 140 215 L 144 212 L 147 208 L 147 133 L 145 131 Z M 205 124 L 206 139 L 209 139 L 210 140 L 213 139 L 213 125 L 211 124 Z M 243 109 L 241 109 L 240 182 L 241 185 L 251 177 L 258 170 L 271 160 L 274 156 L 274 154 L 273 153 L 274 149 L 274 128 L 273 125 L 270 122 L 264 120 L 260 117 L 249 113 Z M 252 129 L 259 130 L 263 133 L 261 151 L 253 148 L 251 146 Z M 207 94 L 205 96 L 206 110 L 212 112 L 212 96 Z M 189 60 L 163 75 L 161 75 L 158 77 L 157 79 L 157 200 L 159 204 L 167 211 L 187 233 L 191 235 L 191 60 Z M 178 120 L 180 122 L 180 138 L 176 141 L 172 142 L 168 141 L 169 123 L 171 122 L 172 123 L 175 122 L 176 120 Z M 193 6 L 190 6 L 177 15 L 167 21 L 165 21 L 163 23 L 161 23 L 159 25 L 157 25 L 155 27 L 148 29 L 136 35 L 118 41 L 95 47 L 90 47 L 86 49 L 64 52 L 63 54 L 62 63 L 60 100 L 60 116 L 62 148 L 64 156 L 64 164 L 68 186 L 70 190 L 70 194 L 78 219 L 83 231 L 91 246 L 96 254 L 99 257 L 100 260 L 112 275 L 130 292 L 133 296 L 158 315 L 166 320 L 171 322 L 176 326 L 178 326 L 188 332 L 191 332 L 191 313 L 189 311 L 184 309 L 174 303 L 154 289 L 149 284 L 144 281 L 141 277 L 127 264 L 112 245 L 111 242 L 105 233 L 95 212 L 95 209 L 93 207 L 93 204 L 91 201 L 91 197 L 89 193 L 89 189 L 87 186 L 83 165 L 83 159 L 81 153 L 81 141 L 79 132 L 79 80 L 80 70 L 82 68 L 86 68 L 91 66 L 97 66 L 108 62 L 113 62 L 127 58 L 129 56 L 133 56 L 141 52 L 144 52 L 149 50 L 151 48 L 158 46 L 160 44 L 168 41 L 176 36 L 178 36 L 190 28 L 193 28 L 205 36 L 207 36 L 215 41 L 223 44 L 225 46 L 245 54 L 254 56 L 256 58 L 260 58 L 263 60 L 270 62 L 275 62 L 279 64 L 283 64 L 287 66 L 294 66 L 301 68 L 303 70 L 304 78 L 303 136 L 305 136 L 312 131 L 318 129 L 322 125 L 323 116 L 323 86 L 321 77 L 321 61 L 320 54 L 319 52 L 310 51 L 304 49 L 297 49 L 293 47 L 288 47 L 285 45 L 280 45 L 276 43 L 272 43 L 242 33 L 224 25 L 222 23 L 220 23 L 211 18 Z"/>
+                <path fill="#FFFFFF" fill-rule="evenodd" d="M 317 172 L 303 184 L 293 194 L 289 209 L 278 233 L 270 246 L 252 268 L 242 278 L 225 292 L 207 304 L 192 312 L 192 333 L 214 322 L 238 306 L 259 288 L 277 268 L 291 248 L 305 220 L 313 195 L 317 177 Z M 253 131 L 253 146 L 261 149 L 261 133 L 256 131 Z M 137 129 L 127 134 L 125 134 L 109 142 L 108 206 L 121 232 L 130 225 L 138 216 Z M 127 176 L 128 194 L 126 196 L 121 198 L 117 197 L 118 179 Z M 128 149 L 127 167 L 123 169 L 117 169 L 118 151 L 122 149 Z M 178 122 L 170 125 L 170 140 L 173 140 L 178 138 Z M 192 59 L 192 236 L 206 222 L 226 200 L 226 77 L 219 74 Z M 207 150 L 214 152 L 214 171 L 205 169 L 203 167 L 203 153 Z M 204 121 L 207 121 L 215 124 L 214 142 L 210 142 L 205 140 L 203 138 Z M 203 94 L 207 93 L 213 94 L 215 96 L 215 112 L 213 114 L 207 112 L 203 109 Z"/>
+              </svg>
+            </div>
+            <div>
+              <h3>FlatAudit breaks the chain at step 1</h3>
+              <p class="sol-lead">Evaluated locally in milliseconds before you ever message the “owner”. A deterministic security barrier against advance-fee extortion, bait pricing, and stolen imagery.</p>
+            </div>
+          </div>
+
+          <div class="sol-pillars">
+            <div class="sol-pillar-card">
+              <span class="sol-pillar-icon">📊</span>
+              <h4>5-Level Price Ladder</h4>
+              <p>Flags bait rents 40–70% under locality median using non-parametric statistics (Median &amp; MAD).</p>
+            </div>
+            <div class="sol-pillar-card">
+              <span class="sol-pillar-icon">💰</span>
+              <h4>Deposit Multiple Check</h4>
+              <p>Detects classic 1× rent deposit traps against metro baseline norms (typical 3–6×).</p>
+            </div>
+            <div class="sol-pillar-card">
+              <span class="sol-pillar-icon">🛡️</span>
+              <h4>Pretext Phrase Scanner</h4>
+              <p>Instantly extracts UPI token extortion, gate-pass, and military transfer pretexts via regex.</p>
+            </div>
+            <div class="sol-pillar-card">
+              <span class="sol-pillar-icon">🔍</span>
+              <h4>64-bit dHash Fingerprint</h4>
+              <p>Catches duplicate and stolen photos reused across competing portals with zero PII stored.</p>
+            </div>
+          </div>
+
+          <div class="sol-action-row">
+            <div style="display:flex;gap:12px;flex-wrap:wrap">
+              <a href="index.html" class="btn btn-primary" target="_blank" rel="noopener">Launch Interactive Studio ↗</a>
+              <a href="#features" class="btn btn-ghost">Explore Companion Engine ↓</a>
+            </div>
+            <div class="sol-metrics-strip">
+              <span class="sol-metric-item">⚡ <b>&lt;300ms</b> local execution</span>
+              <span class="sol-metric-item">🔒 <b>0 bytes</b> network PII</span>
+              <span class="sol-metric-item">🛡️ <b>302</b> tests passing</span>
             </div>
           </div>
         </div>
@@ -669,8 +738,9 @@ footer{border-top:1px solid var(--line);padding:48px 0 28px;background:rgba(11,1
       <h2>Flip to buying without flipping your guard</h2>
       <p>Bengaluru &amp; Rajasthan pilot: circle-rate under-valuation checks, RERA dossiers, escrow &amp; QPR compliance, statutory closing costs, and a printable 1-page report for your lawyer.</p>
     </div>
-    <div class="buyer-wrap">
+    <div class="buyer-grid">
       <div class="buyer-card" data-reveal>
+        <div class="kicker" style="margin-bottom:4px">Automated verification</div>
         <h3 style="font-size:18px;font-weight:700">Due-diligence checklist</h3>
         <div class="buyer-tabs" id="buyerTabs">
           <button data-tab="resale" class="on">Individual resale</button>
@@ -680,30 +750,74 @@ footer{border-top:1px solid var(--line);padding:48px 0 28px;background:rgba(11,1
         <ul class="check-list" id="buyerList"></ul>
         <p class="fine" style="margin-top:14px">Checklists adapt to what the listing actually is — detected automatically from the page’s structure.</p>
       </div>
-      <div class="side-stack">
-        <div class="side-card" data-reveal data-delay="0.08">
-          <h3 style="font-size:18px;font-weight:700">Loan EMI calculator</h3>
-          <div class="emi-grid">
-            <label>Property price <span class="emi-val" id="emiPriceVal">₹85.0 L</span><input type="range" id="emiPrice" min="2000000" max="30000000" step="100000" value="8500000"></label>
-            <label>Interest rate <span class="emi-val" id="emiRateVal">8.50%</span><input type="range" id="emiRate" min="7" max="12" step="0.05" value="8.5"></label>
-            <label>Tenure <span class="emi-val" id="emiTenVal">20 yrs</span><input type="range" id="emiTen" min="5" max="30" step="1" value="20"></label>
+
+      <div class="side-card" data-reveal data-delay="0.06">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px">
+          <div>
+            <div class="kicker" style="margin-bottom:4px">Section 47-A / 56(2)(x) Check</div>
+            <h3 style="font-size:18px;font-weight:700">Circle rate &amp; tax gap</h3>
           </div>
-          <div class="emi-out">
-            <div><div class="big" id="emiOut">₹58,606</div><div class="sub">monthly EMI · 80% LTV</div></div>
-            <div style="text-align:right"><div class="sub" style="color:var(--text)"><span id="emiPrincipal">₹68 L</span> loan</div><div class="sub"><span id="emiInterest">₹72.1 L</span> interest</div></div>
+          <span class="mini-chip" id="circleStateChip" style="color:var(--cyan2);border-color:rgba(56,189,248,.35)">KA · Guidance</span>
+        </div>
+        <p class="fine">Detects under-valuation traps where asking is below statutory government circle rate, triggering tax notices &amp; penalty stamp duty.</p>
+        
+        <div class="circle-select-row" id="circleLocTabs">
+          <button class="circle-btn on" data-loc="kora">Koramangala</button>
+          <button class="circle-btn" data-loc="indira">Indiranagar</button>
+          <button class="circle-btn" data-loc="white">Whitefield</button>
+          <button class="circle-btn" data-loc="jagat">Jagatpura (Jaipur)</button>
+        </div>
+
+        <div class="circle-stats-grid">
+          <div class="circle-stat-box">
+            <div class="circle-stat-lbl">Asking rate</div>
+            <div class="circle-stat-val" id="circleAskingVal">₹9,785 / sq.ft</div>
+          </div>
+          <div class="circle-stat-box">
+            <div class="circle-stat-lbl">Govt circle / DLC rate</div>
+            <div class="circle-stat-val" id="circleGovtVal">₹9,500 / sq.ft</div>
           </div>
         </div>
-        <div class="side-card" data-reveal data-delay="0.14">
-          <h3 style="font-size:18px;font-weight:700">Buyer report</h3>
-          <div class="report-mock">
-            <div class="report-mock-head">FlatAudit · Buyer Report · 1 page</div>
-            <div class="report-row"><span class="k">Property</span><span class="v">2BHK · Koramangala</span></div>
-            <div class="report-row"><span class="k">Asking</span><span class="v">₹94 L · ₹9,785/sq.ft</span></div>
-            <div class="report-row"><span class="k">Circle-rate gap</span><span class="v ok">−3% · in range</span></div>
-            <div class="report-row"><span class="k">RERA</span><span class="v ok">K-RERA · Validated</span></div>
-            <div class="report-row"><span class="k">All-in cost</span><span class="v warn">₹1.01 Cr incl. duty</span></div>
+
+        <div id="circleTaxBadge" class="circle-tax-badge ok">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 6L9 17l-5-5"/></svg>
+          <div id="circleTaxText"><b>+3.0% gap · Safe to register.</b> Asking exceeds circle rate. No Section 56(2)(x) tax liability.</div>
+        </div>
+      </div>
+
+      <div class="side-card" data-reveal data-delay="0.1">
+        <div class="kicker" style="margin-bottom:4px">Financial viability</div>
+        <h3 style="font-size:18px;font-weight:700">Loan EMI calculator</h3>
+        <div class="emi-grid">
+          <label>Property price <span class="emi-val" id="emiPriceVal">₹85.0 L</span><input type="range" id="emiPrice" min="2000000" max="30000000" step="100000" value="8500000"></label>
+          <label>Interest rate <span class="emi-val" id="emiRateVal">8.50%</span><input type="range" id="emiRate" min="7" max="12" step="0.05" value="8.5"></label>
+          <label>Tenure <span class="emi-val" id="emiTenVal">20 yrs</span><input type="range" id="emiTen" min="5" max="30" step="1" value="20"></label>
+        </div>
+        <div class="emi-out">
+          <div><div class="big" id="emiOut">₹58,606</div><div class="sub">monthly EMI · 80% LTV</div></div>
+          <div style="text-align:right"><div class="sub" style="color:var(--text)"><span id="emiPrincipal">₹68 L</span> loan</div><div class="sub"><span id="emiInterest">₹72.1 L</span> interest</div></div>
+        </div>
+      </div>
+
+      <div class="side-card" data-reveal data-delay="0.14">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px">
+          <div>
+            <div class="kicker" style="margin-bottom:4px">Legal due-diligence</div>
+            <h3 style="font-size:18px;font-weight:700">Buyer summary dossier</h3>
           </div>
-          <p class="fine" style="margin-top:12px">Printable HTML, generated locally — hand it to your lawyer for review.</p>
+          <span class="mini-chip" style="color:var(--emerald);border-color:rgba(52,211,153,.35)">Client-side only</span>
+        </div>
+        <div class="report-mock">
+          <div class="report-mock-head">FlatAudit · Buyer Report · 1 page</div>
+          <div class="report-row"><span class="k">Property</span><span class="v" id="repProp">2BHK · Koramangala</span></div>
+          <div class="report-row"><span class="k">Asking</span><span class="v" id="repPrice">₹94 L · ₹9,785/sq.ft</span></div>
+          <div class="report-row"><span class="k">Circle-rate gap</span><span class="v ok" id="repGap">+3.0% · In range</span></div>
+          <div class="report-row"><span class="k">RERA status</span><span class="v ok">K-RERA · Validated</span></div>
+          <div class="report-row"><span class="k">All-in acquisition</span><span class="v warn" id="repTotal">₹1.01 Cr incl. duty</span></div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <a href="index.html#buyer-studio" class="btn btn-primary btn-sm" target="_blank" rel="noopener">Open in Studio ↗</a>
+          <button type="button" class="btn btn-ghost btn-sm" id="btnPreviewReport">Print 1-Page Report 🖨️</button>
         </div>
       </div>
     </div>
@@ -999,7 +1113,7 @@ mm.add('(min-width: 900px)',()=>{
   if(!track || !sol) return;
 
   const getDist=()=>Math.max(0, sol.offsetLeft + (sol.offsetWidth / 2) - (window.innerWidth / 2));
-  const pinDuration=()=>getDist() + 750;
+  const pinDuration=()=>getDist() + 950;
 
   const tl = gsap.timeline({
     scrollTrigger: {
@@ -1043,16 +1157,19 @@ mm.add('(min-width: 900px)',()=>{
   }, 3.0);
 
   // Inner elements pop
-  tl.fromTo('.sol-pill', { y: -14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' }, 1.9);
-  tl.fromTo('.sol-ic', { scale: 0, rotate: -25 }, { scale: 1, rotate: 0, duration: 0.8, ease: 'back.out(2)' }, 2.0);
-  tl.fromTo('.sol-body > *', { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: 'power2.out' }, 2.1);
+  tl.fromTo('.sol-pill', { y: -14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' }, 1.8);
+  tl.fromTo('.sol-status-chip', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: 'back.out(2)' }, 1.9);
+  tl.fromTo('.sol-ic', { scale: 0, rotate: -25 }, { scale: 1, rotate: 0, duration: 0.8, ease: 'back.out(2)' }, 1.9);
+  tl.fromTo('.sol-hero h3, .sol-lead', { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: 'power2.out' }, 2.0);
+  tl.fromTo('.sol-pillar-card', { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, stagger: 0.08, ease: 'power2.out' }, 2.1);
+  tl.fromTo('.sol-action-row', { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' }, 2.4);
 
   return ()=>{};
 });
 mm.add('(max-width: 899px)',()=>{
   gsap.from('.kill-solution',{scale:.9,y:30,opacity:0,duration:.85,ease:'power3.out',
     scrollTrigger:{trigger:'.kill-solution',start:'top 82%',once:true}});
-  gsap.from('.sol-body>*',{y:16,opacity:0,duration:.5,stagger:.1,ease:'power2.out',
+  gsap.from('.sol-pillar-card',{y:16,opacity:0,duration:.5,stagger:.08,ease:'power2.out',
     scrollTrigger:{trigger:'.kill-solution',start:'top 82%',once:true}});
 });
 
@@ -1107,6 +1224,106 @@ qa('#buyerTabs button').forEach(b=>b.addEventListener('click',()=>{
   qa('#buyerTabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');renderBuyer(b.dataset.tab);
 }));
 renderBuyer('resale');
+
+/* CIRCLE RATE / GUIDANCE VALUE GAP ANALYZER (Interactive 2x2 Suite) */
+const circleData = {
+  kora: {
+    state: 'KA · Guidance',
+    loc: 'Koramangala, Bengaluru',
+    prop: '2BHK · Koramangala',
+    asking: 9785,
+    govt: 9500,
+    priceStr: '₹94 L · ₹9,785/sq.ft',
+    totalStr: '₹1.01 Cr incl. duty',
+    ok: true,
+    gap: '+3.0%',
+    status: '+3.0% gap · Safe to register.',
+    detail: 'Asking exceeds circle rate. Compliant with Karnataka Stamp Act and Section 56(2)(x).'
+  },
+  indira: {
+    state: 'KA · Guidance',
+    loc: 'Indiranagar 100ft Rd',
+    prop: '3BHK · Indiranagar',
+    asking: 11200,
+    govt: 10800,
+    priceStr: '₹1.65 Cr · ₹11,200/sq.ft',
+    totalStr: '₹1.78 Cr incl. duty',
+    ok: true,
+    gap: '+3.7%',
+    status: '+3.7% gap · Safe to register.',
+    detail: 'Asking is above guidance value. Stamp duty payable on declared agreement value.'
+  },
+  white: {
+    state: 'KA · Guidance',
+    loc: 'Whitefield IT Corridor',
+    prop: '2BHK · Whitefield',
+    asking: 5400,
+    govt: 7200,
+    priceStr: '₹68 L · ₹5,400/sq.ft',
+    totalStr: '₹75.2 L + Duty Penalty',
+    ok: false,
+    gap: '-25.0%',
+    status: '-25.0% under guidance value! High tax risk.',
+    detail: 'Notice risk under Sec 56(2)(x) & Sec 47-A. Stamp duty calculated on ₹7,200/sq.ft minimum.'
+  },
+  jagat: {
+    state: 'RJ · DLC Rate',
+    loc: 'Jagatpura, Jaipur',
+    prop: '3BHK · Jagatpura',
+    asking: 3850,
+    govt: 3600,
+    priceStr: '₹55 L · ₹3,850/sq.ft',
+    totalStr: '₹59.4 L incl. duty',
+    ok: true,
+    gap: '+6.9%',
+    status: '+6.9% gap · Above DLC rate.',
+    detail: 'Compliant with Rajasthan Stamp Rules. No deemed gift tax notice risk.'
+  }
+};
+
+function renderCircleRate(key) {
+  const d = circleData[key];
+  if (!d) return;
+  const chip = q('#circleStateChip');
+  if (chip) chip.textContent = d.state;
+  const ask = q('#circleAskingVal');
+  if (ask) ask.textContent = '₹' + d.asking.toLocaleString('en-IN') + ' / sq.ft';
+  const govt = q('#circleGovtVal');
+  if (govt) govt.textContent = '₹' + d.govt.toLocaleString('en-IN') + ' / sq.ft';
+  
+  const badge = q('#circleTaxBadge');
+  const txt = q('#circleTaxText');
+  if (badge) badge.className = 'circle-tax-badge ' + (d.ok ? 'ok' : 'warn');
+  if (txt) txt.innerHTML = '<b>' + d.status + '</b> ' + d.detail;
+
+  if (q('#repProp')) q('#repProp').textContent = d.prop;
+  if (q('#repPrice')) q('#repPrice').textContent = d.priceStr;
+  if (q('#repGap')) {
+    q('#repGap').textContent = d.gap + ' · ' + (d.ok ? 'In range' : 'Tax risk');
+    q('#repGap').className = 'v ' + (d.ok ? 'ok' : 'warn');
+  }
+  if (q('#repTotal')) q('#repTotal').textContent = d.totalStr;
+
+  gsap.from(['#circleAskingVal', '#circleGovtVal', '#circleTaxBadge'], {
+    y: RM ? 0 : 8,
+    opacity: 0,
+    duration: RM ? 0.01 : 0.35,
+    stagger: 0.06,
+    ease: 'power2.out'
+  });
+}
+
+qa('#circleLocTabs button').forEach(b => b.addEventListener('click', () => {
+  qa('#circleLocTabs button').forEach(x => x.classList.remove('on'));
+  b.classList.add('on');
+  renderCircleRate(b.dataset.loc);
+}));
+
+if (q('#btnPreviewReport')) {
+  q('#btnPreviewReport').addEventListener('click', () => {
+    window.print();
+  });
+}
 
 /* AREA tier toggle */
 const tiers={

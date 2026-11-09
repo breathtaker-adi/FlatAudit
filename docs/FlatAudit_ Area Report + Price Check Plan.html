@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FlatAudit: Area Report + Price Check Plan</title>
+<style>
+:root{--bg:#0e141f;--surf:#162032;--line:#25334b;--text:#e7ecf6;--muted:#9aa9c4;--acc:#7cc4ff;--warn:#f2b84b;--bad:#ff8a80;--ok:#6fd6a0;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f5f7fb;--surf:#fff;--line:#d8dfec;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}}
+:root[data-theme="light"]{--bg:#f5f7fb;--surf:#fff;--line:#d8dfec;--text:#16202f;--muted:#55627a;--acc:#1665b8;--warn:#9a6200;--bad:#b3261e;--ok:#18794e;color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:820px;margin:0 auto;padding:30px 18px 70px}
+h1{font-size:clamp(1.9rem,6vw,2.7rem);line-height:1.15;margin:0;letter-spacing:-.02em}
+h2{font-size:1.4rem;margin:44px 0 12px}
+h3{font-size:1.05rem;margin:0 0 6px}
+p{margin:0 0 10px}
+ul{margin:6px 0;padding-left:20px}
+li{margin:4px 0}
+.lead{color:var(--muted);margin-top:12px;max-width:60ch}
+.box{background:var(--surf);border:1px solid var(--line);border-left:4px solid var(--acc);border-radius:8px;padding:13px 16px;margin:14px 0}
+.box.warn{border-left-color:var(--warn)}
+.box.ok{border-left-color:var(--ok)}
+.tw{overflow-x:auto;margin:10px 0}
+table{border-collapse:collapse;width:100%;min-width:520px;font-size:.92rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:600}
+.sl{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:15px 17px;margin:14px 0}
+.sl header{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline;margin-bottom:6px}
+.tag{font-size:.78rem;color:var(--muted)}
+.ck{list-style:none;padding:0}
+.ck li{display:flex;gap:9px;align-items:flex-start}
+.ck input{margin-top:6px;width:16px;height:16px;flex:none;accent-color:var(--acc)}
+.ck input:checked+span{color:var(--muted);text-decoration:line-through}
+.done{margin-top:9px;padding-top:9px;border-top:1px dashed var(--line);color:var(--ok);font-size:.93rem}
+.bar{height:8px;border-radius:99px;background:var(--line);overflow:hidden;margin:18px 0 4px}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .25s}
+.note{font-size:.86rem;color:var(--muted)}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cols .box{margin:0}
+@media (max-width:640px){.cols{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+<h1>Area Report + Price Check</h1>
+<p class="lead">Two new things for the Key Observations section. Each piece below works on its own, so you can stop after any piece and still have something that runs.</p>
+<div class="bar" aria-hidden="true"><i id="fill"></i></div>
+<p class="note" id="pct">0% complete</p>
+
+<h2>What you decided</h2>
+<div class="tw"><table>
+<tr><th>Question</th><th>Your answer</th></tr>
+<tr><td>Where it shows</td><td>In Key Observations: grade and points, then details (how judged, one fact, one drawback)</td></tr>
+<tr><td>Where facts come from</td><td>Free OpenStreetMap, asked from the user’s browser</td></tr>
+<tr><td>Privacy</td><td>Off by default; user turns it on once in settings</td></tr>
+<tr><td>Safety</td><td>Nearby map facts only, labeled “not crime data”</td></tr>
+<tr><td>Grades</td><td>Different rules for big metros and smaller cities</td></tr>
+<tr><td>Price per sq ft</td><td>Same locality plus localities within 3 km; too few listings → “not enough listings to compare”</td></tr>
+<tr><td>Cities</td><td>Bengaluru, Jaipur, Jodhpur</td></tr>
+<tr><td>Order</td><td>Build both now, correctness work later</td></tr>
+</table></div>
+
+<div class="box warn"><h3>One safety rule I added</h3>
+<p>If the app is not sure a page is rent or sale, it shows <b>no</b> price comparison until the user picks. Without this, one wrong guess gives a wrong comparison.</p></div>
+
+<div class="box"><h3>About “is this place worth it?”</h3>
+<p>The app won’t give one big “worth it” verdict. The price check says how the rate compares. The Area Report says what is nearby. The user puts them together. This matches your “facts, not verdicts” rule.</p></div>
+
+<h2>Piece 0: Safety rule</h2>
+<section class="sl"><header><h3>Block price comparison when rent/sale is unclear</h3><span class="tag">small</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>If mode is “unknown”, hide the price per sq ft comparison and show “pick rent or sale first”</span></li>
+<li><input type="checkbox"><span>Add one test for this</span></li></ul>
+<div class="done">Done when: an unclear page never shows a price comparison.</div></section>
+
+<h2>Part A: Price per sq ft check</h2>
+
+<section class="sl"><header><h3>A1: Matching rules</h3><span class="tag">small</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Compare only the same BHK and the same size type (carpet vs super built-up)</span></li>
+<li><input type="checkbox"><span>Use listings of similar size only (for example within 20% of this flat)</span></li>
+<li><input type="checkbox"><span>Pick a minimum number of listings; below it, show “not enough listings to compare” and nothing else</span></li></ul>
+<div class="done">Done when: tests with made-up listings give the right comparison and the right “not enough” message.</div></section>
+
+<section class="sl"><header><h3>A2: Next-door localities within 3 km</h3><span class="tag">medium</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Make a list of localities with a centre point for Bengaluru, Jaipur and Jodhpur</span></li>
+<li><input type="checkbox"><span>Find localities within 3 km of the flat’s locality</span></li>
+<li><input type="checkbox"><span>Use the nearby listings you already store; show the number of listings used</span></li></ul>
+<div class="done">Done when: for 5 real flats per city, the neighbour list looks right on a map.</div></section>
+
+<section class="sl"><header><h3>A3: Show it</h3><span class="tag">small</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Line in Key Observations: this flat’s rate, the middle rate nearby, how many listings, how far the area reaches</span></li>
+<li><input type="checkbox"><span>Details: how it was compared, one fact, one drawback (for example, “few listings, treat as rough”)</span></li>
+<li><input type="checkbox"><span>No words like “overpriced” or “cheap”; say “X% above/below the middle rate”</span></li></ul>
+<div class="done">Done when: wording matches your wording guide.</div></section>
+
+<h2>Part B: Area Report</h2>
+
+<section class="sl"><header><h3>B1: Settings switch and privacy text</h3><span class="tag">small</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Add “Area Report” switch, off by default, with a short plain explanation of what is sent</span></li>
+<li><input type="checkbox"><span>Round the location (about 100 m) before sending</span></li>
+<li><input type="checkbox"><span>Change the footer line “Zero personal data transmitted” so it stays true</span></li>
+<li><input type="checkbox"><span>Update the privacy policy and the permission explanation for the store</span></li></ul>
+<div class="done">Done when: with the switch off, nothing is sent to the map; with it on, only the rounded location goes out.</div></section>
+
+<section class="sl"><header><h3>B2: Map lookup</h3><span class="tag">medium</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>One function that asks OpenStreetMap for places around a point and returns a simple list</span></li>
+<li><input type="checkbox"><span>Keep answers in the browser for several days so the same area is not asked twice</span></li>
+<li><input type="checkbox"><span>If the map is slow or fails, show “Area data unavailable now”, never a guess</span></li>
+<li><input type="checkbox"><span>If the map has almost nothing for the area, show “not enough map data here”</span></li>
+<li><input type="checkbox"><span>Show “Map data © OpenStreetMap contributors” in the report</span></li></ul>
+<div class="note">The public map servers have fair-use limits. That is why caching and small requests matter.</div>
+<div class="done">Done when: works for 5 flats per city, and the failure messages show correctly when you turn off the internet.</div></section>
+
+<section class="sl"><header><h3>B3: Five categories, one at a time</h3><span class="tag">medium each</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span><b>Emergency and Healthcare:</b> nearest hospital, clinic, pharmacy</span></li>
+<li><input type="checkbox"><span><b>Daily Supplies and Services:</b> grocery, vegetable shop, ATM, pharmacy</span></li>
+<li><input type="checkbox"><span><b>Commute and Transit:</b> bus stop, metro or railway station, main road</span></li>
+<li><input type="checkbox"><span><b>Safety and Environment:</b> police station, main road, shops open late (night), parks; labeled “not crime data”</span></li>
+<li><input type="checkbox"><span><b>Lifestyle and Community:</b> parks, schools, cafes, gyms, places of worship</span></li></ul>
+<div class="done">Done when: each category gives a grade, a fact and a drawback for 5 flats per city, and you agree with most of them.</div></section>
+
+<section class="sl"><header><h3>B4: Grade rules (draft numbers)</h3><span class="tag">small, but tune later</span></header>
+<div class="tw"><table>
+<tr><th>Check</th><th>Good (metro / smaller city)</th><th>Okay (metro / smaller city)</th></tr>
+<tr><td>Hospital</td><td>within 2 km / 3 km</td><td>within 5 km / 7 km</td></tr>
+<tr><td>Daily shops</td><td>within 0.5 km / 1 km</td><td>within 1.5 km / 2.5 km</td></tr>
+<tr><td>Bus or metro</td><td>within 0.6 km / 1 km</td><td>within 1.5 km / 2.5 km</td></tr>
+<tr><td>Police station</td><td>within 2 km / 3 km</td><td>within 4 km / 6 km</td></tr>
+</table></div>
+<p class="note">These are starting guesses, not facts. Keep them in one file so you can change them after testing. Show the rule in the details so users can see how the grade was decided. Anything farther than “Okay” is Weak.</p>
+<ul class="ck">
+<li><input type="checkbox"><span>Put all numbers in one rules file, one set for metros and one for smaller cities</span></li>
+<li><input type="checkbox"><span>Check 5 flats per city against what you know about those areas, then adjust</span></li></ul>
+<div class="done">Done when: the grades feel right for places you know (for example, areas in Jodhpur).</div></section>
+
+<section class="sl"><header><h3>B5: Show it in Key Observations</h3><span class="tag">medium</span></header>
+<ul class="ck">
+<li><input type="checkbox"><span>Five rows, each with a grade and a short point</span></li>
+<li><input type="checkbox"><span>Tap a row to open: how it was judged, one fact, one major drawback</span></li>
+<li><input type="checkbox"><span>When the switch is off, show a short “Turn on Area Report in settings”</span></li></ul>
+<div class="done">Done when: it looks right on the three cities and handles “no data” cleanly.</div></section>
+
+<h2>Risks to remember</h2>
+<div class="cols">
+<div class="box warn"><h3>Map gaps</h3><ul>
+<li>Small areas may have missing shops or bus stops</li>
+<li>A missing place can look like a real drawback, so say “not found on the map”</li></ul></div>
+<div class="box warn"><h3>Few listings</h3><ul>
+<li>Early on, many areas will say “not enough listings”</li>
+<li>That is correct, not a bug</li></ul></div>
+</div>
+
+<h2>Correctness work, later</h2>
+<div class="box"><ul>
+<li>Test rent/sale detection on 100+ real pages per portal</li>
+<li>Check each official data record against its source</li>
+<li>Re-run the price spike simulation with more areas</li>
+<li>Remove the localStorage fallback in the extension</li></ul>
+<p class="note">Do these before inviting beta users. Both new features depend on them.</p></div>
+
+<h2>Next small step</h2>
+<div class="box ok"><p>Do <b>Piece 0</b> and <b>A1</b>. They are small, use data you already have, and give you the first visible result.</p></div>
+</main>
+<script>
+(function(){
+var K="flataudit-area-plan-v1",bx=[].slice.call(document.querySelectorAll('.ck input')),sv=[];
+try{sv=JSON.parse(localStorage.getItem(K)||"[]")}catch(e){}
+bx.forEach(function(b,i){b.checked=!!sv[i];b.addEventListener('change',up)});
+function up(){var s=bx.map(function(b){return b.checked?1:0}),n=s.reduce(function(a,c){return a+c},0),p=bx.length?Math.round(n*100/bx.length):0;
+document.getElementById('fill').style.width=p+'%';
+document.getElementById('pct').textContent=p+'% complete ('+n+' of '+bx.length+' tasks)';
+try{localStorage.setItem(K,JSON.stringify(s))}catch(e){}}
+up();
+})();
+</script>
+</body>
+</html>

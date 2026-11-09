@@ -3,45 +3,45 @@
    ========================================================================== */
 
 :root {
-  --system-bg: #141c28;
-  --system-grouped-bg: #1a2332;
-  --surface-card: #212c3d;
-  --surface-secondary: #273448;
-  --surface-tertiary: #2e3d54;
+  --system-bg: #020617;
+  --system-grouped-bg: #0b1220;
+  --surface-card: rgba(15, 23, 42, 0.78);
+  --surface-secondary: rgba(30, 41, 59, 0.72);
+  --surface-tertiary: rgba(51, 65, 85, 0.6);
   --surface-pill: rgba(255, 255, 255, 0.08);
 
-  --separator: rgba(255, 255, 255, 0.09);
-  --separator-strong: rgba(56, 189, 248, 0.35);
+  --separator: rgba(148, 163, 184, 0.16);
+  --separator-strong: rgba(56, 189, 248, 0.4);
   --specular: rgba(255, 255, 255, 0.08);
 
-  --text-primary: #ffffff;
-  --text-secondary: #cbd5e1;
-  --text-tertiary: #94a3b8;
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
 
   --tint: #38bdf8;
   --tint-hover: #7dd3fc;
-  --tint-surface: rgba(56, 189, 248, 0.16);
-  --tint-glow: 0 4px 18px rgba(56, 189, 248, 0.35);
+  --tint-surface: rgba(56, 189, 248, 0.14);
+  --tint-glow: 0 4px 20px rgba(56, 189, 248, 0.35);
 
-  --status-ok: #30d158;
-  --status-ok-bg: rgba(48, 209, 88, 0.14);
-  --status-ok-border: rgba(48, 209, 88, 0.32);
+  --status-ok: #34d399;
+  --status-ok-bg: rgba(52, 211, 153, 0.12);
+  --status-ok-border: rgba(52, 211, 153, 0.35);
 
-  --status-warn: #ff9f0a;
-  --status-warn-bg: rgba(255, 159, 10, 0.14);
-  --status-warn-border: rgba(255, 159, 10, 0.32);
+  --status-warn: #fbbf24;
+  --status-warn-bg: rgba(251, 191, 36, 0.12);
+  --status-warn-border: rgba(251, 191, 36, 0.35);
 
-  --status-bad: #ff453a;
-  --status-bad-bg: rgba(255, 69, 58, 0.14);
-  --status-bad-border: rgba(255, 69, 58, 0.32);
+  --status-bad: #f43f5e;
+  --status-bad-bg: rgba(244, 63, 94, 0.12);
+  --status-bad-border: rgba(244, 63, 94, 0.35);
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
   --radius-pill: 9999px;
 
-  --font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", -apple-system, "Segoe UI", Roboto, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
 /* Apple-Style Floating Translucent Scrollbars (HIG Compliant) */
@@ -49,7 +49,7 @@ html,
 body,
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.22) transparent;
+  scrollbar-color: rgba(148, 163, 184, 0.35) transparent;
 }
 
 ::-webkit-scrollbar {
@@ -62,7 +62,7 @@ body,
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(148, 163, 184, 0.3);
   border-radius: 9999px;
   border: 1px solid transparent;
   background-clip: padding-box;
@@ -70,7 +70,7 @@ body,
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.38);
+  background: rgba(56, 189, 248, 0.5);
 }
 
 ::-webkit-scrollbar-corner {
@@ -84,7 +84,8 @@ body,
 }
 
 body {
-  background: var(--system-bg);
+  background: radial-gradient(1200px 600px at 50% -80px, rgba(56, 189, 248, 0.09), transparent 60%), #020617;
+  background-attachment: fixed;
   color: var(--text-primary);
   font-family: var(--font-family);
   font-size: 13.5px;
@@ -109,11 +110,13 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 16px 22px;
   background: var(--surface-card);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid var(--separator);
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0.5px 0 rgba(255, 255, 255, 0.1) inset;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 255, 255, 0.08) inset;
 }
 
 .brand {
@@ -382,10 +385,12 @@ body {
 
 .panel {
   background: var(--surface-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--separator);
   border-radius: var(--radius-lg);
   padding: 20px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 255, 255, 0.05) inset;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -457,7 +462,7 @@ body {
 .preset-btn.active {
   background: var(--tint-surface);
   color: var(--tint);
-  border-color: rgba(11, 54, 254, 0.4);
+  border-color: rgba(56, 189, 248, 0.45);
   font-weight: 600;
 }
 
@@ -515,7 +520,7 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--tint);
-  box-shadow: 0 0 0 3px rgba(11, 54, 254, 0.25);
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.25);
 }
 
 .code-input {
@@ -552,8 +557,9 @@ textarea:focus {
 
 .btn-primary {
   background: var(--tint);
-  color: #ffffff;
-  box-shadow: 0 2px 8px rgba(11, 54, 254, 0.35);
+  color: #020617;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.35);
 }
 
 .btn-primary:hover {
@@ -634,7 +640,7 @@ textarea:focus {
 .bm-conf-pill.conf-medium {
   background: var(--tint-surface);
   color: var(--tint);
-  border: 1px solid rgba(11, 54, 254, 0.3);
+  border: 1px solid rgba(56, 189, 248, 0.35);
 }
 
 .bm-conf-pill.conf-low {
@@ -985,9 +991,9 @@ textarea:focus {
 }
 
 .status-info {
-  background: rgba(11, 54, 254, 0.14);
-  color: #7cc4ff;
-  border: 1px solid rgba(11, 54, 254, 0.3);
+  background: rgba(56, 189, 248, 0.14);
+  color: var(--tint);
+  border: 1px solid rgba(56, 189, 248, 0.35);
 }
 
 .status-normal {
@@ -1044,7 +1050,7 @@ textarea:focus {
   font-weight: 600;
   background: var(--tint-surface);
   color: var(--tint);
-  border: 1px solid rgba(11, 54, 254, 0.3);
+  border: 1px solid rgba(56, 189, 248, 0.35);
   padding: 2px 7px;
   border-radius: var(--radius-pill);
 }
@@ -1338,7 +1344,7 @@ textarea:focus {
 .metric-badge.diff {
   background: var(--tint-surface);
   color: var(--tint);
-  border: 1px solid rgba(11, 54, 254, 0.3);
+  border: 1px solid rgba(56, 189, 248, 0.35);
 }
 
 .eval-metrics-grid {
@@ -1447,7 +1453,7 @@ textarea:focus {
 
 .compare-card-section {
   background: var(--surface-secondary);
-  border: 1px solid rgba(11, 54, 254, 0.4);
+  border: 1px solid rgba(56, 189, 248, 0.4);
   border-radius: var(--radius-md);
   padding: 12px 14px;
 }
@@ -1885,9 +1891,9 @@ textarea:focus {
 }
 
 .invest-card-step.featured {
-  background: linear-gradient(180deg, rgba(11, 54, 254, 0.08) 0%, rgba(33, 44, 61, 1) 100%);
-  border-color: rgba(11, 54, 254, 0.3);
-  box-shadow: 0 4px 14px rgba(11, 54, 254, 0.1);
+  background: linear-gradient(180deg, rgba(56, 189, 248, 0.12) 0%, rgba(15, 23, 42, 0.95) 100%);
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.15);
 }
 
 .invest-step-time {
@@ -1945,7 +1951,7 @@ textarea:focus {
   font-weight: 500;
   color: var(--tint);
   background: var(--tint-surface);
-  border: 1px solid rgba(11, 54, 254, 0.25);
+  border: 1px solid rgba(56, 189, 248, 0.35);
   padding: 2px 8px;
   border-radius: var(--radius-pill);
 }
