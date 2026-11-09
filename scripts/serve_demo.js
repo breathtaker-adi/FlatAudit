@@ -21,21 +21,29 @@ const mimeTypes = {
 
 const server = http.createServer((req, res) => {
   let reqPath = decodeURI(req.url.split('?')[0]);
-  if (reqPath === '/' || reqPath === '') reqPath = '/index2.html';
+  if (reqPath === '/' || reqPath === '') reqPath = '/index.html';
 
   const cleanPath = reqPath.replace(/^\/+/, '');
   let filePath;
 
-  if (cleanPath.startsWith('extension/')) {
+  if (cleanPath.toLowerCase() === 'demo' || cleanPath.toLowerCase() === 'demo/') {
+    filePath = path.join(rootDir, 'Demo', 'index.html');
+  } else if (cleanPath.startsWith('extension/')) {
     filePath = path.join(rootDir, cleanPath);
+  } else if (cleanPath.startsWith('Demo/') || cleanPath.startsWith('demo/')) {
+    filePath = path.join(rootDir, 'Demo', cleanPath.replace(/^[Dd]emo\//, ''));
   } else {
-    // Check web-demo first, then rootDir
-    const demoPath = path.join(rootDir, 'web-demo', cleanPath);
-    if (fs.existsSync(demoPath)) {
-      filePath = demoPath;
+    // Check rootDir first, then web-demo
+    const directPath = path.join(rootDir, cleanPath);
+    if (fs.existsSync(directPath)) {
+      filePath = directPath;
     } else {
-      filePath = path.join(rootDir, cleanPath);
+      filePath = path.join(rootDir, 'web-demo', cleanPath);
     }
+  }
+
+  if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
+    filePath = path.join(filePath, 'index.html');
   }
 
   if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
@@ -52,7 +60,7 @@ const server = http.createServer((req, res) => {
 const PORT = process.env.PORT || 8080;
 server.listen(PORT, () => {
   console.log(`FlatAudit Web Demo & Showcase running at http://localhost:${PORT}`);
-  console.log(`- Showcase: http://localhost:${PORT}/index2.html`);
-  console.log(`- Interactive Studio: http://localhost:${PORT}/index.html`);
+  console.log(`- Showcase: http://localhost:${PORT}/`);
+  console.log(`- Interactive Studio: http://localhost:${PORT}/Demo`);
 });
 

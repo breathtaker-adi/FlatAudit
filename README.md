@@ -18,7 +18,7 @@
 
 > 🌐 **Live Website & Interactive Studio**:  
 > • **Showcase Experience**: [https://breathtaker-adi.github.io/FlatAudit/](https://breathtaker-adi.github.io/FlatAudit/)  
-> • **Interactive Studio & Evaluation Lab**: [https://breathtaker-adi.github.io/FlatAudit/web-demo/index.html](https://breathtaker-adi.github.io/FlatAudit/web-demo/index.html)  
+> • **Interactive Studio & Evaluation Lab**: [https://breathtaker-adi.github.io/FlatAudit/Demo](https://breathtaker-adi.github.io/FlatAudit/Demo)  
 
 > **A privacy-preserving browser extension and explainable API that flags advance-fee scam signals on Indian rentals, features comprehensive Buyer Mode to evaluate the flat, project, and builder from official RERA records (Karnataka & Rajasthan pilots), projects 3Y/5Y/10Y capital appreciation, and acts as a "Buyhatke for property" — tracking price history sparklines, price-drop alerts, all-in closing costs, side-by-side comparisons, and printable advocate reports.**  
 > Built as an advanced cybersecurity & consumer utility portfolio project, threat-modeled with STRIDE, and evaluated on benchmark listings with zero rule drift.

@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FlatAudit | Property Trust & Investment Intelligence</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="icon32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon128.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Header with FlatAudit Verified Shield Emblem -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-glyph">
+          <svg width="24" height="24" viewBox="28 -6 350 350" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path fill="#0B36FE" fill-rule="evenodd" d="M 127 179 L 124 179 L 123 180 L 119 181 L 118 186 L 119 196 L 121 196 L 124 194 L 125 195 L 127 193 Z M 207 151 L 205 152 L 206 164 L 205 165 L 206 167 L 211 169 L 213 168 L 213 153 L 211 153 Z M 126 150 L 120 152 L 118 156 L 120 168 L 127 165 Z M 347 131 L 344 131 L 321 142 L 304 152 L 285 165 L 279 171 L 268 179 L 252 193 L 222 223 L 213 234 L 210 236 L 193 255 L 190 255 L 179 243 L 155 220 L 150 224 L 139 236 L 155 252 L 167 266 L 171 269 L 176 276 L 184 283 L 188 289 L 192 292 L 200 283 L 207 273 L 216 263 L 223 253 L 239 235 L 243 229 L 249 222 L 252 220 L 267 202 L 287 181 L 311 158 L 317 154 L 318 152 L 322 150 L 336 138 Z M 142 130 L 139 131 L 140 149 L 139 159 L 140 164 L 140 215 L 144 212 L 147 208 L 147 133 L 145 131 Z M 205 124 L 206 139 L 209 139 L 210 140 L 213 139 L 213 125 L 211 124 Z M 243 109 L 241 109 L 240 182 L 241 185 L 251 177 L 258 170 L 271 160 L 274 156 L 274 154 L 273 153 L 274 149 L 274 128 L 273 125 L 270 122 L 264 120 L 260 117 L 249 113 Z M 252 129 L 259 130 L 263 133 L 261 151 L 253 148 L 251 146 Z M 207 94 L 205 96 L 206 110 L 212 112 L 212 96 Z M 189 60 L 163 75 L 161 75 L 158 77 L 157 79 L 157 200 L 159 204 L 167 211 L 187 233 L 191 235 L 191 60 Z M 178 120 L 180 122 L 180 138 L 176 141 L 172 142 L 168 141 L 169 123 L 171 122 L 172 123 L 175 122 L 176 120 Z M 193 6 L 190 6 L 177 15 L 167 21 L 165 21 L 163 23 L 161 23 L 159 25 L 157 25 L 155 27 L 148 29 L 136 35 L 118 41 L 95 47 L 90 47 L 86 49 L 64 52 L 63 54 L 62 63 L 60 100 L 60 116 L 62 148 L 64 156 L 64 164 L 68 186 L 70 190 L 70 194 L 78 219 L 83 231 L 91 246 L 96 254 L 99 257 L 100 260 L 112 275 L 130 292 L 133 296 L 158 315 L 166 320 L 171 322 L 176 326 L 178 326 L 188 332 L 191 332 L 191 313 L 189 311 L 184 309 L 174 303 L 154 289 L 149 284 L 144 281 L 141 277 L 127 264 L 112 245 L 111 242 L 105 233 L 95 212 L 95 209 L 93 207 L 93 204 L 91 201 L 91 197 L 89 193 L 89 189 L 87 186 L 83 165 L 83 159 L 81 153 L 81 141 L 79 132 L 79 80 L 80 70 L 82 68 L 86 68 L 91 66 L 97 66 L 108 62 L 113 62 L 127 58 L 129 56 L 133 56 L 141 52 L 144 52 L 149 50 L 151 48 L 158 46 L 160 44 L 168 41 L 176 36 L 178 36 L 190 28 L 193 28 L 205 36 L 207 36 L 215 41 L 223 44 L 225 46 L 245 54 L 254 56 L 256 58 L 260 58 L 263 60 L 270 62 L 275 62 L 279 64 L 283 64 L 287 66 L 294 66 L 301 68 L 303 70 L 304 78 L 303 136 L 305 136 L 312 131 L 318 129 L 322 125 L 323 116 L 323 86 L 321 77 L 321 61 L 320 54 L 319 52 L 310 51 L 304 49 L 297 49 L 293 47 L 288 47 L 285 45 L 280 45 L 276 43 L 272 43 L 242 33 L 224 25 L 222 23 L 220 23 L 211 18 Z"/>
+            <path fill="#FFFFFF" fill-rule="evenodd" d="M 317 172 L 303 184 L 293 194 L 289 209 L 278 233 L 270 246 L 252 268 L 242 278 L 225 292 L 207 304 L 192 312 L 192 333 L 214 322 L 238 306 L 259 288 L 277 268 L 291 248 L 305 220 L 313 195 L 317 177 Z M 253 131 L 253 146 L 261 149 L 261 133 L 256 131 Z M 137 129 L 127 134 L 125 134 L 109 142 L 108 206 L 121 232 L 130 225 L 138 216 Z M 127 176 L 128 194 L 126 196 L 121 198 L 117 197 L 118 179 Z M 128 149 L 127 167 L 123 169 L 117 169 L 118 151 L 122 149 Z M 178 122 L 170 125 L 170 140 L 173 140 L 178 138 Z M 192 59 L 192 236 L 206 222 L 226 200 L 226 77 L 219 74 Z M 207 150 L 214 152 L 214 171 L 205 169 L 203 167 L 203 153 Z M 204 121 L 207 121 L 215 124 L 214 142 L 210 142 L 205 140 L 203 138 Z M 203 94 L 207 93 L 213 94 L 215 96 L 215 112 L 213 114 L 207 112 L 203 109 Z"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <div class="title-row">
+            <h1>FlatAudit</h1>
+            <span class="tag-version">Studio v1.1</span>
+          </div>
+          <p class="tagline">Property Trust & Capital Appreciation Intelligence</p>
+        </div>
+      </div>
+      
+      <!-- Top Primary Navigation Segmented Control -->
+      <nav class="top-nav-bar" role="tablist" aria-label="Studio Views">
+        <div class="segmented-control main-nav-control">
+          <button type="button" class="demo-tab-btn active" id="demo-tab-inspector" data-tab="tab-content-inspector" role="tab" aria-selected="true">
+            Property Audit
+          </button>
+          <button type="button" class="demo-tab-btn" id="demo-tab-buyhatke" data-tab="tab-content-buyhatke" role="tab" aria-selected="false">
+            Price History & Compare
+          </button>
+          <button type="button" class="demo-tab-btn" id="demo-tab-lab" data-tab="tab-content-lab" role="tab" aria-selected="false">
+            Research & Lab
+          </button>
+        </div>
+      </nav>
+
+      <div class="header-actions">
+        <a href="../" class="btn btn-secondary btn-sm" title="Back to Showcase Landing">
+          <span>← Showcase Website</span>
+        </a>
+        <span class="badge-status online" id="api-status-badge">
+          <span class="status-beacon"></span>
+          <span>API Connected</span>
+        </span>
+        <a href="https://github.com/breathtaker-adi/FlatAudit#readme" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+          <span>Docs ↗</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- VIEW 1: Property Audit Dossier (Clean, Uncluttered 2-Column Experience) -->
+    <div class="demo-tab-content active" id="tab-content-inspector" role="tabpanel">
+      <main class="main-content">
+        <!-- Left Column: Streamlined Input & Presets -->
+        <section class="panel inspector-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Listing Parameters</h2>
+              <span class="subtitle">Empirical test cases or custom listing specifications</span>
+            </div>
+          </div>
+
+          <!-- Presets Segmented Selector -->
+          <div class="presets-bar">
+            <span class="preset-label">Empirical Test Presets:</span>
+            <div class="preset-buttons">
+              <button type="button" class="preset-btn active" data-preset="normal">Rental 2BHK (Indiranagar)</button>
+              <button type="button" class="preset-btn" data-preset="resale_buy">Resale Buy (₹1.25 Cr)</button>
+              <button type="button" class="preset-btn" data-preset="godrej_reflections">Project (₹2.15 Cr)</button>
+              <button type="button" class="preset-btn" data-preset="army_token">Advance Scam (HSR)</button>
+              <button type="button" class="preset-btn" data-preset="bait_price">Bait Price (Cyber City)</button>
+              <button type="button" class="preset-btn" data-preset="zero_deposit">Zero Deposit (Pune)</button>
+            </div>
+          </div>
+
+          <form id="listing-form" class="listing-form">
+            <div class="form-group">
+              <label for="input-title">Listing Headline</label>
+              <input type="text" id="input-title" required autocomplete="off">
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="input-locality">Locality</label>
+                <select id="input-locality">
+                  <option value="Indiranagar, Bangalore">Indiranagar (Bangalore)</option>
+                  <option value="HSR Layout, Bangalore">HSR Layout (Bangalore)</option>
+                  <option value="Electronic City, Bangalore">Electronic City (Bangalore)</option>
+                  <option value="Koramangala, Bangalore">Koramangala (Bangalore)</option>
+                  <option value="Powai, Mumbai">Powai (Mumbai)</option>
+                  <option value="Cyber City, Gurgaon">Cyber City (Gurgaon)</option>
+                  <option value="Hinjawadi, Pune">Hinjawadi (Pune)</option>
+                </select>
+              </div>
+              <div class="form-group flex-1">
+                <label for="input-bhk">Configuration</label>
+                <select id="input-bhk">
+                  <option value="1">1 BHK</option>
+                  <option value="2" selected>2 BHK</option>
+                  <option value="3">3 BHK</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-1">
+                <label for="input-rent">Price or Rent (₹)</label>
+                <input type="number" id="input-rent" required>
+              </div>
+              <div class="form-group flex-1">
+                <label for="input-deposit">Security Deposit (₹)</label>
+                <input type="number" id="input-deposit" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-desc">Property Description</label>
+              <textarea id="input-desc" rows="4" required></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group flex-2">
+                <label for="input-image-hash">Photo dHash Fingerprint (64-bit Hex)</label>
+                <input type="text" id="input-image-hash" value="a4c28f1107be924d" maxlength="16" class="code-input">
+              </div>
+              <div class="form-group flex-1">
+                <label for="input-seen-count">Registry Seen Count</label>
+                <input type="number" id="input-seen-count" value="1" min="1" max="20">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="input-benchmark-ladder">Benchmark Fallback Ladder Test Mode</label>
+              <select id="input-benchmark-ladder">
+                <option value="auto">Auto (Area / City Pack)</option>
+                <option value="level1_peer">Level 1: Peer Page (12 same-BHK cards from current search)</option>
+                <option value="level2_area">Level 2: Area Cell (Nearby locality pack, n=48)</option>
+                <option value="level3_district">Level 3: District Cell (Wider metro prefix, n=62)</option>
+                <option value="level4_city">Level 4: City Baseline (City-wide median, n=80)</option>
+                <option value="level5_none">Level 5: None / Unknown (Thin data, sample &lt; 5 - Silence test)</option>
+              </select>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">Run Diligence Audit</button>
+              <button type="button" id="btn-reset" class="btn btn-secondary">Reset Fields</button>
+            </div>
+          </form>
+        </section>
+
+        <!-- Right Column: Executive Diligence Dossier -->
+        <section class="panel results-panel">
+          <!-- Property Hero Diligence Header Card -->
+          <div class="dossier-hero-card">
+            <div class="dossier-hero-top">
+              <div class="dossier-hero-titles">
+                <span class="dossier-eyebrow" id="dossier-locality-eyebrow">Indiranagar, Bangalore</span>
+                <h2 id="dossier-property-title">2 BHK Semi Furnished Apartment for Rent</h2>
+              </div>
+              <div class="dossier-status-container">
+                <div class="verdict-banner tone-ok" id="verdict-banner">
+                  <span class="verdict-icon" id="verdict-icon">✓</span>
+                  <div>
+                    <h3 id="verdict-title">Listing Validated Normal</h3>
+                    <p id="verdict-subtitle">No red flags detected. Conforms to local market norms.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="dossier-metrics-strip">
+              <div class="metric-item">
+                <span class="m-lbl">Current Valuation</span>
+                <span class="m-val" id="dossier-price-val">₹ 42,000/mo</span>
+              </div>
+              <div class="metric-item">
+                <span class="m-lbl" id="dossier-sec-lbl">Security Deposit</span>
+                <span class="m-val" id="dossier-sec-val">₹ 1,50,000</span>
+              </div>
+              <div class="metric-item">
+                <span class="m-lbl">Configuration</span>
+                <span class="m-val" id="dossier-bhk-val">2 BHK • 1,230 sqft</span>
+              </div>
+              <div class="metric-item">
+                <span class="m-lbl">Benchmark Source</span>
+                <span class="m-val-bench" id="demo-bm-tag">Level 1: Peer Page (n=12)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dossier Segmented Section Controller -->
+          <div class="dossier-tabs-bar">
+            <div class="segmented-control dossier-segmented">
+              <button type="button" class="dossier-tab-btn active" id="dossier-tab-findings" data-dossier="view-findings">
+                Audit Findings
+              </button>
+              <button type="button" class="dossier-tab-btn" id="dossier-tab-invest" data-dossier="view-invest">
+                Capital Appreciation & ROI
+              </button>
+              <button type="button" class="dossier-tab-btn" id="dossier-tab-due-diligence" data-dossier="view-due-diligence">
+                Statutory Due Diligence
+              </button>
+            </div>
+          </div>
+
+          <!-- SUB-VIEW A: Audit Findings & Observations -->
+          <div class="dossier-subview active" id="view-findings">
+            <div class="points-section">
+              <div class="section-label">Observable Facts & Anomaly Detection</div>
+              <div class="points-grid" id="points-grid">
+                <!-- Populated dynamically with point cards -->
+              </div>
+            </div>
+
+            <!-- In-Page Floating Inspector Preview (Liquid Glass) -->
+            <div class="badge-preview-card">
+              <div class="card-label">In-Page Floating Inspector (Click to toggle Liquid Glass drawer)</div>
+              <div class="preview-badge-row">
+                <div class="mock-badge" id="mock-badge-btn" role="button" tabindex="0" aria-label="Toggle FlatAudit Inspector">
+                  <span class="badge-icon" id="badge-icon-el">
+                    <svg width="15" height="15" viewBox="28 -6 350 350" fill="none" aria-hidden="true">
+                      <path fill="#0B36FE" fill-rule="evenodd" d="M 127 179 L 124 179 L 123 180 L 119 181 L 118 186 L 119 196 L 121 196 L 124 194 L 125 195 L 127 193 Z M 207 151 L 205 152 L 206 164 L 205 165 L 206 167 L 211 169 L 213 168 L 213 153 L 211 153 Z M 126 150 L 120 152 L 118 156 L 120 168 L 127 165 Z M 347 131 L 344 131 L 321 142 L 304 152 L 285 165 L 279 171 L 268 179 L 252 193 L 222 223 L 213 234 L 210 236 L 193 255 L 190 255 L 179 243 L 155 220 L 150 224 L 139 236 L 155 252 L 167 266 L 171 269 L 176 276 L 184 283 L 188 289 L 192 292 L 200 283 L 207 273 L 216 263 L 223 253 L 239 235 L 243 229 L 249 222 L 252 220 L 267 202 L 287 181 L 311 158 L 317 154 L 318 152 L 322 150 L 336 138 Z M 142 130 L 139 131 L 140 149 L 139 159 L 140 164 L 140 215 L 144 212 L 147 208 L 147 133 L 145 131 Z M 205 124 L 206 139 L 209 139 L 210 140 L 213 139 L 213 125 L 211 124 Z M 243 109 L 241 109 L 240 182 L 241 185 L 251 177 L 258 170 L 271 160 L 274 156 L 274 154 L 273 153 L 274 149 L 274 128 L 273 125 L 270 122 L 264 120 L 260 117 L 249 113 Z M 252 129 L 259 130 L 263 133 L 261 151 L 253 148 L 251 146 Z M 207 94 L 205 96 L 206 110 L 212 112 L 212 96 Z M 189 60 L 163 75 L 161 75 L 158 77 L 157 79 L 157 200 L 159 204 L 167 211 L 187 233 L 191 235 L 191 60 Z M 178 120 L 180 122 L 180 138 L 176 141 L 172 142 L 168 141 L 169 123 L 171 122 L 172 123 L 175 122 L 176 120 Z M 193 6 L 190 6 L 177 15 L 167 21 L 165 21 L 163 23 L 161 23 L 159 25 L 157 25 L 155 27 L 148 29 L 136 35 L 118 41 L 95 47 L 90 47 L 86 49 L 64 52 L 63 54 L 62 63 L 60 100 L 60 116 L 62 148 L 64 156 L 64 164 L 68 186 L 70 190 L 70 194 L 78 219 L 83 231 L 91 246 L 96 254 L 99 257 L 100 260 L 112 275 L 130 292 L 133 296 L 158 315 L 166 320 L 171 322 L 176 326 L 178 326 L 188 332 L 191 332 L 191 313 L 189 311 L 184 309 L 174 303 L 154 289 L 149 284 L 144 281 L 141 277 L 127 264 L 112 245 L 111 242 L 105 233 L 95 212 L 95 209 L 93 207 L 93 204 L 91 201 L 91 197 L 89 193 L 89 189 L 87 186 L 83 165 L 83 159 L 81 153 L 81 141 L 79 132 L 79 80 L 80 70 L 82 68 L 86 68 L 91 66 L 97 66 L 108 62 L 113 62 L 127 58 L 129 56 L 133 56 L 141 52 L 144 52 L 149 50 L 151 48 L 158 46 L 160 44 L 168 41 L 176 36 L 178 36 L 190 28 L 193 28 L 205 36 L 207 36 L 215 41 L 223 44 L 225 46 L 245 54 L 254 56 L 256 58 L 260 58 L 263 60 L 270 62 L 275 62 L 279 64 L 283 64 L 287 66 L 294 66 L 301 68 L 303 70 L 304 78 L 303 136 L 305 136 L 312 131 L 318 129 L 322 125 L 323 116 L 323 86 L 321 77 L 321 61 L 320 54 L 319 52 L 310 51 L 304 49 L 297 49 L 293 47 L 288 47 L 285 45 L 280 45 L 276 43 L 272 43 L 242 33 L 224 25 L 222 23 L 220 23 L 211 18 Z"/>
+                      <path fill="#FFFFFF" fill-rule="evenodd" d="M 317 172 L 303 184 L 293 194 L 289 209 L 278 233 L 270 246 L 252 268 L 242 278 L 225 292 L 207 304 L 192 312 L 192 333 L 214 322 L 238 306 L 259 288 L 277 268 L 291 248 L 305 220 L 313 195 L 317 177 Z M 253 131 L 253 146 L 261 149 L 261 133 L 256 131 Z M 137 129 L 127 134 L 125 134 L 109 142 L 108 206 L 121 232 L 130 225 L 138 216 Z M 127 176 L 128 194 L 126 196 L 121 198 L 117 197 L 118 179 Z M 128 149 L 127 167 L 123 169 L 117 169 L 118 151 L 122 149 Z M 178 122 L 170 125 L 170 140 L 173 140 L 178 138 Z M 192 59 L 192 236 L 206 222 L 226 200 L 226 77 L 219 74 Z M 207 150 L 214 152 L 214 171 L 205 169 L 203 167 L 203 153 Z M 204 121 L 207 121 L 215 124 L 214 142 L 210 142 L 205 140 L 203 138 Z M 203 94 L 207 93 L 213 94 L 215 96 L 215 112 L 213 114 L 207 112 L 203 109 Z"/>
+                    </svg>
+                  </span>
+                  <span class="badge-name">FlatAudit</span>
+                  <span class="badge-pill tone-ok" id="badge-pill-el">Looks normal</span>
+                </div>
+                <span class="badge-hint" id="badge-hint-text">Click to toggle interactive drawer</span>
+              </div>
+
+              <!-- Embedded Floating Drawer Preview -->
+              <div class="mock-drawer-container" id="mock-drawer-container">
+                <div class="mock-drawer-header">
+                  <div class="mock-drawer-title">
+                    <svg width="16" height="16" viewBox="28 -6 350 350" fill="none" aria-hidden="true">
+                      <path fill="#0B36FE" fill-rule="evenodd" d="M 127 179 L 124 179 L 123 180 L 119 181 L 118 186 L 119 196 L 121 196 L 124 194 L 125 195 L 127 193 Z M 207 151 L 205 152 L 206 164 L 205 165 L 206 167 L 211 169 L 213 168 L 213 153 L 211 153 Z M 126 150 L 120 152 L 118 156 L 120 168 L 127 165 Z M 347 131 L 344 131 L 321 142 L 304 152 L 285 165 L 279 171 L 268 179 L 252 193 L 222 223 L 213 234 L 210 236 L 193 255 L 190 255 L 179 243 L 155 220 L 150 224 L 139 236 L 155 252 L 167 266 L 171 269 L 176 276 L 184 283 L 188 289 L 192 292 L 200 283 L 207 273 L 216 263 L 223 253 L 239 235 L 243 229 L 249 222 L 252 220 L 267 202 L 287 181 L 311 158 L 317 154 L 318 152 L 322 150 L 336 138 Z M 142 130 L 139 131 L 140 149 L 139 159 L 140 164 L 140 215 L 144 212 L 147 208 L 147 133 L 145 131 Z M 205 124 L 206 139 L 209 139 L 210 140 L 213 139 L 213 125 L 211 124 Z M 243 109 L 241 109 L 240 182 L 241 185 L 251 177 L 258 170 L 271 160 L 274 156 L 274 154 L 273 153 L 274 149 L 274 128 L 273 125 L 270 122 L 264 120 L 260 117 L 249 113 Z M 252 129 L 259 130 L 263 133 L 261 151 L 253 148 L 251 146 Z M 207 94 L 205 96 L 206 110 L 212 112 L 212 96 Z M 189 60 L 163 75 L 161 75 L 158 77 L 157 79 L 157 200 L 159 204 L 167 211 L 187 233 L 191 235 L 191 60 Z M 178 120 L 180 122 L 180 138 L 176 141 L 172 142 L 168 141 L 169 123 L 171 122 L 172 123 L 175 122 L 176 120 Z M 193 6 L 190 6 L 177 15 L 167 21 L 165 21 L 163 23 L 161 23 L 159 25 L 157 25 L 155 27 L 148 29 L 136 35 L 118 41 L 95 47 L 90 47 L 86 49 L 64 52 L 63 54 L 62 63 L 60 100 L 60 116 L 62 148 L 64 156 L 64 164 L 68 186 L 70 190 L 70 194 L 78 219 L 83 231 L 91 246 L 96 254 L 99 257 L 100 260 L 112 275 L 130 292 L 133 296 L 158 315 L 166 320 L 171 322 L 176 326 L 178 326 L 188 332 L 191 332 L 191 313 L 189 311 L 184 309 L 174 303 L 154 289 L 149 284 L 144 281 L 141 277 L 127 264 L 112 245 L 111 242 L 105 233 L 95 212 L 95 209 L 93 207 L 93 204 L 91 201 L 91 197 L 89 193 L 89 189 L 87 186 L 83 165 L 83 159 L 81 153 L 81 141 L 79 132 L 79 80 L 80 70 L 82 68 L 86 68 L 91 66 L 97 66 L 108 62 L 113 62 L 127 58 L 129 56 L 133 56 L 141 52 L 144 52 L 149 50 L 151 48 L 158 46 L 160 44 L 168 41 L 176 36 L 178 36 L 190 28 L 193 28 L 205 36 L 207 36 L 215 41 L 223 44 L 225 46 L 245 54 L 254 56 L 256 58 L 260 58 L 263 60 L 270 62 L 275 62 L 279 64 L 283 64 L 287 66 L 294 66 L 301 68 L 303 70 L 304 78 L 303 136 L 305 136 L 312 131 L 318 129 L 322 125 L 323 116 L 323 86 L 321 77 L 321 61 L 320 54 L 319 52 L 310 51 L 304 49 L 297 49 L 293 47 L 288 47 L 285 45 L 280 45 L 276 43 L 272 43 L 242 33 L 224 25 L 222 23 L 220 23 L 211 18 Z"/>
+                      <path fill="#FFFFFF" fill-rule="evenodd" d="M 317 172 L 303 184 L 293 194 L 289 209 L 278 233 L 270 246 L 252 268 L 242 278 L 225 292 L 207 304 L 192 312 L 192 333 L 214 322 L 238 306 L 259 288 L 277 268 L 291 248 L 305 220 L 313 195 L 317 177 Z M 253 131 L 253 146 L 261 149 L 261 133 L 256 131 Z M 137 129 L 127 134 L 125 134 L 109 142 L 108 206 L 121 232 L 130 225 L 138 216 Z M 127 176 L 128 194 L 126 196 L 121 198 L 117 197 L 118 179 Z M 128 149 L 127 167 L 123 169 L 117 169 L 118 151 L 122 149 Z M 178 122 L 170 125 L 170 140 L 173 140 L 178 138 Z M 192 59 L 192 236 L 206 222 L 226 200 L 226 77 L 219 74 Z M 207 150 L 214 152 L 214 171 L 205 169 L 203 167 L 203 153 Z M 204 121 L 207 121 L 215 124 L 214 142 L 210 142 L 205 140 L 203 138 Z M 203 94 L 207 93 L 213 94 L 215 96 L 215 112 L 213 114 L 207 112 L 203 109 Z"/>
+                    </svg>
+                    <b>FlatAudit Verification</b>
+                  </div>
+                  <button type="button" class="mock-drawer-close" id="mock-drawer-close-btn" aria-label="Close drawer">×</button>
+                </div>
+                <div class="mock-drawer-body" id="mock-drawer-body">
+                  <!-- Populated dynamically with points & reasons -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Renter Diligence Guidelines -->
+            <div class="safety-card" id="renter-safety-card">
+              <div class="safety-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                <span>Renter Diligence Protocol</span>
+              </div>
+              <ul class="safety-checklist" id="safety-checklist">
+                <li>Never transfer any token, gate pass fee, or courier charge via UPI before an in-person physical flat walkthrough.</li>
+                <li>Meet the building caretaker, society security, or current tenant at the premises entrance first.</li>
+                <li>If the poster claims to be an Army/CISF officer who cannot meet due to border transfer, treat it with extreme caution.</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- SUB-VIEW B: Capital Appreciation & Investment Forecast (New Feature) -->
+          <div class="dossier-subview" id="view-invest">
+            <div class="invest-full-card">
+              <div class="invest-hero-banner">
+                <div>
+                  <h3>Capital Growth & Appreciation Model</h3>
+                  <p>Longitudinal valuation trajectory under standard market conditions (RBI Housing Price Index baseline: +7.5% p.a.).</p>
+                </div>
+                <div class="invest-rate-pill">+7.5% p.a. CAGR</div>
+              </div>
+
+              <!-- Trajectory Timeline Cards -->
+              <div class="invest-milestone-grid">
+                <div class="invest-card-step">
+                  <span class="invest-step-time">3-Year Horizon</span>
+                  <div class="invest-step-val" id="web-invest-val-3y">₹ 1.55 Cr</div>
+                  <div class="invest-step-gain" id="web-invest-gain-3y">+₹ 30.3 L (+24.2%)</div>
+                  <span class="invest-step-sub">Short-term equity growth</span>
+                </div>
+                <div class="invest-card-step featured">
+                  <span class="invest-step-time">5-Year Horizon</span>
+                  <div class="invest-step-val" id="web-invest-val-5y">₹ 1.79 Cr</div>
+                  <div class="invest-step-gain" id="web-invest-gain-5y">+₹ 54.5 L (+43.6%)</div>
+                  <span class="invest-step-sub">Optimal holding target</span>
+                </div>
+                <div class="invest-card-step">
+                  <span class="invest-step-time">10-Year Horizon</span>
+                  <div class="invest-step-val" id="web-invest-val-10y">₹ 2.58 Cr</div>
+                  <div class="invest-step-gain" id="web-invest-gain-10y">+₹ 1.33 Cr (+106.1%)</div>
+                  <span class="invest-step-sub">2.06x doubling horizon</span>
+                </div>
+              </div>
+
+              <!-- Rental Yield & Cash Flow Summary -->
+              <div class="invest-cashflow-box">
+                <div class="cashflow-head">
+                  <span class="cashflow-title">Passive Rental Cash Flow Potential</span>
+                  <span class="cashflow-badge">Gross Yield: ~3.5% p.a.</span>
+                </div>
+                <div class="cashflow-metrics">
+                  <div>
+                    <span class="c-lbl">Estimated Monthly Rent</span>
+                    <strong class="c-val" id="web-invest-monthly-rent">₹ 36,500/mo</strong>
+                  </div>
+                  <div>
+                    <span class="c-lbl">5-Year Cumulative Rental Income</span>
+                    <strong class="c-val" id="web-invest-5y-rent">₹ 18.6 Lakhs</strong>
+                  </div>
+                  <div>
+                    <span class="c-lbl">Total 5-Year Net Wealth Gain</span>
+                    <strong class="c-val text-green" id="web-invest-total-wealth">+₹ 73.1 Lakhs</strong>
+                  </div>
+                </div>
+              </div>
+
+              <div class="invest-disclaimer">
+                Model assumptions: Normal economic condition baseline without developer default or extraordinary macro shock. Based on municipal circle rate revisions and historical state index returns.
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-VIEW C: Statutory Due Diligence & Paperwork -->
+          <div class="dossier-subview" id="view-due-diligence">
+            <div class="buyer-mode-panel" id="buyer-mode-panel">
+              <div class="buyer-panel-header">
+                <div class="buyer-header-title">
+                  <span>Official Records & Statutory Diligence</span>
+                  <span class="scenario-tag" id="demo-scenario-tag">RESALE</span>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm print-report-btn" id="demo-print-report-btn">
+                  <span>Printable 1-Page Report</span>
+                </button>
+              </div>
+
+              <!-- 4-Line Evaluation -->
+              <div class="buyer-rep-list" id="demo-buyer-rep-list">
+                <!-- Dynamically populated -->
+              </div>
+
+              <!-- All-In Cost Summary -->
+              <div class="buyer-cost-summary" id="demo-buyer-cost-summary">
+                <!-- Dynamically populated -->
+              </div>
+
+              <!-- Scenario Paperwork Checklist -->
+              <div class="paperwork-section">
+                <div class="paperwork-header">
+                  <b>Required Document Due Diligence (Verify with Independent Advocate):</b>
+                </div>
+                <div class="paperwork-checklist-grid" id="demo-paperwork-checklist">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+              <p class="buyer-disclaimer-note"><b>Statutory Notice:</b> FlatAudit summarizes publicly accessible listing data and official state land/RERA records. It does not constitute legal counsel and does not certify property title. Consult an independent advocate before paying any deposit or signing an agreement of sale.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- VIEW 2: Buyhatke Price History, Watchlist & Compare -->
+    <div class="demo-tab-content" id="tab-content-buyhatke" role="tabpanel">
+      <main class="main-content">
+        <!-- Left Column: Simulation Controls & Cross-Portal Testbed -->
+        <section class="panel inspector-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Price History Simulator</h2>
+              <span class="subtitle">Simulate sequential price snapshots, SVG sparkline tracking, and cross-portal matching</span>
+            </div>
+          </div>
+
+          <div class="sim-actions-box">
+            <span class="preset-label">Simulation Actions:</span>
+            <div class="sim-btn-grid">
+              <button type="button" class="btn btn-primary" id="btn-sim-track-primary">
+                Track Indiranagar 2BHK (₹42,000)
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-sim-drop-1">
+                Simulate ₹2,000 Price Drop (₹40,000)
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-sim-drop-2">
+                Simulate Further Drop (₹38,500)
+              </button>
+              <button type="button" class="btn btn-secondary" id="btn-sim-add-more">
+                Add HSR 3BHK & Powai 1BHK for Compare
+              </button>
+            </div>
+          </div>
+
+          <!-- Cross-Portal Match Demonstration -->
+          <div class="cross-match-panel">
+            <div class="panel-subhead">
+              <h3>Cross-Portal Duplicate Resolution</h3>
+              <span class="panel-sub">Detect duplicate listings advertised across competing portals</span>
+            </div>
+            <div class="cross-demo-box">
+              <button type="button" class="btn btn-secondary" id="btn-run-cross-match">
+                Find Cross-Portal Matches
+              </button>
+              <div class="cross-match-output" id="cross-match-output">
+                Click button above to query cross-portal duplicates.
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Right Column: Watchlist, Live Inline Sparkline & Compare Matrix -->
+        <section class="panel results-panel">
+          <div class="panel-header">
+            <div class="title-with-actions">
+              <div>
+                <h2>Saved Properties (<span id="demo-wl-count">0</span>)</h2>
+                <span class="subtitle">Local-first browser storage • Longitudinal price change sparklines</span>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-demo-export-csv">
+                <span>Export Shortlist (CSV)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Side-by-side Compare Matrix (when 2+ selected) -->
+          <div class="compare-card-section" id="demo-compare-section" style="display: none;">
+            <div class="compare-card-head">
+              <span class="compare-card-title">Side-by-Side Comparison (<span id="demo-compare-count">0</span> selected)</span>
+              <button type="button" class="btn-text-link" id="btn-demo-clear-compare">Clear Selection</button>
+            </div>
+            <div class="compare-matrix-scroll" id="demo-compare-matrix">
+              <!-- Populated dynamically with highlighted best values -->
+            </div>
+          </div>
+
+          <!-- Tracked Cards Container -->
+          <div class="demo-watchlist-cards" id="demo-watchlist-cards">
+            <!-- Populated dynamically -->
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- VIEW 3: Research & Diagnostics Lab (Cleanly isolated, zero main-screen clutter) -->
+    <div class="demo-tab-content" id="tab-content-lab" role="tabpanel">
+      <!-- Scam Kill Chain Interactive Tracker -->
+      <div class="kill-chain-bar">
+        <div class="kc-title">Scam Kill Chain Stages:</div>
+        <div class="kc-steps">
+          <div class="kc-step" id="kc-1">
+            <span class="kc-num">1</span>
+            <div class="kc-info"><b>Bait Listing</b><span>Unrealistic price, duplicated photos</span></div>
+          </div>
+          <div class="kc-step" id="kc-2">
+            <span class="kc-num">2</span>
+            <div class="kc-info"><b>Lead Capture</b><span>Artificial urgency & deposit queues</span></div>
+          </div>
+          <div class="kc-step" id="kc-3">
+            <span class="kc-num">3</span>
+            <div class="kc-info"><b>Advance Fee Pretext</b><span>Military transfer or gate pass fee</span></div>
+          </div>
+          <div class="kc-step" id="kc-4">
+            <span class="kc-num">4</span>
+            <div class="kc-info"><b>Bait & Switch</b><span>Redirection away from verified listing</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="bottom-grid">
+        <div class="panel dhash-panel">
+          <div class="panel-header">
+            <div>
+              <h2>64-bit dHash Perceptual Gradient Engine</h2>
+              <span class="subtitle">Perceptual difference calculation invariant to image compression and resizing</span>
+            </div>
+          </div>
+          <div class="dhash-content">
+            <div class="hash-input-block">
+              <div class="hash-box">
+                <label for="hash-a">Hash A (Base Listing):</label>
+                <input type="text" id="hash-a" value="a4c28f1107be924d" maxlength="16" class="code-input">
+              </div>
+              <div class="hash-box">
+                <label for="hash-b">Hash B (Compared Photo):</label>
+                <input type="text" id="hash-b" value="a4c28f1107be924f" maxlength="16" class="code-input">
+              </div>
+            </div>
+            <div class="hash-result-box" id="hamming-result-box">
+              <div class="metric-group">
+                <span class="m-val" id="hamming-dist-val">2 bits</span>
+                <span class="m-lbl">Hamming Distance (out of 64)</span>
+              </div>
+              <div class="metric-badge" id="hamming-verdict">
+                Duplicate Match (≤ 10 bits difference)
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel eval-panel">
+          <div class="panel-header">
+            <div>
+              <h2>Empirical Evaluation Benchmark</h2>
+              <span class="subtitle">Evaluated on 250 verified Indian property listings (70% train / 30% test)</span>
+            </div>
+          </div>
+          <div class="eval-metrics-grid">
+            <div class="stat-box">
+              <span class="s-number">95.1%</span>
+              <span class="s-label">Precision</span>
+            </div>
+            <div class="stat-box">
+              <span class="s-number">100.0%</span>
+              <span class="s-label">Recall</span>
+            </div>
+            <div class="stat-box">
+              <span class="s-number">0.975</span>
+              <span class="s-label">F1-Score</span>
+            </div>
+            <div class="stat-box">
+              <span class="s-number">97.3%</span>
+              <span class="s-label">Accuracy</span>
+            </div>
+          </div>
+          <div class="eval-footer-note">
+            Single-source-of-truth rules: production JavaScript evaluated directly with zero Python rule drift.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
