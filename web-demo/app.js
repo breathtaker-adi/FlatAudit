@@ -112,10 +112,10 @@ function loadPreset(key) {
   document.getElementById('input-image-hash').value = p.hash;
   document.getElementById('input-seen-count').value = p.seenCount;
 
-  evaluateCurrentForm();
+  evaluateCurrentForm().catch(console.error);
 }
 
-function evaluateCurrentForm() {
+async function evaluateCurrentForm() {
   const rawRent = parseInt(document.getElementById('input-rent').value, 10);
   const isSale = rawRent >= 1000000 || /sale|resale|buy/i.test(document.getElementById('input-title').value);
   const desc = document.getElementById('input-desc').value;
@@ -175,10 +175,10 @@ function evaluateCurrentForm() {
 
   const analysis = analyzeListing(listing, context);
   currentAnalysisResult = { ...analysis, listing, hash };
-  renderResults(currentAnalysisResult);
+  await renderResults(currentAnalysisResult);
 }
 
-function renderResults(res) {
+async function renderResults(res) {
   // Update Dossier Hero Details
   const eyebrowEl = document.getElementById('dossier-locality-eyebrow');
   if (eyebrowEl) eyebrowEl.textContent = res.listing?.locality || 'Property Audit Dossier';
@@ -883,7 +883,7 @@ function initDemoSimulatorControls() {
 }
 
 // Wire up events
-document.addEventListener('DOMContentLoaded', () => {
+function initApp() {
   checkApiHealth();
   initDemoSimulatorControls();
 
@@ -927,21 +927,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const mockDrawerContainer = document.getElementById('mock-drawer-container');
   const mockDrawerCloseBtn = document.getElementById('mock-drawer-close-btn');
 
-  mockBadgeBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    isDrawerOpen = !isDrawerOpen;
-    if (isDrawerOpen) {
-      mockDrawerContainer.classList.add('open');
-    } else {
-      mockDrawerContainer.classList.remove('open');
-    }
-  });
+  if (mockBadgeBtn && mockDrawerContainer) {
+    mockBadgeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      isDrawerOpen = !isDrawerOpen;
+      if (isDrawerOpen) {
+        mockDrawerContainer.classList.add('open');
+      } else {
+        mockDrawerContainer.classList.remove('open');
+      }
+    });
+  }
 
-  mockDrawerCloseBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    isDrawerOpen = false;
-    mockDrawerContainer.classList.remove('open');
-  });
+  if (mockDrawerCloseBtn && mockDrawerContainer) {
+    mockDrawerCloseBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      isDrawerOpen = false;
+      mockDrawerContainer.classList.remove('open');
+    });
+  }
 
   // Preset buttons
   document.querySelectorAll('.preset-btn').forEach(btn => {
@@ -953,27 +957,41 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Form submit
-  document.getElementById('listing-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    evaluateCurrentForm();
-  });
+  const form = document.getElementById('listing-form');
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      evaluateCurrentForm().catch(console.error);
+    });
+  }
 
-  document.getElementById('btn-reset').addEventListener('click', () => {
-    loadPreset('normal');
-  });
+  const resetBtn = document.getElementById('btn-reset');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      loadPreset('normal');
+    });
+  }
 
   const ladderSelect = document.getElementById('input-benchmark-ladder');
   if (ladderSelect) {
     ladderSelect.addEventListener('change', () => {
-      evaluateCurrentForm();
+      evaluateCurrentForm().catch(console.error);
     });
   }
 
   // Hamming inputs
-  document.getElementById('hash-a').addEventListener('input', updateHammingCalc);
-  document.getElementById('hash-b').addEventListener('input', updateHammingCalc);
+  const hashA = document.getElementById('hash-a');
+  const hashB = document.getElementById('hash-b');
+  if (hashA) hashA.addEventListener('input', updateHammingCalc);
+  if (hashB) hashB.addEventListener('input', updateHammingCalc);
 
   // Initial load
   loadPreset('normal');
   updateHammingCalc();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}

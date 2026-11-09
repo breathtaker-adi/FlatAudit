@@ -5,8 +5,9 @@
 </p>
 
 <p align="center">
-  <a href="tests/"><img src="https://img.shields.io/badge/Unit%20Tests-265%2F265%20Passing-brightgreen.svg" alt="Tests" /></a>
-  <a href="backend/tests/"><img src="https://img.shields.io/badge/API%20Tests-30%2F30%20Passing-brightgreen.svg" alt="Pytest" /></a>
+  <a href="tests/"><img src="https://img.shields.io/badge/Unit%20Tests-272%2F272%20Passing-brightgreen.svg" alt="Unit Tests" /></a>
+  <a href="backend/tests/"><img src="https://img.shields.io/badge/API%20Tests-30%2F30%20Passing-brightgreen.svg" alt="API Tests" /></a>
+  <a href="tests/"><img src="https://img.shields.io/badge/Total%20Automated%20Tests-302%2F302%20Passing-brightgreen.svg" alt="Total Tests" /></a>
   <a href="tests/test_classifier_bulk.test.js"><img src="https://img.shields.io/badge/Intent%20Classifier-120%2F120%20(100%25)-brightgreen.svg" alt="Classifier" /></a>
   <a href="eval/evaluation_results.md"><img src="https://img.shields.io/badge/Synthetic%20Baseline-97.3%25-blue.svg" alt="Synthetic Eval" /></a>
   <a href="eval/evaluation_real_results.md"><img src="https://img.shields.io/badge/Real--World%20Eval-100%25%20(5%20Cities)-brightgreen.svg" alt="Real-World Eval" /></a>
@@ -170,11 +171,13 @@ uvicorn backend.main:app --reload --port 8000
 ```
 *API documentation is available at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).*
 
-### Step 4: Launch the Interactive Web Demo
+### Step 4: Launch the Dual Web Surfaces (Showcase & Studio)
 ```bash
 npm run demo
 ```
-*Open [http://localhost:8080](http://localhost:8080) to inspect preset listings, evaluate custom text, simulate price drops, view real-time SVG sparklines, compare properties, and test fallback ladder tiers.*
+*The local demo server starts at `http://localhost:8080` (powered by `scripts/serve_demo.js` with ES module and JSON streaming support):*
+- **Launch Showcase (`http://localhost:8080/index2.html` or `/`)**: Full cinematic narrative showcase featuring the 5-stage rental scam kill chain with GSAP smooth scroll pinning, 60% center pop-up solution card, live in-page trust audit interactive widget, Buyhatke price tracking sparkline, buyer mode diligence preview, and OpenStreetMap area report.
+- **Interactive Studio (`http://localhost:8080/index.html`)**: Developer testbed and full property intelligence suite (Property Audit Dossier, Buyhatke-style Price History & Watchlist Comparison, Capital Appreciation Forecaster, and Research Lab with Hamming distance calculator).
 
 ### Step 5: Load the Chrome Extension
 1. Open Google Chrome and navigate to `chrome://extensions/`.
@@ -246,8 +249,17 @@ FlatAudit/
 │   ├── engineering-retrospective-v1.md # Lessons learned & retrospective
 │   ├── architecture.md        # Architecture diagrams
 │   └── scam-taxonomy.md       # Rental fraud kill chain breakdown
-├── tests/                     # Node.js test suite (270 tests across 100 suites)
-├── web-demo/                  # Standalone interactive browser testbed
+├── tests/                     # Node.js test suite (272 tests across 100 suites)
+├── scripts/                   # Tooling & local multi-surface demo server
+│   └── serve_demo.js          # HTTP server with MIME type router for ES modules & JSON
+├── web-demo/                  # Standalone interactive browser testbed & showcase
+│   ├── index2.html            # Cinematic Showcase & Rental Scam Kill Chain
+│   ├── index.html             # Interactive Intelligence Studio & Dossier
+│   ├── app.js                 # Studio controller & DOM binding logic
+│   ├── style.css              # Studio Apple HIG dark-mode theme
+│   ├── logo.svg               # Keystone Shield emblem vector asset
+│   ├── icon32.png             # 32x32 Favicon
+│   └── icon128.png            # 128x128 Brand Touch Icon
 └── package.json
 ```
 

@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node --test tests/*.test.js",
     "test:watch": "node --test --watch tests/*.test.js",
-    "demo": "node -e \"const http=require('http'),fs=require('fs'),path=require('path');http.createServer((req,res)=>{let f=req.url==='/'?'index.html':req.url.replace(/^\\//,'');let fp=path.join(__dirname,'web-demo',f);if(fs.existsSync(fp)){res.setHeader('Content-Type',f.endsWith('.css')?'text/css':f.endsWith('.js')?'application/javascript':'text/html');fs.createReadStream(fp).pipe(res);}else{res.writeHead(404);res.end('Not found');}}).listen(8080,()=>console.log('Demo server running at http://localhost:8080'));\""
+    "demo": "node scripts/serve_demo.js"
   },
   "keywords": [
     "cybersecurity",
