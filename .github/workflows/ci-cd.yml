@@ -53,7 +53,9 @@ jobs:
           pip install -r backend/requirements.txt pytest pytest-asyncio anyio
 
       - name: Run Python Backend Tests (30 Tests)
-        run: pytest backend/tests
+        env:
+          PYTHONPATH: .
+        run: python -m pytest backend/tests
 
   # -------------------------------------------------------------
   # Job 2: Build and Deploy to GitHub Pages
