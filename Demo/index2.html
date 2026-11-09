@@ -142,56 +142,61 @@ section{position:relative}
 .mq-item::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--cyan);opacity:.6}
 
 #threat{background:linear-gradient(180deg,var(--bg),#0a0f1d 50%,var(--bg))}
-.kill-pin{min-height:100vh;display:flex;flex-direction:column;justify-content:center;overflow:hidden;padding:70px 0 50px}
-.kill-viewport{margin-top:24px}
-.kill-track{display:flex;gap:18px;padding-inline:max(24px,calc((100vw - 1200px)/2));align-items:center}
-.kill-stage{width:300px;min-width:min(300px,76vw);max-width:310px;background:linear-gradient(160deg,rgba(30,15,25,.5),rgba(15,23,42,.55));
-  border:1px solid rgba(244,63,94,.22);border-radius:18px;padding:20px 22px;display:flex;flex-direction:column;gap:8px;backdrop-filter:blur(8px);align-self:center}
-.kill-num{font-family:var(--mono);font-size:34px;font-weight:700;color:var(--rose);opacity:.9;letter-spacing:-.04em;line-height:1}
-.kill-stage h3{font-size:17.5px;font-weight:700;letter-spacing:-.02em}
-.kill-stage p{color:var(--muted);font-size:13px;line-height:1.5}
-.kill-chip{align-self:flex-start;font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--rose);border:1px solid rgba(244,63,94,.35);background:rgba(244,63,94,.08);padding:5px 10px;border-radius:7px;margin-top:4px}
+.kill-pin{min-height:100vh;max-height:100vh;display:flex;flex-direction:column;justify-content:center;overflow:hidden;padding:16px 0;box-sizing:border-box}
+.kill-pin .section-head{margin-bottom:8px;max-width:760px}
+.kill-pin .section-head h2{font-size:clamp(22px,2.4vw,32px);margin:2px 0 4px;line-height:1.15}
+.kill-pin .section-head p{font-size:13px;margin-top:2px;line-height:1.4}
+.kill-viewport{margin-top:6px}
+.kill-track{display:flex;gap:16px;padding-inline:max(24px,calc((100vw - 1200px)/2));align-items:center}
+.kill-stage{width:280px;min-width:280px;max-width:280px;height:245px;min-height:245px;max-height:245px;background:linear-gradient(160deg,rgba(30,15,25,.5),rgba(15,23,42,.55));
+  border:1px solid rgba(244,63,94,.22);border-radius:18px;padding:18px 20px;display:flex;flex-direction:column;justify-content:space-between;backdrop-filter:blur(8px);align-self:center;box-sizing:border-box;flex-shrink:0}
+.kill-num{font-family:var(--mono);font-size:28px;font-weight:700;color:var(--rose);opacity:.9;letter-spacing:-.04em;line-height:1}
+.kill-stage h3{font-size:16px;font-weight:700;letter-spacing:-.02em;margin:0}
+.kill-stage p{color:var(--muted);font-size:12px;line-height:1.4;margin:0}
+.kill-chip{align-self:flex-start;font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--rose);border:1px solid rgba(244,63,94,.35);background:rgba(244,63,94,.08);padding:4px 9px;border-radius:6px}
 
-/* SOLUTION CARD (occupies >70% of screen & pops to center stage) */
-.kill-solution{width:76vw;min-width:min(840px,94vw);max-width:1380px;border:2px solid rgba(56,189,248,.75);border-radius:28px;padding:44px 50px;
+/* SOLUTION CARD (occupies >70% of screen & pops to center stage without vertical cutoff) */
+.kill-solution{width:76vw;min-width:min(820px,94vw);max-width:1300px;border:2px solid rgba(56,189,248,.75);border-radius:22px;padding:18px 28px;
   background:radial-gradient(130% 90% at 20% 0%,rgba(56,189,248,.25),rgba(11,18,32,.97) 65%);
-  display:flex;flex-direction:column;gap:22px;position:relative;overflow:hidden;
-  box-shadow:0 0 0 1px rgba(56,189,248,.3),0 35px 120px -20px rgba(56,189,248,.5),0 0 140px rgba(56,189,248,.22);
-  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);transform-origin:center center;z-index:10}
-.kill-solution::before{content:"";position:absolute;inset:0;border-radius:28px;padding:2px;
+  display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden;
+  box-shadow:0 0 0 1px rgba(56,189,248,.3),0 20px 70px -15px rgba(56,189,248,.45),0 0 90px rgba(56,189,248,.18);
+  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transform-origin:center center;z-index:10;box-sizing:border-box}
+.kill-solution::before{content:"";position:absolute;inset:0;border-radius:22px;padding:2px;
   background:linear-gradient(135deg,rgba(56,189,248,.8),transparent 40%,rgba(52,211,153,.7));
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
   -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.8}
-.sol-header-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-.sol-pill{align-self:flex-start;font-family:var(--mono);font-size:12px;letter-spacing:.2em;text-transform:uppercase;
-  color:#020617;background:var(--cyan);padding:8px 16px;border-radius:9px;font-weight:800;box-shadow:0 0 20px rgba(56,189,248,.6)}
-.sol-status-chip{font-family:var(--mono);font-size:11.5px;color:var(--emerald);background:rgba(52,211,153,.1);
-  border:1px solid rgba(52,211,153,.35);padding:6px 14px;border-radius:9999px;display:inline-flex;align-items:center;gap:8px}
-.sol-status-chip .live-dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 8px var(--emerald);animation:solpulse 2s infinite}
-.sol-hero{display:flex;gap:22px;align-items:flex-start}
-.sol-ic{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;color:var(--cyan);
+.sol-header-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.sol-pill{align-self:flex-start;font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;
+  color:#020617;background:var(--cyan);padding:5px 12px;border-radius:7px;font-weight:800;box-shadow:0 0 16px rgba(56,189,248,.6)}
+.sol-status-chip{font-family:var(--mono);font-size:10.5px;color:var(--emerald);background:rgba(52,211,153,.1);
+  border:1px solid rgba(52,211,153,.35);padding:4px 11px;border-radius:9999px;display:inline-flex;align-items:center;gap:6px}
+.sol-status-chip .live-dot{width:6px;height:6px;border-radius:50%;background:var(--emerald);box-shadow:0 0 8px var(--emerald);animation:solpulse 2s infinite}
+.sol-hero{display:flex;gap:14px;align-items:center}
+.sol-ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;color:var(--cyan);
   background:rgba(56,189,248,.14);border:1px solid rgba(56,189,248,.5);position:relative;flex-shrink:0}
-.sol-ic::after{content:"";position:absolute;inset:-8px;border-radius:22px;border:1px solid rgba(56,189,248,.4);animation:solpulse 2.4s infinite}
+.sol-ic svg{width:28px;height:28px}
+.sol-ic::after{content:"";position:absolute;inset:-5px;border-radius:16px;border:1px solid rgba(56,189,248,.4);animation:solpulse 2.4s infinite}
 @keyframes solpulse{0%,100%{opacity:.25;transform:scale(1)}50%{opacity:.85;transform:scale(1.14)}}
-.kill-solution h3{font-size:clamp(26px,3.2vw,36px);font-weight:800;letter-spacing:-.03em;color:#fff;line-height:1.18}
-.kill-solution p.sol-lead{color:var(--text-secondary,#cbd5e1);font-size:clamp(15px,1.3vw,17px);line-height:1.6;max-width:880px;margin-top:6px}
-.sol-pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:4px}
-.sol-pillar-card{background:rgba(2,6,23,.55);border:1px solid rgba(148,163,184,.15);border-radius:14px;padding:14px 16px;
-  display:flex;flex-direction:column;gap:5px;transition:border-color .25s,transform .25s}
+.kill-solution h3{font-size:clamp(19px,2.1vw,24px);font-weight:800;letter-spacing:-.02em;color:#fff;line-height:1.2;margin:0}
+.kill-solution p.sol-lead{color:var(--text-secondary,#cbd5e1);font-size:12.5px;line-height:1.45;max-width:880px;margin-top:2px}
+.sol-pillars{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:2px}
+.sol-pillar-card{background:rgba(2,6,23,.55);border:1px solid rgba(148,163,184,.15);border-radius:11px;padding:9px 12px;
+  display:flex;flex-direction:column;gap:2px;transition:border-color .25s,transform .25s}
 .sol-pillar-card:hover{border-color:rgba(56,189,248,.45);transform:translateY(-2px)}
-.sol-pillar-icon{font-size:18px;margin-bottom:2px}
-.sol-pillar-card h4{font-size:13px;font-weight:700;color:#fff;letter-spacing:-.01em}
-.sol-pillar-card p{font-size:11.5px;line-height:1.45;color:var(--muted)}
-.sol-action-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-top:14px;border-top:1px solid rgba(148,163,184,.14)}
-.sol-metrics-strip{display:flex;gap:16px;flex-wrap:wrap}
-.sol-metric-item{font-family:var(--mono);font-size:11px;color:var(--faint);display:inline-flex;align-items:center;gap:6px}
+.sol-pillar-icon{font-size:15px;margin-bottom:1px}
+.sol-pillar-card h4{font-size:12px;font-weight:700;color:#fff;letter-spacing:-.01em;margin:0}
+.sol-pillar-card p{font-size:11px;line-height:1.35;color:var(--muted);margin:0}
+.sol-action-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-top:8px;border-top:1px solid rgba(148,163,184,.14)}
+.sol-action-row .btn{padding:8px 16px;font-size:12.5px}
+.sol-metrics-strip{display:flex;gap:12px;flex-wrap:wrap}
+.sol-metric-item{font-family:var(--mono);font-size:10px;color:var(--faint);display:inline-flex;align-items:center;gap:5px}
 .sol-metric-item b{color:var(--cyan2);font-weight:600}
 @media(max-width:1100px){.sol-pillars{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:899px){
-  .kill-pin{min-height:0;padding:84px 0}
+  .kill-pin{min-height:0;max-height:none;padding:84px 0}
   .kill-track{flex-direction:column;padding-inline:24px}
-  .kill-stage{min-width:0;width:100%}
+  .kill-stage{min-width:0;width:100%;height:auto;min-height:0;max-height:none}
   .kill-solution{width:100%;min-width:0;padding:28px 22px}
   .sol-hero{flex-direction:column}
   .sol-pillars{grid-template-columns:1fr}
@@ -416,12 +421,35 @@ input[type=range]{width:100%;accent-color:var(--cyan);height:22px;cursor:pointer
 @media(max-width:900px){.num-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:520px){.num-grid{grid-template-columns:1fr}}
 
+#install{background:linear-gradient(180deg,var(--bg),#081226 50%,var(--bg));padding:90px 0}
+.install-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:28px}
+.install-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:26px 24px;display:flex;flex-direction:column;gap:12px;position:relative;backdrop-filter:blur(16px);transition:transform .3s,border-color .3s}
+.install-card:hover{transform:translateY(-3px);border-color:rgba(56,189,248,.4)}
+.install-step-badge{position:absolute;top:20px;right:20px;font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--cyan);background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);padding:3px 9px;border-radius:999px;letter-spacing:.08em;text-transform:uppercase}
+.install-icon{font-size:32px;line-height:1}
+.install-card h3{font-size:17px;font-weight:700;color:#fff;letter-spacing:-.01em;margin-top:2px}
+.install-card p{font-size:13px;line-height:1.5;color:var(--muted);margin:0}
+.install-action{margin-top:auto;display:flex;flex-direction:column;gap:8px;padding-top:10px}
+.install-meta{font-family:var(--mono);font-size:10.5px;color:var(--faint)}
+.install-code-box{margin-top:auto;display:flex;align-items:center;justify-content:space-between;background:rgba(2,6,23,.7);border:1px solid rgba(56,189,248,.25);border-radius:10px;padding:8px 12px}
+.install-code-box code{font-family:var(--mono);font-size:12px;color:var(--cyan2)}
+.btn-copy-code{font-family:var(--mono);font-size:11px;font-weight:600;color:#fff;background:rgba(56,189,248,.2);border:1px solid rgba(56,189,248,.4);padding:4px 10px;border-radius:6px;cursor:pointer;transition:.2s}
+.btn-copy-code:hover{background:var(--cyan);color:#020617}
+.install-badge-success{margin-top:auto;display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--emerald);background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);padding:8px 12px;border-radius:10px}
+.install-cli-card{margin-top:20px;background:rgba(15,23,42,.6);border:1px solid var(--line);border-radius:16px;padding:18px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.cli-left{display:flex;align-items:center;gap:12px}
+.cli-tag{font-family:var(--mono);font-size:10.5px;color:var(--cyan);background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);padding:3px 8px;border-radius:6px;text-transform:uppercase}
+.cli-left p{margin:0;font-size:13px;color:var(--muted)}
+.cli-code-row{display:flex;align-items:center;gap:12px;background:rgba(2,6,23,.8);border:1px solid rgba(148,163,184,.18);border-radius:10px;padding:8px 14px}
+.cli-code-row code{font-family:var(--mono);font-size:12px;color:var(--cyan2)}
+@media(max-width:960px){.install-grid{grid-template-columns:1fr}}
+
 #cta{text-align:center;padding:100px 0}
 #cta h2{font-size:clamp(38px,6vw,72px);font-weight:800;letter-spacing:-.04em;line-height:1.05}
 #cta h2 span{color:var(--cyan)}
 #cta p{color:var(--muted);font-size:17px;max-width:520px;margin:20px auto 32px}
 footer{border-top:1px solid var(--line);padding:48px 0 28px;background:rgba(11,18,32,.35)}
-.foot-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px;margin-bottom:30px}
+.foot-grid{display:grid;grid-template-columns:2fr 1fr;gap:32px;margin-bottom:30px}
 .foot-grid h5{font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}
 .foot-grid ul{list-style:none;display:flex;flex-direction:column;gap:10px}
 .foot-grid a{color:var(--muted);font-size:13.5px;transition:.2s}
@@ -465,7 +493,7 @@ footer{border-top:1px solid var(--line);padding:48px 0 28px;background:rgba(11,1
       <a href="#privacy" data-nav="privacy">Privacy</a>
     </div>
     <div class="nav-cta">
-      <a href="index.html" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">Try Live Demo ↗</a>
+      <a href="https://breathtaker-adi.github.io/FlatAudit/Demo" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">Try Live Demo ↗</a>
       <a class="icon-btn" href="https://github.com/breathtaker-adi/FlatAudit" target="_blank" rel="noopener" aria-label="GitHub">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55v-2.17c-3.2.7-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.03 1.76 2.7 1.25 3.35.96.1-.75.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.26.45-2.28 1.18-3.09-.12-.29-.51-1.46.11-3.05 0 0 .96-.31 3.15 1.18a10.9 10.9 0 0 1 5.74 0c2.19-1.49 3.15-1.18 3.15-1.18.62 1.59.23 2.76.11 3.05.73.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.66.41.35.77 1.05.77 2.12v3.15c0 .3.21.67.8.55A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
       </a>
@@ -477,7 +505,7 @@ footer{border-top:1px solid var(--line);padding:48px 0 28px;background:rgba(11,1
   </div>
 </nav>
 <div id="mobileMenu">
-  <a href="index.html" target="_blank" rel="noopener" style="color:var(--cyan);font-weight:700">Try Live Demo ↗</a>
+  <a href="https://breathtaker-adi.github.io/FlatAudit/Demo" target="_blank" rel="noopener" style="color:var(--cyan);font-weight:700">Try Live Demo ↗</a>
   <a href="#threat">Threat</a><a href="#features">Features</a><a href="#buyer">Buyer Mode</a><a href="#area">Area Report</a><a href="#privacy">Privacy</a>
 </div>
 
@@ -490,7 +518,7 @@ footer{border-top:1px solid var(--line);padding:48px 0 28px;background:rgba(11,1
     <h1 data-reveal data-delay="0.08" style="margin-top:22px">Don't get scammed.<br><em>Audit the flat</em> before you pay.</h1>
     <p class="hero-sub" data-reveal data-delay="0.16">FlatAudit reads the listing <b>right inside your browser</b> — benchmarks the rent against the neighbourhood, flags advance-fee pretexts, catches stolen photos, checks RERA &amp; circle rates, and tracks price history like a shopping companion. <b>Nothing you see leaves your device.</b></p>
     <div class="hero-ctas" data-reveal data-delay="0.24">
-      <a href="index.html" class="btn btn-primary" target="_blank" rel="noopener">Try Live Demo Studio ↗
+      <a href="https://breathtaker-adi.github.io/FlatAudit/Demo" class="btn btn-primary" target="_blank" rel="noopener">Try Live Demo Studio ↗
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       <a href="#threat" class="btn btn-ghost">See the scam playbook</a>
       <a href="#install" class="btn btn-ghost js-install">Add to Chrome</a>
@@ -580,7 +608,7 @@ footer{border-top:1px solid var(--line);padding:48px 0 28px;background:rgba(11,1
 
           <div class="sol-action-row">
             <div style="display:flex;gap:12px;flex-wrap:wrap">
-              <a href="index.html" class="btn btn-primary" target="_blank" rel="noopener">Launch Interactive Studio ↗</a>
+              <a href="https://breathtaker-adi.github.io/FlatAudit/Demo" class="btn btn-primary" target="_blank" rel="noopener">Launch Interactive Studio ↗</a>
               <a href="#features" class="btn btn-ghost">Explore Companion Engine ↓</a>
             </div>
             <div class="sol-metrics-strip">
@@ -816,7 +844,7 @@ footer{border-top:1px solid var(--line);padding:48px 0 28px;background:rgba(11,1
           <div class="report-row"><span class="k">All-in acquisition</span><span class="v warn" id="repTotal">₹1.01 Cr incl. duty</span></div>
         </div>
         <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <a href="index.html#buyer-studio" class="btn btn-primary btn-sm" target="_blank" rel="noopener">Open in Studio ↗</a>
+          <a href="Demo#buyer-studio" class="btn btn-primary btn-sm" target="_blank" rel="noopener">Open in Studio ↗</a>
           <button type="button" class="btn btn-ghost btn-sm" id="btnPreviewReport">Print 1-Page Report 🖨️</button>
         </div>
       </div>
@@ -944,17 +972,77 @@ footer{border-top:1px solid var(--line);padding:48px 0 28px;background:rgba(11,1
   </div>
 </section>
 
+<!-- QUICK START INSTALLATION SECTION -->
+<section id="install" class="section">
+  <div class="container">
+    <div class="section-head" data-reveal>
+      <div class="kicker">Quick Start · 3-Step Setup</div>
+      <h2>Install FlatAudit in 60 seconds</h2>
+      <p>No waiting for store review queues. Load unpacked directly into Chrome, Brave, Edge, or Arc with zero telemetry.</p>
+    </div>
+
+    <div class="install-grid" data-reveal>
+      <div class="install-card">
+        <div class="install-step-badge">Step 1</div>
+        <div class="install-icon">📦</div>
+        <h3>Download Extension</h3>
+        <p>Grab the latest open-source build directly from GitHub. Unzip it to any convenient folder on your machine.</p>
+        <div class="install-action">
+          <a href="https://github.com/breathtaker-adi/FlatAudit/archive/refs/heads/master.zip" class="btn btn-primary btn-sm" download>
+            <span>Download ZIP 🡇</span>
+          </a>
+          <span class="install-meta">v1.1 · Open Source (MIT)</span>
+        </div>
+      </div>
+
+      <div class="install-card">
+        <div class="install-step-badge">Step 2</div>
+        <div class="install-icon">⚙️</div>
+        <h3>Open Extensions Tab</h3>
+        <p>Type <code class="mono-tag" style="background:rgba(56,189,248,.1);padding:2px 6px;border-radius:4px">chrome://extensions</code> in your address bar and toggle on <b>Developer mode</b> at the top right.</p>
+        <div class="install-code-box">
+          <code>chrome://extensions</code>
+          <button type="button" class="btn-copy-code" onclick="navigator.clipboard.writeText('chrome://extensions');toast('Copied URL to clipboard!');">Copy</button>
+        </div>
+      </div>
+
+      <div class="install-card">
+        <div class="install-step-badge">Step 3</div>
+        <div class="install-icon">🚀</div>
+        <h3>Click "Load unpacked"</h3>
+        <p>Click the <b>Load unpacked</b> button in Chrome and select the <code class="mono-tag" style="background:rgba(56,189,248,.1);padding:2px 6px;border-radius:4px">extension/</code> folder inside FlatAudit.</p>
+        <div class="install-badge-success">
+          <span class="live-dot" style="width:6px;height:6px;border-radius:50%;background:var(--emerald);box-shadow:0 0 8px var(--emerald);display:inline-block"></span>
+          <span>Instantly active on NoBroker, MagicBricks, 99acres &amp; Housing</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Developer Git CLI shortcut -->
+    <div class="install-cli-card" data-reveal>
+      <div class="cli-left">
+        <span class="cli-tag">Developers</span>
+        <p>Prefer the command line? Clone and launch with one command:</p>
+      </div>
+      <div class="cli-code-row">
+        <code>git clone https://github.com/breathtaker-adi/FlatAudit.git &amp;&amp; cd FlatAudit</code>
+        <button type="button" class="btn-copy-code" onclick="navigator.clipboard.writeText('git clone https://github.com/breathtaker-adi/FlatAudit.git && cd FlatAudit');toast('Copied git command!');">Copy</button>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="cta">
   <div class="container">
     <h2 data-reveal>Audit <span>before</span> you pay.</h2>
     <p data-reveal data-delay="0.08">Ten seconds to install. Every listing, every portal, every city — a quiet second opinion that never sees your data.</p>
     <div class="hero-ctas" style="justify-content:center" data-reveal data-delay="0.16">
-      <a href="index.html" class="btn btn-primary" target="_blank" rel="noopener">Launch Live Demo Studio ↗
+      <a href="https://breathtaker-adi.github.io/FlatAudit/Demo" class="btn btn-primary" target="_blank" rel="noopener">Launch Live Demo Studio ↗
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       <a href="#install" class="btn btn-ghost js-install">Add to Chrome — Free</a>
       <a href="https://github.com/breathtaker-adi/FlatAudit" target="_blank" rel="noopener" class="btn btn-ghost">Star on GitHub ↗</a>
     </div>
-    <p class="fine mono" style="margin-top:26px" data-reveal data-delay="0.22">MIT · no account · no telemetry unless you opt in</p>
+    <p class="fine mono" style="margin-top:26px" data-reveal data-delay="0.22">MIT License · Zero Account Required · 100% In-Browser Privacy</p>
   </div>
 </section>
 </main>
@@ -970,22 +1058,20 @@ footer{border-top:1px solid var(--line);padding:48px 0 28px;background:rgba(11,1
           </svg>
           Flat<b>Audit</b>
         </a>
-        <p>A privacy-preserving companion for Indian home seekers. Reads the listing, questions the listing, never reads you.</p>
+        <p>A privacy-preserving intelligence companion for Indian home seekers. Reads the listing, questions the listing, never reads you.</p>
       </div>
-      <div><h5>Product</h5><ul>
-        <li><a href="#features">Features</a></li><li><a href="#buyer">Buyer mode</a></li><li><a href="#area">Area report</a></li><li><a href="#privacy">Privacy</a></li>
-      </ul></div>
       <div><h5>Resources</h5><ul>
-        <li><a href="https://github.com/breathtaker-adi/FlatAudit" target="_blank" rel="noopener">GitHub repository</a></li>
-        <li><a href="https://github.com/breathtaker-adi/FlatAudit/blob/main/docs/threat-model.md" target="_blank" rel="noopener">Threat model</a></li>
-        <li><a href="https://github.com/breathtaker-adi/FlatAudit/blob/main/docs/privacy-policy.md" target="_blank" rel="noopener">Privacy policy</a></li>
+        <li><a href="https://github.com/breathtaker-adi/FlatAudit" target="_blank" rel="noopener">GitHub repository ↗</a></li>
+        <li><a href="privacy.html">Privacy policy</a></li>
+        <li><a href="https://breathtaker-adi.github.io/FlatAudit/Demo" target="_blank" rel="noopener">Interactive Studio &amp; Lab ↗</a></li>
         <li><a href="https://github.com/breathtaker-adi/FlatAudit/blob/main/LICENSE" target="_blank" rel="noopener">MIT license</a></li>
       </ul></div>
     </div>
     <div class="foot-bottom">
-      <span>© 2026 FlatAudit · MIT</span>
+      <span>© 2026 FlatAudit · MIT License</span>
       <span>Map data © OpenStreetMap contributors (ODbL)</span>
       <span>Grades are heuristics &amp; observable facts — not legal advice.</span>
+      <span>Created by <a href="https://github.com/breathtaker-adi" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:none;font-weight:600">Aditya Kumawat (breathtaker-adi) ↗</a></span>
     </div>
   </div>
 </footer>
@@ -1004,7 +1090,16 @@ gsap.registerPlugin(ScrollTrigger); gsap.config({nullTargetWarn:false});
 
 let toastT;
 function toast(msg){const t=q('#toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),3400);}
-qa('.js-install').forEach(b=>b.addEventListener('click',e=>{e.preventDefault();toast('Chrome Web Store listing is in review — meanwhile, load the unpacked extension from the GitHub repo.');}));
+window.toast = toast;
+
+qa('.js-install').forEach(b=>b.addEventListener('click',e=>{
+  e.preventDefault();
+  const inst=q('#install');
+  if(inst){
+    if(window.lenis) lenis.scrollTo(inst);
+    else inst.scrollIntoView({behavior:'smooth'});
+  }
+}));
 
 (function(){
   const p=q('#preloader'); if(!p) return;
@@ -1143,18 +1238,12 @@ mm.add('(min-width: 900px)',()=>{
     ease: 'power2.out'
   }, 1.6);
 
-  // Solution card pops up, scales up dramatically, and radiates in the center
+  // Solution card pops up into center stage and radiates
   tl.fromTo(sol,
-    { scale: 0.86, opacity: 0.4, y: 35 },
-    { scale: 1.05, opacity: 1, y: 0, duration: 1.4, ease: 'back.out(1.8)' },
+    { scale: 0.9, opacity: 0.4, y: 20 },
+    { scale: 1.0, opacity: 1, y: 0, duration: 1.4, ease: 'power2.out' },
     1.6
   );
-
-  tl.to(sol, {
-    scale: 1.0,
-    duration: 0.8,
-    ease: 'power2.out'
-  }, 3.0);
 
   // Inner elements pop
   tl.fromTo('.sol-pill', { y: -14, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power2.out' }, 1.8);

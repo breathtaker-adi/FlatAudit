@@ -78,8 +78,8 @@ jobs:
       - name: Build / Stage Static Site
         run: |
           mkdir -p _site
-          # Copy root showcase index.html and root icons
-          cp index.html _site/
+          # Copy root showcase index.html, privacy policy, and root icons
+          cp -f index.html privacy.html _site/
           cp -f logo.svg icon32.png icon128.png _site/
           # Create Demo directories for Studio & Lab (https://breathtaker-adi.github.io/FlatAudit/Demo)
           mkdir -p _site/Demo _site/demo _site/web-demo

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy & Data Architecture — FlatAudit</title>
+  <meta name="description" content="FlatAudit's architectural privacy guarantee: zero PII collection, 100% in-browser evaluation, 100m spatial grid rounding, and zero network telemetry.">
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="icon32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon128.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #030712;
+      --card-bg: rgba(15, 23, 42, 0.7);
+      --card-border: rgba(148, 163, 184, 0.14);
+      --card-border-hover: rgba(56, 189, 248, 0.35);
+      --cyan: #38bdf8;
+      --cyan2: #0284c7;
+      --emerald: #34d399;
+      --rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-faint: #64748b;
+      --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      --sans: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(56, 189, 248, 0.08), transparent 45%),
+        radial-gradient(circle at 85% 70%, rgba(52, 211, 153, 0.05), transparent 50%),
+        radial-gradient(circle at 50% 90%, rgba(30, 41, 59, 0.5), transparent 60%);
+      color: var(--text-main);
+      font-family: var(--sans);
+      line-height: 1.65;
+      font-size: 15px;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a { color: var(--cyan); text-decoration: none; transition: color 0.2s; }
+    a:hover { color: #bae6fd; text-decoration: underline; }
+
+    /* Navigation Header */
+    header.site-header {
+      border-bottom: 1px solid var(--card-border);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(3, 7, 18, 0.75);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      font-weight: 700;
+      font-size: 17px;
+      text-decoration: none;
+    }
+    .brand-link:hover { text-decoration: none; }
+    .brand-link span { color: var(--cyan); }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-nav {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 7px 14px;
+      border-radius: 9px;
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.6);
+      transition: all 0.2s;
+    }
+    .btn-nav:hover {
+      color: #fff;
+      border-color: rgba(56, 189, 248, 0.4);
+      background: rgba(56, 189, 248, 0.08);
+      text-decoration: none;
+    }
+    .btn-nav.primary {
+      background: var(--cyan);
+      color: #020617;
+      font-weight: 600;
+      border-color: var(--cyan);
+    }
+    .btn-nav.primary:hover {
+      background: #7dd3fc;
+      color: #020617;
+    }
+
+    /* Main Container */
+    main.privacy-container {
+      max-width: 880px;
+      margin: 48px auto 80px;
+      padding: 0 24px;
+      flex: 1;
+    }
+
+    /* Hero Banner */
+    .privacy-hero {
+      margin-bottom: 40px;
+      text-align: left;
+    }
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--emerald);
+      background: rgba(52, 211, 153, 0.1);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      padding: 5px 12px;
+      border-radius: 9999px;
+      margin-bottom: 16px;
+    }
+    .badge-pill .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+    }
+    h1.page-title {
+      font-size: clamp(30px, 4.2vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      color: #ffffff;
+      margin-bottom: 12px;
+    }
+    p.lead-summary {
+      color: var(--text-muted);
+      font-size: 16px;
+      line-height: 1.6;
+      max-width: 740px;
+    }
+
+    /* Liquid Glass Section Card */
+    .glass-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 32px 36px;
+      margin-bottom: 28px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+      transition: border-color 0.25s ease;
+    }
+    .glass-card:hover {
+      border-color: var(--card-border-hover);
+    }
+    .glass-card h2 {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .glass-card p {
+      color: var(--text-muted);
+      font-size: 14.5px;
+      margin-bottom: 14px;
+    }
+    .glass-card p:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Feature Columns */
+    .invariant-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .invariant-item {
+      background: rgba(2, 6, 23, 0.55);
+      border: 1px solid rgba(148, 163, 184, 0.1);
+      border-radius: 14px;
+      padding: 18px 20px;
+    }
+    .invariant-item h3 {
+      font-size: 15px;
+      font-weight: 600;
+      color: #ffffff;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .invariant-item p {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    /* Permissions Table */
+    .perm-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 14px;
+      font-size: 13.5px;
+    }
+    .perm-table th {
+      text-align: left;
+      padding: 10px 14px;
+      background: rgba(2, 6, 23, 0.65);
+      color: var(--text-faint);
+      font-family: var(--mono);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .perm-table td {
+      padding: 14px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.08);
+      color: var(--text-muted);
+      vertical-align: top;
+    }
+    .perm-table tr:last-child td {
+      border-bottom: none;
+    }
+    .perm-name {
+      font-family: var(--mono);
+      color: var(--cyan);
+      font-weight: 600;
+      font-size: 12.5px;
+      background: rgba(56, 189, 248, 0.08);
+      padding: 2px 7px;
+      border-radius: 5px;
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    /* Code & Callout */
+    code {
+      font-family: var(--mono);
+      color: var(--cyan);
+      font-size: 12.5px;
+    }
+    .callout-box {
+      background: rgba(56, 189, 248, 0.06);
+      border-left: 3px solid var(--cyan);
+      border-radius: 0 12px 12px 0;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 13.5px;
+      color: #cbd5e1;
+    }
+
+    /* Footer */
+    footer.site-footer {
+      border-top: 1px solid var(--card-border);
+      padding: 36px 24px;
+      background: rgba(2, 6, 23, 0.85);
+      margin-top: auto;
+    }
+    .footer-inner {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--text-faint);
+    }
+
+    @media (max-width: 768px) {
+      .invariant-grid { grid-template-columns: 1fr; }
+      .glass-card { padding: 24px 20px; }
+      .perm-table { font-size: 12.5px; }
+      .footer-inner { flex-direction: column; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Sticky Header -->
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="index.html" class="brand-link">
+        <svg width="22" height="22" viewBox="28 -6 350 350" fill="none" aria-hidden="true">
+          <path fill="#0B36FE" fill-rule="evenodd" d="M 127 179 L 124 179 L 123 180 L 119 181 L 118 186 L 119 196 L 121 196 L 124 194 L 125 195 L 127 193 Z M 207 151 L 205 152 L 206 164 L 205 165 L 206 167 L 211 169 L 213 168 L 213 153 L 211 153 Z M 126 150 L 120 152 L 118 156 L 120 168 L 127 165 Z M 347 131 L 344 131 L 321 142 L 304 152 L 285 165 L 279 171 L 268 179 L 252 193 L 222 223 L 213 234 L 210 236 L 193 255 L 190 255 L 179 243 L 155 220 L 150 224 L 139 236 L 155 252 L 167 266 L 171 269 L 176 276 L 184 283 L 188 289 L 192 292 L 200 283 L 207 273 L 216 263 L 223 253 L 239 235 L 243 229 L 249 222 L 252 220 L 267 202 L 287 181 L 311 158 L 317 154 L 318 152 L 322 150 L 336 138 Z M 142 130 L 139 131 L 140 149 L 139 159 L 140 164 L 140 215 L 144 212 L 147 208 L 147 133 L 145 131 Z M 205 124 L 206 139 L 209 139 L 210 140 L 213 139 L 213 125 L 211 124 Z M 243 109 L 241 109 L 240 182 L 241 185 L 251 177 L 258 170 L 271 160 L 274 156 L 274 154 L 273 153 L 274 149 L 274 128 L 273 125 L 270 122 L 264 120 L 260 117 L 249 113 Z M 252 129 L 259 130 L 263 133 L 261 151 L 253 148 L 251 146 Z M 207 94 L 205 96 L 206 110 L 212 112 L 212 96 Z M 189 60 L 163 75 L 161 75 L 158 77 L 157 79 L 157 200 L 159 204 L 167 211 L 187 233 L 191 235 L 191 60 Z M 178 120 L 180 122 L 180 138 L 176 141 L 172 142 L 168 141 L 169 123 L 171 122 L 172 123 L 175 122 L 176 120 Z M 193 6 L 190 6 L 177 15 L 167 21 L 165 21 L 163 23 L 161 23 L 159 25 L 157 25 L 155 27 L 148 29 L 136 35 L 118 41 L 95 47 L 90 47 L 86 49 L 64 52 L 63 54 L 62 63 L 60 100 L 60 116 L 62 148 L 64 156 L 64 164 L 68 186 L 70 190 L 70 194 L 78 219 L 83 231 L 91 246 L 96 254 L 99 257 L 100 260 L 112 275 L 130 292 L 133 296 L 158 315 L 166 320 L 171 322 L 176 326 L 178 326 L 188 332 L 191 332 L 191 313 L 189 311 L 184 309 L 174 303 L 154 289 L 149 284 L 144 281 L 141 277 L 127 264 L 112 245 L 111 242 L 105 233 L 95 212 L 95 209 L 93 207 L 93 204 L 91 201 L 91 197 L 89 193 L 89 189 L 87 186 L 83 165 L 83 159 L 81 153 L 81 141 L 79 132 L 79 80 L 80 70 L 82 68 L 86 68 L 91 66 L 97 66 L 108 62 L 113 62 L 127 58 L 129 56 L 133 56 L 141 52 L 144 52 L 149 50 L 151 48 L 158 46 L 160 44 L 168 41 L 176 36 L 178 36 L 190 28 L 193 28 L 205 36 L 207 36 L 215 41 L 223 44 L 225 46 L 245 54 L 254 56 L 256 58 L 260 58 L 263 60 L 270 62 L 275 62 L 279 64 L 283 64 L 287 66 L 294 66 L 301 68 L 303 70 L 304 78 L 303 136 L 305 136 L 312 131 L 318 129 L 322 125 L 323 116 L 323 86 L 321 77 L 321 61 L 320 54 L 319 52 L 310 51 L 304 49 L 297 49 L 293 47 L 288 47 L 285 45 L 280 45 L 276 43 L 272 43 L 242 33 L 224 25 L 222 23 L 220 23 L 211 18 Z"/>
+          <path fill="#FFFFFF" fill-rule="evenodd" d="M 317 172 L 303 184 L 293 194 L 289 209 L 278 233 L 270 246 L 252 268 L 242 278 L 225 292 L 207 304 L 192 312 L 192 333 L 214 322 L 238 306 L 259 288 L 277 268 L 291 248 L 305 220 L 313 195 L 317 177 Z M 253 131 L 253 146 L 261 149 L 261 133 L 256 131 Z M 137 129 L 127 134 L 125 134 L 109 142 L 108 206 L 121 232 L 130 225 L 138 216 Z M 127 176 L 128 194 L 126 196 L 121 198 L 117 197 L 118 179 Z M 128 149 L 127 167 L 123 169 L 117 169 L 118 151 L 122 149 Z M 178 122 L 170 125 L 170 140 L 173 140 L 178 138 Z M 192 59 L 192 236 L 206 222 L 226 200 L 226 77 L 219 74 Z M 207 150 L 214 152 L 214 171 L 205 169 L 203 167 L 203 153 Z M 204 121 L 207 121 L 215 124 L 214 142 L 210 142 L 205 140 L 203 138 Z M 203 94 L 207 93 L 213 94 L 215 96 L 215 112 L 213 114 L 207 112 L 203 109 Z"/>
+        </svg>
+        Flat<span>Audit</span>
+      </a>
+      <div class="nav-actions">
+        <a href="index.html" class="btn-nav">← Back to Showcase</a>
+        <a href="https://breathtaker-adi.github.io/FlatAudit/Demo" class="btn-nav primary" target="_blank" rel="noopener">Interactive Studio ↗</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="privacy-container">
+    <div class="privacy-hero">
+      <div class="badge-pill">
+        <span class="dot"></span>
+        <span>Architectural Privacy Guarantee</span>
+      </div>
+      <h1 class="page-title">Privacy by Architecture,<br>Not by Policy.</h1>
+      <p class="lead-summary">
+        Most privacy policies are promises made in English about servers located in the cloud. FlatAudit's privacy is enforced by computer code that runs entirely on your physical computer. We don't store your personal data because we never receive it.
+      </p>
+    </div>
+
+    <!-- Section 1: Core Privacy Invariants -->
+    <section class="glass-card">
+      <h2>🛡️ The Four Architectural Invariants</h2>
+      <p>FlatAudit is engineered around four inviolable guarantees that hold true across every supported browser and portal:</p>
+      
+      <div class="invariant-grid">
+        <div class="invariant-item">
+          <h3>1. Zero PII Collection</h3>
+          <p>FlatAudit never asks for, records, stores, or transmits your name, phone number, email address, IP address, search queries, or UPI identifiers.</p>
+        </div>
+        <div class="invariant-item">
+          <h3>2. 100% In-Browser Execution</h3>
+          <p>The entire heuristic audit engine—including the 5-level MAD price ladder, advance-fee regex scanner, and deposit multiple checks—runs inside the local Chrome tab in &lt;300ms.</p>
+        </div>
+        <div class="invariant-item">
+          <h3>3. 100m Spatial Grid Anonymization</h3>
+          <p>When fetching OpenStreetMap infrastructure, exact coordinates are mathematically rounded to a coarse 100m bounding grid. The public OSM server never receives your exact flat or building location.</p>
+        </div>
+        <div class="invariant-item">
+          <h3>4. Client-Side Photo Fingerprinting</h3>
+          <p>64-bit dHash perceptual image fingerprints are calculated inside an offscreen canvas on your machine. Images are never uploaded to any remote server.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Permissions Transparency -->
+    <section class="glass-card">
+      <h2>🔍 Chrome Extension Permissions Transparency</h2>
+      <p>Under Apple Human Interface Guidelines and modern browser security standards, here is the full disclosure of every permission requested in <code>manifest.json</code> and why it is technically necessary:</p>
+
+      <table class="perm-table">
+        <thead>
+          <tr>
+            <th>Permission</th>
+            <th>Technical Purpose</th>
+            <th>Data Scope &amp; Guarantee</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="perm-name">storage</span></td>
+            <td>Stores your personal watchlist, saved listings, and custom metric thresholds.</td>
+            <td>Strictly stored in <code>chrome.storage.local</code>. Never synced to any remote database or cloud provider.</td>
+          </tr>
+          <tr>
+            <td><span class="perm-name">activeTab</span></td>
+            <td>Allows content script execution to read listing DOM nodes when you visit a property page.</td>
+            <td>Scoped exclusively to supported real estate portals (NoBroker, MagicBricks, 99acres, Housing.com). Passive on all other websites.</td>
+          </tr>
+          <tr>
+            <td><span class="perm-name">offscreen</span></td>
+            <td>Downscales property images to 8×8 grayscale bitmaps for 64-bit dHash perceptual fingerprinting.</td>
+            <td>Executes inside an isolated sandboxed background canvas. Bitmap data is destroyed immediately after hash generation.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Section 3: Third-Party Network Services -->
+    <section class="glass-card">
+      <h2>🌐 Network Traffic &amp; External APIs</h2>
+      <p>FlatAudit communicates with external servers solely when explicitly requested by user action:</p>
+      
+      <div class="callout-box">
+        <b>OpenStreetMap Overpass API:</b> When you view the Area Report, FlatAudit issues a read-only query to the public OpenStreetMap Overpass API (<code>overpass-api.de</code>) to tally public amenities (metro stations, schools, hospitals, supermarkets). The request contains only quantized coordinates (rounded to 3 decimal places / ~100m) and receives only raw OSM node counts.
+      </div>
+
+      <p>
+        FlatAudit includes <b>zero analytics trackers</b>, <b>zero tracking pixels</b>, <b>zero advertising SDKs</b>, and <b>zero telemetry beacons</b>. No Google Analytics, no Mixpanel, no Facebook Pixel, no Sentry.
+      </p>
+    </section>
+
+    <!-- Section 4: Open Source Verification -->
+    <section class="glass-card">
+      <h2>📜 Open Source &amp; MIT Licensed</h2>
+      <p>
+        Trust requires auditability. Every single line of FlatAudit's source code is public and open source under the permissive MIT License. You or any security researcher can independently clone the repository, inspect network traffic in Chrome DevTools, and verify that these privacy invariants are strictly upheld.
+      </p>
+      <div style="margin-top: 18px; display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="https://github.com/breathtaker-adi/FlatAudit" target="_blank" rel="noopener" class="btn-nav primary">
+          Inspect Source on GitHub ↗
+        </a>
+        <a href="https://github.com/breathtaker-adi/FlatAudit/blob/main/LICENSE" target="_blank" rel="noopener" class="btn-nav">
+          Read MIT License ↗
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <span>© 2026 FlatAudit · MIT License</span>
+      <span>Map data © OpenStreetMap contributors (ODbL)</span>
+      <span>Engineered by <a href="https://github.com/breathtaker-adi" target="_blank" rel="noopener" style="color:var(--cyan);font-weight:600">Aditya Kumawat (breathtaker-adi) ↗</a></span>
+    </div>
+  </footer>
+
+</body>
+</html>

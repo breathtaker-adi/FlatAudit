@@ -175,13 +175,20 @@ uvicorn backend.main:app --reload --port 8000
 ```
 *API documentation is available at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).*
 
-### Step 4: Launch the Dual Web Surfaces (Showcase & Studio)
+### Step 4: Access the Dual Web Surfaces (Showcase & Studio)
+
+#### 🌐 Deployed Production Sites (GitHub Pages)
+- **Official Showcase Website**: [https://breathtaker-adi.github.io/FlatAudit/](https://breathtaker-adi.github.io/FlatAudit/)  
+  *Full cinematic narrative showcase featuring the 5-stage rental scam kill chain with GSAP smooth scroll pinning, center pop-up solution card, 3-step Quick Start installer, Buyhatke price tracking sparkline, buyer due diligence checklist, and OpenStreetMap area infrastructure report.*
+- **Interactive Studio & Evaluation Lab**: [https://breathtaker-adi.github.io/FlatAudit/Demo](https://breathtaker-adi.github.io/FlatAudit/Demo)  
+  *Developer testbed and property intelligence suite: Property Audit Dossier, Buyhatke-style Price History & Watchlist Comparison, Capital Appreciation Forecaster, and Research Lab with Hamming distance calculator.*
+
+#### 💻 Local Development Server
+To run the web surfaces locally:
 ```bash
 npm run demo
 ```
-*The local demo server starts at `http://localhost:8080` (powered by `scripts/serve_demo.js` with ES module and JSON streaming support):*
-- **Launch Showcase (`http://localhost:8080/index2.html` or `/`)**: Full cinematic narrative showcase featuring the 5-stage rental scam kill chain with GSAP smooth scroll pinning, 60% center pop-up solution card, live in-page trust audit interactive widget, Buyhatke price tracking sparkline, buyer mode diligence preview, and OpenStreetMap area report.
-- **Interactive Studio (`http://localhost:8080/index.html`)**: Developer testbed and full property intelligence suite (Property Audit Dossier, Buyhatke-style Price History & Watchlist Comparison, Capital Appreciation Forecaster, and Research Lab with Hamming distance calculator).
+*The local development server starts at `http://localhost:8080` (powered by `scripts/serve_demo.js` with ES module and JSON streaming support).*
 
 ### Step 5: Load the Chrome Extension
 1. Open Google Chrome and navigate to `chrome://extensions/`.
